@@ -4,4 +4,11 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "fastapi>=0.135.1",
+    "mypy>=1.19.1",
+    "pydantic>=2.12.5",
+    "pydantic-settings>=2.13.1",
+    "ruff>=0.15.7",
+    "uvicorn>=0.42.0",
+]
