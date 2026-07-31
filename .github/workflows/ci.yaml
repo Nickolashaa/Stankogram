@@ -1,0 +1,21 @@
+name: ci
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+      - name: Setup dependencies and launch linters
+        working-directory: ./server/
+        run: |
+          uv sync
+          uv run ruff format --check .
+          uv run ruff check .
+          uv run mypy .
