@@ -1,14 +1,8 @@
-from enum import Enum
-
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import expression
 
+from ...enums.users import Role
 from ..connection import Base
-
-
-class UserType(Enum):
-    STUDENT = "STUDENT"
-    TEACHER = "TEACHER"
 
 
 class User(Base):
@@ -19,7 +13,7 @@ class User(Base):
     patronymic: Mapped[str | None]
     login: Mapped[str]
     hashed_password: Mapped[str]
-    type: Mapped[UserType]
+    role: Mapped[Role]
     is_admin: Mapped[bool] = mapped_column(
         server_default=expression.false(),
     )
