@@ -1,6 +1,6 @@
 from pydantic import Field
 
-from ..config import DEFAULT_PASSWORD_LEN
+from ..config import MIN_PASSWORD_LEN
 from ..enums.users import Role
 from .base import Schema
 
@@ -18,7 +18,7 @@ class UserResponse(Schema):
 
 class UserCredentials(Schema):
     login: str
-    password: str = Field(..., min_length=DEFAULT_PASSWORD_LEN)
+    password: str = Field(..., min_length=MIN_PASSWORD_LEN)
 
 
 class UserCreate(Schema):
