@@ -10,6 +10,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "8000:8000"
     volumes:
       - "./server/src/database/alembic/versions/:/app/src/database/alembic/versions/"
 
