@@ -6,7 +6,7 @@ from asyncpg.exceptions import UniqueViolationError
 from sqlalchemy import insert, select
 from sqlalchemy.exc import IntegrityError
 
-from ..config import DEFAULT_PASSWORD_LEN
+from ..config import MIN_PASSWORD_LEN
 from ..database.models.users import User
 from ..schemas.users import UserCreate, UserCredentials, UserResponse
 from ..utils.transliteration import transliterate
@@ -34,7 +34,7 @@ class UserService(BaseService):
         return "".join(
             choices(
                 population=ascii_letters + digits,
-                k=DEFAULT_PASSWORD_LEN,
+                k=MIN_PASSWORD_LEN,
             )
         )
 
@@ -88,11 +88,10 @@ class UserService(BaseService):
         id: int,
     ) -> UserResponse:
         stmt = select(User).where(User.id == id)
-        try:
-            res = await self._session.execute(stmt)
-        except IntegrityError:
+        res = await self._session.execute(stmt)
+        entity = res.scalar_one_or_none()
+        if entity is None:
             raise ObjectNotFound(
                 f"User with id {id} not found",
             )
-
-        return UserResponse.model_validate(res.scalar_one())
+        return UserResponse.model_validate(entity)
