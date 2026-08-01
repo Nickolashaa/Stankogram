@@ -25,7 +25,7 @@ class UserService(BaseService):
         return (
             f"{transliterate(surname).capitalize()}"
             f"{transliterate(name[0]).upper()}"
-            f"{transliterate(patronymic[0].upper()) if patronymic is not None else ''}"
+            f"{transliterate(patronymic[0]).upper() if patronymic is not None else ''}"
             f"{salt_number if salt_number is not None else ''}"
         )
 
@@ -46,7 +46,7 @@ class UserService(BaseService):
         password = self._generate_password()
         hashed_password = bcrypt.hashpw(
             password=password.encode(), salt=bcrypt.gensalt()
-        )
+        ).decode()
         while True:
             login = self._generate_login(
                 name=payload.name,
@@ -66,6 +66,7 @@ class UserService(BaseService):
                     password=password,
                 )
             except IntegrityError as e:
+                await self._session.rollback()
                 assert e.orig is not None
                 cause = e.orig.__cause__
                 if isinstance(cause, UniqueViolationError):
