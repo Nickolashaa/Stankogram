@@ -1,7 +1,9 @@
-from ..connection import Base
-from sqlalchemy.orm import Mapped, mapped_column
 from enum import Enum
+
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import expression
+
+from ..connection import Base
 from ..mixins.timestamp import TimestampMixin
 
 
