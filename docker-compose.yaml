@@ -1,0 +1,27 @@
+services:
+  server:
+    build: ./server/
+    restart: unless-stopped
+    container_name: server
+    depends_on:
+      database:
+        condition: service_healthy
+
+  database:
+    image: postgres:18.4
+    container_name: database
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - "database_data:/var/lib/postgresql/"
+
+volumes:
+  database_data:
