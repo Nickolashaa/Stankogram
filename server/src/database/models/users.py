@@ -11,7 +11,7 @@ class User(Base):
     name: Mapped[str]
     surname: Mapped[str]
     patronymic: Mapped[str | None]
-    login: Mapped[str]
+    login: Mapped[str] = mapped_column(unique=True)
     hashed_password: Mapped[str]
     role: Mapped[Role]
     is_admin: Mapped[bool] = mapped_column(
