@@ -6,6 +6,12 @@ services:
     depends_on:
       database:
         condition: service_healthy
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - "./server/src/database/alembic/versions/:/app/src/database/alembic/versions/"
 
   database:
     image: postgres:18.4
