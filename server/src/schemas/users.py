@@ -29,3 +29,4 @@ class UserCreate(Schema):
     patronymic: str | None = Field(..., max_length=60)
     phone_number: str = Field(..., min_length=12, max_length=12)
     role: Role
+    is_admin: bool
