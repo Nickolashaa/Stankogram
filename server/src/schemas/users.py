@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import jwt
 from pydantic import Field
@@ -42,7 +42,7 @@ class UserCreate(Schema):
 class UserJWTPayload(Schema):
     id: int
     is_admin: bool
-    jti: UUID = Field(default=uuid4())
+    jti: str = Field(default=str(uuid4()))
 
     def generate_token(self) -> str:
         return jwt.encode(
