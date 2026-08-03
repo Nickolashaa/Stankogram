@@ -14,7 +14,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - "./server/src/database/alembic/versions/:/app/src/database/alembic/versions/"
+      - "./server/src/database/:/app/src/database/"
 
   database:
     image: postgres:18.4
