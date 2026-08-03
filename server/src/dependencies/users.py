@@ -39,4 +39,4 @@ async def get_current_user(
     try:
         return await service.get(payload.id)
     except ObjectNotFound as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise e.to_http_exception()

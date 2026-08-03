@@ -1,6 +1,19 @@
-class ObjectAlreadyExists(Exception):
-    pass
+from fastapi import HTTPException
 
 
-class ObjectNotFound(Exception):
-    pass
+class BaseException(Exception):
+    http_code: int
+
+    def to_http_exception(self) -> HTTPException:
+        return HTTPException(
+            status_code=self.http_code,
+            detail=str(self),
+        )
+
+
+class ObjectAlreadyExists(BaseException):
+    http_code = 422
+
+
+class ObjectNotFound(BaseException):
+    http_code = 404

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, Response
 
 from ..config import JWT_REFRESH_EXP_DAYS
 from ..dependencies import get_user_service
@@ -17,10 +17,7 @@ async def get_user(
     try:
         return await service.get(id)
     except ObjectNotFound as e:
-        raise HTTPException(
-            status_code=404,
-            detail=str(e),
-        )
+        raise e.to_http_exception()
 
 
 @router.post("/register", response_model=UserCredentials)
@@ -30,10 +27,7 @@ async def register_user(
     try:
         return await service.register(body)
     except ObjectAlreadyExists as e:
-        raise HTTPException(
-            status_code=422,
-            detail=str(e),
-        )
+        raise e.to_http_exception()
 
 
 @router.post("/login", response_model=JWTTokens)
@@ -45,10 +39,7 @@ async def login(
     try:
         tokens = await service.login(credentials)
     except ObjectNotFound as e:
-        raise HTTPException(
-            status_code=404,
-            detail=str(e),
-        )
+        raise e.to_http_exception()
 
     response.set_cookie(
         key="refresh_token",
