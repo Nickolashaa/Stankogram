@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends
 
-from ..dependencies import get_user_service
+from ..dependencies import get_user_service, is_admin
 from ..schemas.users import UserCreate, UserCredentials, UserResponse
 from ..services import UserService
 from ..services.exceptions import ObjectAlreadyExists, ObjectNotFound
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(prefix="/users", tags=["users"], dependencies=[Depends(is_admin)])
 
 
 @router.get("/{id}", response_model=UserResponse)

@@ -38,3 +38,20 @@ async def get_current_user(
         return await service.get(payload.id)
     except ObjectNotFound as e:
         raise e.to_http_exception()
+
+
+async def is_admin(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+) -> None:
+    try:
+        payload = UserJWTPayload.from_token(credentials.credentials)
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Expired token")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    if payload.type == "refresh":
+        raise HTTPException(status_code=401, detail="Invalid token type")
+
+    if payload.is_admin is False:
+        raise HTTPException(status_code=403, detail="Access denied")
