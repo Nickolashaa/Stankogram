@@ -40,6 +40,14 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "6060:80"
-
+  
+  client:
+    build: ./client/
+    restart: unless-stopped
+    container_name: client
+    ports:
+      - "5173:5173"
+    volumes:
+      - "./client/src:/app/src/"
 volumes:
   database_data:
