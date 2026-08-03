@@ -1,4 +1,4 @@
-from random import choices
+from secrets import choice
 from string import ascii_letters, digits
 
 import bcrypt
@@ -8,12 +8,9 @@ from sqlalchemy.exc import IntegrityError
 
 from ..config import MIN_PASSWORD_LEN
 from ..database.models.users import User
-from ..schemas.jwt import JWTTokens
 from ..schemas.users import (
     UserCreate,
     UserCredentials,
-    UserJWTAccessPayload,
-    UserJWTRefreshPayload,
     UserResponse,
 )
 from ..utils.transliteration import transliterate
@@ -38,29 +35,9 @@ class UserService(BaseService):
 
     @staticmethod
     def _generate_password() -> str:
-        return "".join(
-            choices(
-                population=ascii_letters + digits,
-                k=MIN_PASSWORD_LEN,
-            )
-        )
+        return "".join(choice(ascii_letters + digits) for _ in range(MIN_PASSWORD_LEN))
 
-    @staticmethod
-    def _generate_jwt_tokens(user: UserResponse) -> JWTTokens:
-        user_jwt_access_payload = UserJWTAccessPayload(
-            id=user.id,
-            is_admin=user.is_admin,
-        )
-        user_jwt_refresh_payload = UserJWTRefreshPayload(
-            id=user.id,
-            is_admin=user.is_admin,
-        )
-        return JWTTokens(
-            access_token=user_jwt_access_payload.generate_token(),
-            refresh_token=user_jwt_refresh_payload.generate_token(),
-        )
-
-    async def register(
+    async def create(
         self,
         payload: UserCreate,
     ) -> UserCredentials:
@@ -135,11 +112,11 @@ class UserService(BaseService):
     async def login(
         self,
         credentials: UserCredentials,
-    ) -> JWTTokens:
+    ) -> UserResponse:
         user = await self.get_by_login(credentials.login)
 
         if bcrypt.checkpw(credentials.password.encode(), user.hashed_password.encode()):
-            return self._generate_jwt_tokens(user)
+            return user
 
         raise ObjectNotFound(
             f"User with login {credentials.login} and password "

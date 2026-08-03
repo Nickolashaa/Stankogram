@@ -5,7 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from ..connection import Base
 
 
-class CancelledRefreshToken(Base):
-    __tablename__ = "cancelled_refresh_tokens"
+class CancelledToken(Base):
+    __tablename__ = "cancelled_tokens"
 
     jti: Mapped[UUID] = mapped_column(unique=True)

@@ -1,15 +1,6 @@
-from datetime import datetime, timedelta, timezone
-from typing import Self
-from uuid import uuid4
-
-import jwt
 from pydantic import Field
 
 from ..config import (
-    JWT_ACCESS_EXP_MINUTES,
-    JWT_ENCRYPTION_ALGORITHM,
-    JWT_REFRESH_EXP_DAYS,
-    JWT_SECRET_KEY,
     MIN_PASSWORD_LEN,
 )
 from ..enums.users import Role
@@ -38,37 +29,3 @@ class UserCreate(Schema):
     patronymic: str | None = Field(..., max_length=60)
     phone_number: str = Field(..., min_length=12, max_length=12)
     role: Role
-
-
-class UserJWTPayload(Schema):
-    id: int
-    is_admin: bool
-    jti: str = Field(default=str(uuid4()))
-    exp: datetime
-
-    def generate_token(self) -> str:
-        return jwt.encode(
-            payload=self.model_dump(),
-            key=JWT_SECRET_KEY,
-            algorithm=JWT_ENCRYPTION_ALGORITHM,
-        )
-
-    @classmethod
-    def from_token(cls, token: str) -> Self:
-        return cls.model_validate(
-            jwt.decode(
-                jwt=token, key=JWT_SECRET_KEY, algorithms=[JWT_ENCRYPTION_ALGORITHM]
-            )
-        )
-
-
-class UserJWTAccessPayload(UserJWTPayload):
-    exp: datetime = Field(
-        default=datetime.now(timezone.utc) + timedelta(minutes=JWT_ACCESS_EXP_MINUTES)
-    )
-
-
-class UserJWTRefreshPayload(UserJWTPayload):
-    exp: datetime = Field(
-        default=datetime.now(timezone.utc) + timedelta(days=JWT_REFRESH_EXP_DAYS)
-    )

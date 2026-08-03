@@ -1,18 +1,18 @@
 from typing import Annotated
 from uuid import UUID
 
+import jwt
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
 
 from ..config import JWT_REFRESH_EXP_DAYS
 from ..dependencies import (
-    get_cancelled_refresh_token_service,
+    get_auth_service,
     get_current_user,
     get_user_service,
 )
-from ..schemas.jwt import JWTTokens
-from ..schemas.users import UserCreate, UserCredentials, UserJWTPayload, UserResponse
-from ..services import UserService
-from ..services.cancelled_refresh_tokens import CancelledRefreshTokenService
+from ..schemas.jwt import JWTTokens, UserJWTPayload
+from ..schemas.users import UserCredentials, UserResponse
+from ..services import AuthService, UserService
 from ..services.exceptions import ObjectAlreadyExists, ObjectNotFound
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -25,26 +25,19 @@ async def get_me(
     return user
 
 
-@router.post("/register", response_model=UserCredentials)
-async def register(
-    body: UserCreate, service: UserService = Depends(get_user_service)
-) -> UserCredentials:
-    try:
-        return await service.register(body)
-    except ObjectAlreadyExists as e:
-        raise e.to_http_exception()
-
-
 @router.post("/login", response_model=JWTTokens)
 async def login(
     response: Response,
     credentials: UserCredentials,
-    service: UserService = Depends(get_user_service),
+    service: AuthService = Depends(get_auth_service),
+    user_service: UserService = Depends(get_user_service),
 ) -> JWTTokens:
     try:
-        tokens = await service.login(credentials)
+        user = await user_service.login(credentials)
     except ObjectNotFound as e:
         raise e.to_http_exception()
+
+    tokens = service.generate_jwt_tokens(user)
 
     response.set_cookie(
         key="refresh_token",
@@ -61,36 +54,45 @@ async def login(
 async def logout(
     response: Response,
     refresh_token: Annotated[str | None, Cookie()] = None,
-    service: CancelledRefreshTokenService = Depends(
-        get_cancelled_refresh_token_service
-    ),
+    service: AuthService = Depends(get_auth_service),
 ) -> None:
     if refresh_token is not None:
         response.delete_cookie("refresh_token")
 
-        payload = UserJWTPayload.from_token(refresh_token)
+        try:
+            payload = UserJWTPayload.from_token(refresh_token)
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Expired token")
+        except jwt.InvalidTokenError:
+            raise HTTPException(status_code=401, detail="Invalid token")
 
-        await service.create(UUID(payload.jti))
+        await service.cancel_token(UUID(payload.jti))
 
 
 @router.post("/refresh", response_model=JWTTokens)
 async def refresh(
     response: Response,
     refresh_token: Annotated[str | None, Cookie()] = None,
-    service: CancelledRefreshTokenService = Depends(
-        get_cancelled_refresh_token_service
-    ),
+    service: AuthService = Depends(get_auth_service),
     user_service: UserService = Depends(get_user_service),
 ) -> JWTTokens:
     if refresh_token is None:
         raise HTTPException(status_code=404, detail="Token not found")
 
-    payload = UserJWTPayload.from_token(refresh_token)
+    try:
+        payload = UserJWTPayload.from_token(refresh_token)
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Expired token")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    if payload.type != "refresh":
+        raise HTTPException(status_code=401, detail="Invalid token type")
 
     response.delete_cookie("refresh_token")
 
     try:
-        await service.create(UUID(payload.jti))
+        await service.cancel_token(UUID(payload.jti))
     except ObjectAlreadyExists:
         raise HTTPException(status_code=401, detail="Token in blacklist")
 
@@ -99,7 +101,7 @@ async def refresh(
     except ObjectNotFound as e:
         raise e.to_http_exception()
 
-    tokens = user_service._generate_jwt_tokens(user)
+    tokens = service.generate_jwt_tokens(user)
 
     response.set_cookie(
         key="refresh_token",
