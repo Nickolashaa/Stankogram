@@ -8,7 +8,14 @@ from sqlalchemy.exc import IntegrityError
 
 from ..config import MIN_PASSWORD_LEN
 from ..database.models.users import User
-from ..schemas.users import UserCreate, UserCredentials, UserResponse
+from ..schemas.jwt import JWTTokens
+from ..schemas.users import (
+    UserCreate,
+    UserCredentials,
+    UserJWTAccessPayload,
+    UserJWTRefreshPayload,
+    UserResponse,
+)
 from ..utils.transliteration import transliterate
 from .base import BaseService
 from .exceptions import ObjectAlreadyExists, ObjectNotFound
@@ -36,6 +43,21 @@ class UserService(BaseService):
                 population=ascii_letters + digits,
                 k=MIN_PASSWORD_LEN,
             )
+        )
+
+    @staticmethod
+    def _generate_jwt_tokens(user: UserResponse) -> JWTTokens:
+        user_jwt_access_payload = UserJWTAccessPayload(
+            id=user.id,
+            is_admin=user.is_admin,
+        )
+        user_jwt_refresh_payload = UserJWTRefreshPayload(
+            id=user.id,
+            is_admin=user.is_admin,
+        )
+        return JWTTokens(
+            access_token=user_jwt_access_payload.generate_token(),
+            refresh_token=user_jwt_refresh_payload.generate_token(),
         )
 
     async def register(
@@ -96,3 +118,30 @@ class UserService(BaseService):
                 f"User with id {id} not found",
             )
         return UserResponse.model_validate(entity)
+
+    async def get_by_login(
+        self,
+        login: str,
+    ) -> UserResponse:
+        stmt = select(User).where(User.login == login)
+        res = await self._session.execute(stmt)
+        entity = res.scalar_one_or_none()
+        if entity is None:
+            raise ObjectNotFound(
+                f"User with login {login} not found",
+            )
+        return UserResponse.model_validate(entity)
+
+    async def login(
+        self,
+        credentials: UserCredentials,
+    ) -> JWTTokens:
+        user = await self.get_by_login(credentials.login)
+
+        if bcrypt.checkpw(credentials.password.encode(), user.hashed_password.encode()):
+            return self._generate_jwt_tokens(user)
+
+        raise ObjectNotFound(
+            f"User with login {credentials.login} and password "
+            f"{credentials.password} not found"
+        )
