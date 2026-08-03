@@ -1,7 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Cookie, Depends, Response
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
 
 from ..config import JWT_REFRESH_EXP_DAYS
 from ..dependencies import (
@@ -71,3 +71,42 @@ async def logout(
         payload = UserJWTPayload.from_token(refresh_token)
 
         await service.create(UUID(payload.jti))
+
+
+@router.post("/refresh", response_model=JWTTokens)
+async def refresh(
+    response: Response,
+    refresh_token: Annotated[str | None, Cookie()] = None,
+    service: CancelledRefreshTokenService = Depends(
+        get_cancelled_refresh_token_service
+    ),
+    user_service: UserService = Depends(get_user_service),
+) -> JWTTokens:
+    if refresh_token is None:
+        raise HTTPException(status_code=404, detail="Token not found")
+
+    payload = UserJWTPayload.from_token(refresh_token)
+
+    response.delete_cookie("refresh_token")
+
+    try:
+        await service.create(UUID(payload.jti))
+    except ObjectAlreadyExists:
+        raise HTTPException(status_code=401, detail="Token in blacklist")
+
+    try:
+        user = await user_service.get(payload.id)
+    except ObjectNotFound as e:
+        raise e.to_http_exception()
+
+    tokens = user_service._generate_jwt_tokens(user)
+
+    response.set_cookie(
+        key="refresh_token",
+        value=tokens.refresh_token,
+        httponly=True,
+        samesite="lax",
+        max_age=60 * 60 * 24 * JWT_REFRESH_EXP_DAYS,
+    )
+
+    return tokens

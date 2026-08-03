@@ -1,9 +1,11 @@
 from uuid import UUID
 
-from sqlalchemy import exists, insert, select
+from sqlalchemy import insert
+from sqlalchemy.exc import IntegrityError
 
 from ..database.models.cancelled_jwt_tokens import CancelledRefreshToken
 from .base import BaseService
+from .exceptions import ObjectAlreadyExists
 
 
 class CancelledRefreshTokenService(BaseService):
@@ -12,12 +14,7 @@ class CancelledRefreshTokenService(BaseService):
         jti: UUID,
     ) -> None:
         stmt = insert(CancelledRefreshToken).values(jti=jti)
-        await self._session.execute(stmt)
-
-    async def is_exists(
-        self,
-        jti: UUID,
-    ) -> bool:
-        stmt = select(exists()).where(CancelledRefreshToken.jti == jti)
-        res = await self._session.execute(stmt)
-        return res.scalar_one()
+        try:
+            await self._session.execute(stmt)
+        except IntegrityError:
+            raise ObjectAlreadyExists(f"Token with jti {jti} already exists")
