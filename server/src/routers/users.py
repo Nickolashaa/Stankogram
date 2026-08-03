@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 
+from ..config import JWT_REFRESH_EXP_DAYS
 from ..dependencies import get_user_service
+from ..schemas.jwt import JWTTokens
 from ..schemas.users import UserCreate, UserCredentials, UserResponse
 from ..services import UserService
 from ..services.exceptions import ObjectAlreadyExists, ObjectNotFound
@@ -32,3 +34,28 @@ async def register_user(
             status_code=422,
             detail=str(e),
         )
+
+
+@router.post("/login", response_model=JWTTokens)
+async def login(
+    response: Response,
+    credentials: UserCredentials,
+    service: UserService = Depends(get_user_service),
+) -> JWTTokens:
+    try:
+        tokens = await service.login(credentials)
+    except ObjectNotFound as e:
+        raise HTTPException(
+            status_code=404,
+            detail=str(e),
+        )
+
+    response.set_cookie(
+        key="refresh_token",
+        value=tokens.refresh_token,
+        httponly=True,
+        samesite="lax",
+        max_age=60 * 60 * 24 * JWT_REFRESH_EXP_DAYS,
+    )
+
+    return tokens
