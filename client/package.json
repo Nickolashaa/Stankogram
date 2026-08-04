@@ -13,7 +13,7 @@
     "lint:oxlint": "oxlint . --fix",
     "lint:eslint": "eslint . --fix --cache",
     "format": "prettier --write --experimental-cli src/",
-    "codegen": "npx openapi-typescript ./../server/schema.json -o ./src/api/schema.ts"
+    "codegen": "npx openapi-typescript ./../server/schema.json -o ./src/api/schema.ts && prettier --write ./src/api/schema.ts"
   },
   "dependencies": {
     "openapi-fetch": "^0.17.0",
