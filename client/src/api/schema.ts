@@ -132,6 +132,13 @@ export interface components {
       /** Detail */
       detail?: components["schemas"]["ValidationError"][]
     }
+    /** HealthResponse */
+    HealthResponse: {
+      /** Code */
+      code: number
+      /** Message */
+      message: string
+    }
     /** JWTTokens */
     JWTTokens: {
       /** Access Token */
@@ -399,9 +406,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            [key: string]: string
-          }
+          "application/json": components["schemas"]["HealthResponse"]
         }
       }
     }
