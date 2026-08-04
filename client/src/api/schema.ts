@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-  '/api/users/{id}': {
+  "/api/users/{id}": {
     parameters: {
       query?: never
       header?: never
@@ -12,7 +12,7 @@ export interface paths {
       cookie?: never
     }
     /** Get User */
-    get: operations['get_user_api_users__id__get']
+    get: operations["get_user_api_users__id__get"]
     put?: never
     post?: never
     delete?: never
@@ -21,7 +21,7 @@ export interface paths {
     patch?: never
     trace?: never
   }
-  '/api/users/create': {
+  "/api/users/create": {
     parameters: {
       query?: never
       header?: never
@@ -31,14 +31,14 @@ export interface paths {
     get?: never
     put?: never
     /** Register */
-    post: operations['register_api_users_create_post']
+    post: operations["register_api_users_create_post"]
     delete?: never
     options?: never
     head?: never
     patch?: never
     trace?: never
   }
-  '/api/auth/me': {
+  "/api/auth/me": {
     parameters: {
       query?: never
       header?: never
@@ -46,7 +46,7 @@ export interface paths {
       cookie?: never
     }
     /** Get Me */
-    get: operations['get_me_api_auth_me_get']
+    get: operations["get_me_api_auth_me_get"]
     put?: never
     post?: never
     delete?: never
@@ -55,7 +55,7 @@ export interface paths {
     patch?: never
     trace?: never
   }
-  '/api/auth/login': {
+  "/api/auth/login": {
     parameters: {
       query?: never
       header?: never
@@ -65,14 +65,14 @@ export interface paths {
     get?: never
     put?: never
     /** Login */
-    post: operations['login_api_auth_login_post']
+    post: operations["login_api_auth_login_post"]
     delete?: never
     options?: never
     head?: never
     patch?: never
     trace?: never
   }
-  '/api/auth/logout': {
+  "/api/auth/logout": {
     parameters: {
       query?: never
       header?: never
@@ -82,14 +82,14 @@ export interface paths {
     get?: never
     put?: never
     /** Logout */
-    post: operations['logout_api_auth_logout_post']
+    post: operations["logout_api_auth_logout_post"]
     delete?: never
     options?: never
     head?: never
     patch?: never
     trace?: never
   }
-  '/api/auth/refresh': {
+  "/api/auth/refresh": {
     parameters: {
       query?: never
       header?: never
@@ -99,14 +99,14 @@ export interface paths {
     get?: never
     put?: never
     /** Refresh */
-    post: operations['refresh_api_auth_refresh_post']
+    post: operations["refresh_api_auth_refresh_post"]
     delete?: never
     options?: never
     head?: never
     patch?: never
     trace?: never
   }
-  '/api/health': {
+  "/api/health": {
     parameters: {
       query?: never
       header?: never
@@ -114,7 +114,7 @@ export interface paths {
       cookie?: never
     }
     /** Health */
-    get: operations['health_api_health_get']
+    get: operations["health_api_health_get"]
     put?: never
     post?: never
     delete?: never
@@ -130,7 +130,7 @@ export interface components {
     /** HTTPValidationError */
     HTTPValidationError: {
       /** Detail */
-      detail?: components['schemas']['ValidationError'][]
+      detail?: components["schemas"]["ValidationError"][]
     }
     /** JWTTokens */
     JWTTokens: {
@@ -143,7 +143,7 @@ export interface components {
      * Role
      * @enum {string}
      */
-    Role: 'STUDENT' | 'TEACHER'
+    Role: "STUDENT" | "TEACHER"
     /** UserCreate */
     UserCreate: {
       /** Name */
@@ -154,7 +154,7 @@ export interface components {
       patronymic: string | null
       /** Phone Number */
       phone_number: string
-      role: components['schemas']['Role']
+      role: components["schemas"]["Role"]
       /** Is Admin */
       is_admin: boolean
     }
@@ -179,7 +179,7 @@ export interface components {
       login: string
       /** Hashed Password */
       hashed_password: string
-      role: components['schemas']['Role']
+      role: components["schemas"]["Role"]
       /** Is Admin */
       is_admin: boolean
     }
@@ -222,7 +222,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['UserResponse']
+          "application/json": components["schemas"]["UserResponse"]
         }
       }
       /** @description Validation Error */
@@ -231,7 +231,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['HTTPValidationError']
+          "application/json": components["schemas"]["HTTPValidationError"]
         }
       }
     }
@@ -245,7 +245,7 @@ export interface operations {
     }
     requestBody: {
       content: {
-        'application/json': components['schemas']['UserCreate']
+        "application/json": components["schemas"]["UserCreate"]
       }
     }
     responses: {
@@ -255,7 +255,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['UserCredentials']
+          "application/json": components["schemas"]["UserCredentials"]
         }
       }
       /** @description Validation Error */
@@ -264,7 +264,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['HTTPValidationError']
+          "application/json": components["schemas"]["HTTPValidationError"]
         }
       }
     }
@@ -284,7 +284,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['UserResponse']
+          "application/json": components["schemas"]["UserResponse"]
         }
       }
     }
@@ -298,7 +298,7 @@ export interface operations {
     }
     requestBody: {
       content: {
-        'application/json': components['schemas']['UserCredentials']
+        "application/json": components["schemas"]["UserCredentials"]
       }
     }
     responses: {
@@ -308,7 +308,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['JWTTokens']
+          "application/json": components["schemas"]["JWTTokens"]
         }
       }
       /** @description Validation Error */
@@ -317,7 +317,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['HTTPValidationError']
+          "application/json": components["schemas"]["HTTPValidationError"]
         }
       }
     }
@@ -339,7 +339,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': unknown
+          "application/json": unknown
         }
       }
       /** @description Validation Error */
@@ -348,7 +348,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['HTTPValidationError']
+          "application/json": components["schemas"]["HTTPValidationError"]
         }
       }
     }
@@ -370,7 +370,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['JWTTokens']
+          "application/json": components["schemas"]["JWTTokens"]
         }
       }
       /** @description Validation Error */
@@ -379,7 +379,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': components['schemas']['HTTPValidationError']
+          "application/json": components["schemas"]["HTTPValidationError"]
         }
       }
     }
@@ -399,7 +399,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          'application/json': {
+          "application/json": {
             [key: string]: string
           }
         }
