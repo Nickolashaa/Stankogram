@@ -1,13 +1,12 @@
 import asyncio
-import os
 
 from sqlalchemy import select
 
-from src.database.connection import session_maker
-from src.database.models.users import User
-from src.enums.users import Role
-from src.schemas.users import UserCreate
-from src.services.users import UserService
+from ..database.connection import session_maker
+from ..database.models.users import User
+from ..enums.users import Role
+from ..schemas.users import UserCreate
+from ..services.users import UserService
 
 
 async def main() -> None:
@@ -20,10 +19,10 @@ async def main() -> None:
         service = UserService(session)
         creds = await service.create(
             UserCreate(
-                name=os.environ["ADMIN_NAME"],
-                surname=os.environ["ADMIN_SURNAME"],
-                patronymic=os.environ.get("ADMIN_PATRONYMIC"),
-                phone_number=os.environ["ADMIN_PHONE"],
+                name=input("Name: "),
+                surname=input("Surname: "),
+                patronymic=input("Patronymic: "),
+                phone_number=input("Phone number: "),
                 role=Role.STUDENT,
                 is_admin=True,
             )
