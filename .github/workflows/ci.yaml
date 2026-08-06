@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  lint:
+  lint-py:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -19,3 +19,17 @@ jobs:
           uv run ruff format --check .
           uv run ruff check .
           uv run mypy .
+  lint-ts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: Setup dependencies and launch linters
+        working-directory: ./client/
+        run: |
+          npm ci
+          npm run lint
+          npm run type-check
