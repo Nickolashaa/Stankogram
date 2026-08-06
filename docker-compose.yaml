@@ -6,6 +6,15 @@ services:
     depends_on:
       database:
         condition: service_healthy
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./server/src/database/:/app/src/database/"
 
   database:
     image: postgres:18.4
@@ -22,6 +31,15 @@ services:
       start_period: 5s
     volumes:
       - "database_data:/var/lib/postgresql/"
+
+  pgadmin-dev:
+    image: dpage/pgadmin4
+    container_name: pgadmin-dev
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "6060:80"
 
 volumes:
   database_data:

@@ -4,7 +4,7 @@ COPY --from=docker.io/astral/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
 
-COPY ./pyproject.toml ./uv.lock ./
+COPY ./pyproject.toml ./uv.lock ./alembic.ini ./
 
 RUN uv sync --frozen --no-dev --no-install-project
 
