@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+:root {
+    --bg-color: #eff2f0;
+    --main-color: #1e2422;
+    --second-color: #6b7a74;
+    --accent-color: #4f8a76;
+
+    --bg-color-inverted: #121613;
+    --main-color-inverted: #e3e9e5;
+    --second-color-inverted: #8a9a92;
+    --accent-color-inverted: #6bb69b;
+
+    --font-family: "Montserrat", sans-serif;
+    --font-style: normal;
+}
+
+@theme {
+    --color-bg: var(--bg-color);
+    --color-main: var(--main-color);
+    --color-second: var(--second-color);
+    --color-accent: var(--accent-color);
+    --color-accent-hover: #436f60;
+    --color-card: color-mix(in srgb, var(--bg-color) 96%, var(--main-color) 4%);
+
+    --font-sans: var(--font-family);
+
+    --radius-input: 10px;
+    --radius-card: 1.25rem;
+
+    --shadow-card:
+        0 1px 2px rgba(0, 0, 0, 0.04),
+        0 12px 32px rgba(0, 0, 0, 0.08);
+
+    --animate-appear: appear 0.4s ease-out;
+}
+
+@keyframes appear {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+body {
+    color: var(--main-color);
+    background-color: var(--bg-color);
+    font-family: var(--font-family);
+    font-style: var(--font-style);
+    font-size: 100%;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
