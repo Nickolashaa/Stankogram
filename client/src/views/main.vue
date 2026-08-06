@@ -13,13 +13,13 @@ onMounted(async () => {
   data_var.value = data
 })
 
-const router = useRouter();
-const authStore = useAuthStore();
-const { user, accessToken } = storeToRefs(authStore);
+const router = useRouter()
+const authStore = useAuthStore()
+const { user } = storeToRefs(authStore)
 
 async function handleLogout() {
-  await authStore.logout();
-  router.push("/auth");
+  await authStore.logout()
+  router.push("/auth")
 }
 </script>
 
@@ -30,7 +30,7 @@ async function handleLogout() {
     <h2>Code: {{ data_var?.code }}</h2>
     <h3>Message: {{ data_var?.message }}</h3>
     <div class="">
-      {{ user ? user : 123}}
+      {{ user ? user : 123 }}
     </div>
     <button @click="handleLogout">Выйти</button>
   </template>

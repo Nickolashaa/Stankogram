@@ -7,7 +7,7 @@ const ACCESS_TOKEN_KEY = "accessToken"
 
 export const useAuthStore = defineStore("auth", () => {
   const user = ref<components["schemas"]["UserResponse"]>()
-  const accessToken = ref<string>(localStorage.getItem(ACCESS_TOKEN_KEY) ?? undefined)
+  const accessToken = ref<string | undefined>(localStorage.getItem(ACCESS_TOKEN_KEY) ?? undefined)
 
   watch(accessToken, (value) => {
     if (value === undefined) {
@@ -63,6 +63,6 @@ export const useAuthStore = defineStore("auth", () => {
     logout,
     user,
     accessToken,
-    refresh
+    refresh,
   }
 })
