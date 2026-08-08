@@ -48,4 +48,8 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
-          script: cd ~/stankogram/ && docker compose up -d --build
+          script: |
+            cd ~/stankogram/
+            docker compose up -d --build
+            docker exec -i server uv run alembic upgrade head
+            docker image prune -f
