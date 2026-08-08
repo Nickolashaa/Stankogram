@@ -9,6 +9,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
+        "https://stankogram.ru",
     ],
     allow_methods=["*"],
     allow_headers=["*"],
