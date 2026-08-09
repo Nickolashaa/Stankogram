@@ -26,11 +26,42 @@ class UserService(BaseService):
 
     @staticmethod
     def _generate_create_email(email: str, password: str) -> str:
-        return (
-            "<h1>Добрый день! Ваши данные для входа в Stankogram</h1>\n"
-            f"<h2>Электронная почта: {email}</h2>\n"
-            f"<h2>Пароль: {password}</h2>"
-        )
+        return f"""\
+<div style="margin:0;padding:32px 16px;background-color:#eff2f0;font-family:'Montserrat',Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;margin:0 auto;">
+    <tr>
+      <td style="padding-bottom:24px;text-align:center;">
+        <span style="font-size:22px;font-weight:700;color:#4f8a76;letter-spacing:0.5px;">Stankogram</span>
+      </td>
+    </tr>
+    <tr>
+      <td style="background-color:#ffffff;border-radius:20px;box-shadow:0 1px 2px rgba(0,0,0,0.04),0 12px 32px rgba(0,0,0,0.08);padding:36px 32px;">
+        <h1 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#1e2422;">Добро пожаловать!</h1>
+        <p style="margin:0 0 28px;font-size:14px;line-height:1.6;color:#6b7a74;">Ваша учётная запись в Stankogram создана. Ниже — данные для входа.</p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f7f6;border-radius:14px;overflow:hidden;">
+          <tr>
+            <td style="padding:16px 20px;border-bottom:1px solid #e3e7e5;">
+              <div style="font-size:12px;color:#6b7a74;margin-bottom:4px;">Электронная почта</div>
+              <div style="font-size:15px;font-weight:600;color:#1e2422;">{email}</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 20px;">
+              <div style="font-size:12px;color:#6b7a74;margin-bottom:4px;">Пароль</div>
+              <div style="font-size:15px;font-weight:600;color:#4f8a76;letter-spacing:0.5px;font-family:monospace;">{password}</div>
+            </td>
+          </tr>
+        </table>
+        <p style="margin:28px 0 0;font-size:12px;line-height:1.6;color:#6b7a74;">Рекомендуем сменить пароль после первого входа в систему.</p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding-top:20px;text-align:center;">
+        <span style="font-size:12px;color:#6b7a74;">© Stankogram</span>
+      </td>
+    </tr>
+  </table>
+</div>"""
 
     async def create(
         self,
