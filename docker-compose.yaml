@@ -35,7 +35,7 @@ services:
     restart: unless-stopped
     container_name: client
     depends_on:
-      server:
+      - server
 
   gateway:
     image: caddy:2.11
