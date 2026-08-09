@@ -21,6 +21,40 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  "/api/users": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get Users */
+    get: operations["get_users_api_users_get"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/users/count": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get Users Count */
+    get: operations["get_users_count_api_users_count_get"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   "/api/users/create": {
     parameters: {
       query?: never
@@ -159,18 +193,29 @@ export interface components {
       surname: string
       /** Patronymic */
       patronymic: string | null
-      /** Phone Number */
-      phone_number: string
+      /**
+       * Email
+       * Format: email
+       */
+      email: string
       role: components["schemas"]["Role"]
       /** Is Admin */
       is_admin: boolean
     }
     /** UserCredentials */
     UserCredentials: {
-      /** Login */
-      login: string
+      /** Email */
+      email: string
       /** Password */
       password: string
+    }
+    /** UserFilters */
+    UserFilters: {
+      /** Search Query */
+      search_query?: string | null
+      role?: components["schemas"]["Role"] | null
+      /** Is Admin */
+      is_admin?: boolean | null
     }
     /** UserResponse */
     UserResponse: {
@@ -182,8 +227,8 @@ export interface components {
       surname: string
       /** Patronymic */
       patronymic: string | null
-      /** Login */
-      login: string
+      /** Email */
+      email: string
       /** Hashed Password */
       hashed_password: string
       role: components["schemas"]["Role"]
@@ -230,6 +275,75 @@ export interface operations {
         }
         content: {
           "application/json": components["schemas"]["UserResponse"]
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"]
+        }
+      }
+    }
+  }
+  get_users_api_users_get: {
+    parameters: {
+      query?: {
+        limit?: number | null
+        offset?: number | null
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["UserFilters"] | null
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["UserResponse"][]
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"]
+        }
+      }
+    }
+  }
+  get_users_count_api_users_count_get: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: {
+      content: {
+        "application/json": components["schemas"]["UserFilters"] | null
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": number
         }
       }
       /** @description Validation Error */
