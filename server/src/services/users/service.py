@@ -8,6 +8,7 @@ from sqlalchemy import Select, delete, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError
 
 from ...config import (
+    APP_BASE_URL,
     PASSWORD_LEN,
     PASSWORD_RESET_CODE_EXP_MINUTES,
     PASSWORD_RESET_CODE_LEN,
@@ -56,7 +57,7 @@ class UserService(BaseService):
 
     @staticmethod
     def _generate_password_reset_email(user_id: int, code: str) -> str:
-        url = f"https://stankogram.ru/api/users/{user_id}/reset_password_confirm/{code}"
+        url = f"{APP_BASE_URL}/api/users/{user_id}/reset_password_confirm/{code}"
         return _PASSWORD_RESET_EMAIL_TEMPLATE.substitute(url=url)
 
     @staticmethod
