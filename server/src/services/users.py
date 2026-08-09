@@ -106,24 +106,21 @@ class UserService(BaseService):
         if filters is None:
             return stmt
 
-        fields = filters.model_fields_set
-
-        if "search_query" in fields:
-            search_query = filters.search_query
+        if "search_query" in filters.model_fields_set:
             stmt = stmt.where(
                 or_(
-                    User.name.icontains(search_query),
-                    User.surname.icontains(search_query),
-                    User.patronymic.icontains(search_query),
-                    User.login.icontains(search_query),
-                    User.phone_number.icontains(search_query),
+                    User.name.icontains(filters.search_query),
+                    User.surname.icontains(filters.search_query),
+                    User.patronymic.icontains(filters.search_query),
+                    User.login.icontains(filters.search_query),
+                    User.phone_number.icontains(filters.search_query),
                 )
             )
 
-        if "role" in fields:
+        if "role" in filters.model_fields_set:
             stmt = stmt.where(User.role == filters.role)
 
-        if "is_admin" in fields:
+        if "is_admin" in filters.model_fields_set:
             stmt = stmt.where(User.is_admin == filters.is_admin)
 
         return stmt
