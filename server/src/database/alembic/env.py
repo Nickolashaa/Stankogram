@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from src.config import DATABASE_URL
 from src.database.connection import Base
-from src.database.models.cancelled_tokens import CancelledToken  # noqa: F401
+from src.database.models.auth import CancelledToken  # noqa: F401
 from src.database.models.users import User  # noqa: F401
 
 # this is the Alembic Config object, which provides
