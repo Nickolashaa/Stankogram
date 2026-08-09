@@ -11,9 +11,8 @@ class User(Base):
     name: Mapped[str]
     surname: Mapped[str]
     patronymic: Mapped[str | None]
-    phone_number: Mapped[str] = mapped_column(unique=True)
 
-    login: Mapped[str] = mapped_column(unique=True)
+    email: Mapped[str] = mapped_column(unique=True)
     hashed_password: Mapped[str]
 
     role: Mapped[Role]

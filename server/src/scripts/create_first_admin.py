@@ -5,7 +5,7 @@ from sqlalchemy import select
 from ..database.connection import session_maker
 from ..database.models.users import User
 from ..enums.users import Role
-from ..schemas.users import UserCreate
+from ..schemas.users import UserInput
 from ..services.users import UserService
 
 
@@ -17,20 +17,19 @@ async def main() -> None:
             return
 
         service = UserService(session)
-        creds = await service.create(
-            UserCreate(
+        await service.create(
+            UserInput(
                 name=input("Name: "),
                 surname=input("Surname: "),
                 patronymic=input("Patronymic: "),
-                phone_number=input("Phone number: "),
+                email=input("Email: "),
                 role=Role.STUDENT,
                 is_admin=True,
             )
         )
         await session.commit()
 
-    print("login:", creds.login)
-    print("password:", creds.password)
+    print("Success, credentials sended in your email.")
 
 
 asyncio.run(main())

@@ -1,14 +1,6 @@
-{
-    email gracevnikolaj220@gmail.com
-}
-
 :80 {
     root * /usr/client
     encode zstd gzip
     try_files {path} /index.html
     file_server
-}
-
-stankogram.ru {
-    reverse_proxy client:80
 }

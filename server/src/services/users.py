@@ -2,86 +2,66 @@ from secrets import choice
 from string import ascii_letters, digits
 
 import bcrypt
-from asyncpg.exceptions import UniqueViolationError
-from sqlalchemy import insert, select
+from sqlalchemy import Select, delete, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError
 
 from ..config import MIN_PASSWORD_LEN
 from ..database.models.users import User
 from ..schemas.users import (
-    UserCreate,
     UserCredentials,
+    UserFilters,
+    UserInput,
     UserResponse,
 )
-from ..utils.transliteration import transliterate
+from ..utils.smtp import send_email
+from ..utils.stmt_modificators import _get_count_stmt
 from .base import BaseService
 from .exceptions import ObjectAlreadyExists, ObjectNotFound
 
 
 class UserService(BaseService):
     @staticmethod
-    def _generate_login(
-        name: str,
-        surname: str,
-        patronymic: str | None,
-        salt_number: int | None,
-    ) -> str:
-        return (
-            f"{transliterate(surname).capitalize()}"
-            f"{transliterate(name[0]).upper()}"
-            f"{transliterate(patronymic[0]).upper() if patronymic is not None else ''}"
-            f"{salt_number if salt_number is not None else ''}"
-        )
-
-    @staticmethod
     def _generate_password() -> str:
         return "".join(choice(ascii_letters + digits) for _ in range(MIN_PASSWORD_LEN))
 
+    @staticmethod
+    def _generate_create_email(email: str, password: str) -> str:
+        return (
+            "<h1>Добрый день! Ваши данные для входа в Stankogram</h1>\n"
+            f"<h2>Электронная почта: {email}</h2>\n"
+            f"<h2>Пароль: {password}</h2>"
+        )
+
     async def create(
         self,
-        payload: UserCreate,
-    ) -> UserCredentials:
-        salt_number = None
+        data: UserInput,
+    ) -> UserResponse:
         password = self._generate_password()
         hashed_password = bcrypt.hashpw(
             password=password.encode(), salt=bcrypt.gensalt()
         ).decode()
-        while True:
-            login = self._generate_login(
-                name=payload.name,
-                surname=payload.surname,
-                patronymic=payload.patronymic,
-                salt_number=salt_number,
+
+        stmt = (
+            insert(User)
+            .values(
+                hashed_password=hashed_password,
+                **data.model_dump(),
             )
-            try:
-                stmt = insert(User).values(
-                    login=login,
-                    hashed_password=hashed_password,
-                    **payload.model_dump(),
-                )
-                await self._session.execute(stmt)
-                return UserCredentials(
-                    login=login,
-                    password=password,
-                )
-            except IntegrityError as e:
-                await self._session.rollback()
-                assert e.orig is not None
-                cause = e.orig.__cause__
-                if isinstance(cause, UniqueViolationError):
-                    match cause.constraint_name:
-                        case "uq_users_login":
-                            if salt_number is None:
-                                salt_number = 0
-                            else:
-                                salt_number += 1
-                            continue
-                        case "uq_users_phone_number":
-                            raise ObjectAlreadyExists(
-                                f"User with phone number {payload.phone_number} "
-                                "already exists"
-                            )
-                raise
+            .returning(User)
+        )
+
+        try:
+            res = await self._session.execute(stmt)
+        except IntegrityError:
+            raise ObjectAlreadyExists(f"User with email {data.email} already exists")
+
+        await send_email(
+            to_email=data.email,
+            subject="Stankogram:Данные для входа",
+            body=self._generate_create_email(email=data.email, password=password),
+        )
+
+        return UserResponse.model_validate(res.scalar_one())
 
     async def get(
         self,
@@ -96,16 +76,73 @@ class UserService(BaseService):
             )
         return UserResponse.model_validate(entity)
 
-    async def get_by_login(
+    @staticmethod
+    def _apply_filters(
+        stmt: Select[tuple[User]],
+        filters: UserFilters | None,
+    ) -> Select[tuple[User]]:
+        if filters is None:
+            return stmt
+
+        if "search_query" in filters.model_fields_set:
+            stmt = stmt.where(
+                or_(
+                    User.name.icontains(filters.search_query),
+                    User.surname.icontains(filters.search_query),
+                    User.patronymic.icontains(filters.search_query),
+                    User.email.icontains(filters.search_query),
+                )
+            )
+
+        if "role" in filters.model_fields_set:
+            stmt = stmt.where(User.role == filters.role)
+
+        if "is_admin" in filters.model_fields_set:
+            stmt = stmt.where(User.is_admin == filters.is_admin)
+
+        return stmt
+
+    async def get_list(
         self,
-        login: str,
+        filters: UserFilters | None,
+        limit: int | None,
+        offset: int | None,
+    ) -> list[UserResponse]:
+        stmt = select(User).order_by(User.id)
+
+        stmt = self._apply_filters(stmt=stmt, filters=filters)
+
+        stmt = stmt.limit(limit).offset(offset)
+
+        res = await self._session.execute(stmt)
+        entities = res.scalars().all()
+
+        return [UserResponse.model_validate(entity) for entity in entities]
+
+    async def count(
+        self,
+        filters: UserFilters | None,
+    ) -> int:
+        stmt = select(User)
+
+        stmt = self._apply_filters(stmt=stmt, filters=filters)
+
+        stmt = _get_count_stmt(stmt)
+
+        res = await self._session.execute(stmt)
+
+        return res.scalar_one()
+
+    async def get_by_email(
+        self,
+        email: str,
     ) -> UserResponse:
-        stmt = select(User).where(User.login == login)
+        stmt = select(User).where(User.email == email)
         res = await self._session.execute(stmt)
         entity = res.scalar_one_or_none()
         if entity is None:
             raise ObjectNotFound(
-                f"User with login {login} not found",
+                f"User with email {email} not found",
             )
         return UserResponse.model_validate(entity)
 
@@ -113,12 +150,39 @@ class UserService(BaseService):
         self,
         credentials: UserCredentials,
     ) -> UserResponse:
-        user = await self.get_by_login(credentials.login)
+        user = await self.get_by_email(credentials.email)
 
         if bcrypt.checkpw(credentials.password.encode(), user.hashed_password.encode()):
             return user
 
         raise ObjectNotFound(
-            f"User with login {credentials.login} and password "
+            f"User with email {credentials.email} and password "
             f"{credentials.password} not found"
         )
+
+    async def delete(
+        self,
+        id: int,
+    ) -> None:
+        stmt = delete(User).where(User.id == id)
+        await self._session.execute(stmt)
+
+    async def update(
+        self,
+        id: int,
+        data: UserInput,
+    ) -> UserResponse:
+        await self.get(id)
+
+        stmt = (
+            update(User)
+            .where(User.id == id)
+            .values(**data.model_dump())
+            .returning(User)
+        )
+
+        try:
+            res = await self._session.execute(stmt)
+            return UserResponse.model_validate(res.scalar_one())
+        except IntegrityError:
+            raise ObjectAlreadyExists(f"User with email {data.email} already exists")
