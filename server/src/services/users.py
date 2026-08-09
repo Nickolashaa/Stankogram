@@ -13,6 +13,7 @@ from ..schemas.users import (
     UserFilters,
     UserResponse,
 )
+from ..utils.smtp import send_email
 from ..utils.stmt_modificators import _get_count_stmt
 from .base import BaseService
 from .exceptions import ObjectAlreadyExists, ObjectNotFound
@@ -23,9 +24,17 @@ class UserService(BaseService):
     def _generate_password() -> str:
         return "".join(choice(ascii_letters + digits) for _ in range(MIN_PASSWORD_LEN))
 
+    @staticmethod
+    def _generate_create_email(email: str, password: str) -> str:
+        return (
+            "<h1>Добрый день! Ваши данные для входа в Stankogram</h1>\n"
+            f"<h2>Электронная почта: {email}</h2>\n"
+            f"<h2>Пароль: {password}</h2>"
+        )
+
     async def create(
         self,
-        payload: UserCreate,
+        data: UserCreate,
     ) -> UserResponse:
         password = self._generate_password()
         hashed_password = bcrypt.hashpw(
@@ -36,7 +45,7 @@ class UserService(BaseService):
             insert(User)
             .values(
                 hashed_password=hashed_password,
-                **payload.model_dump(),
+                **data.model_dump(),
             )
             .returning(User)
         )
@@ -44,7 +53,13 @@ class UserService(BaseService):
         try:
             res = await self._session.execute(stmt)
         except IntegrityError:
-            raise ObjectAlreadyExists(f"User with email {payload.email} already exists")
+            raise ObjectAlreadyExists(f"User with email {data.email} already exists")
+
+        await send_email(
+            to_email=data.email,
+            subject="Stankogram:Данные для входа",
+            body=self._generate_create_email(email=data.email, password=password),
+        )
 
         return UserResponse.model_validate(res.scalar_one())
 
