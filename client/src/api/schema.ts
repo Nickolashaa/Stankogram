@@ -72,6 +72,40 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  "/api/users/delete": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    /** Delete */
+    delete: operations["delete_api_users_delete_delete"]
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/users/update": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    /** Update */
+    put: operations["update_api_users_update_put"]
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   "/api/auth/me": {
     parameters: {
       query?: never
@@ -185,23 +219,6 @@ export interface components {
      * @enum {string}
      */
     Role: "STUDENT" | "TEACHER"
-    /** UserCreate */
-    UserCreate: {
-      /** Name */
-      name: string
-      /** Surname */
-      surname: string
-      /** Patronymic */
-      patronymic: string | null
-      /**
-       * Email
-       * Format: email
-       */
-      email: string
-      role: components["schemas"]["Role"]
-      /** Is Admin */
-      is_admin: boolean
-    }
     /** UserCredentials */
     UserCredentials: {
       /** Email */
@@ -216,6 +233,23 @@ export interface components {
       role?: components["schemas"]["Role"] | null
       /** Is Admin */
       is_admin?: boolean | null
+    }
+    /** UserInput */
+    UserInput: {
+      /** Name */
+      name: string
+      /** Surname */
+      surname: string
+      /** Patronymic */
+      patronymic: string | null
+      /**
+       * Email
+       * Format: email
+       */
+      email: string
+      role: components["schemas"]["Role"]
+      /** Is Admin */
+      is_admin: boolean
     }
     /** UserResponse */
     UserResponse: {
@@ -366,7 +400,7 @@ export interface operations {
     }
     requestBody: {
       content: {
-        "application/json": components["schemas"]["UserCreate"]
+        "application/json": components["schemas"]["UserInput"]
       }
     }
     responses: {
@@ -377,6 +411,72 @@ export interface operations {
         }
         content: {
           "application/json": components["schemas"]["UserCredentials"]
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"]
+        }
+      }
+    }
+  }
+  delete_api_users_delete_delete: {
+    parameters: {
+      query: {
+        id: number
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": unknown
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"]
+        }
+      }
+    }
+  }
+  update_api_users_update_put: {
+    parameters: {
+      query: {
+        id: number
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UserInput"]
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["UserResponse"]
         }
       }
       /** @description Validation Error */
