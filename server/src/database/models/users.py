@@ -1,3 +1,4 @@
+from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import expression
 
@@ -19,3 +20,10 @@ class User(Base):
     is_admin: Mapped[bool] = mapped_column(
         server_default=expression.false(),
     )
+
+
+class PasswordResetCode(Base):
+    __tablename__ = "password_reset_codes"
+
+    user_id: Mapped[int] = mapped_column(ForeignKey(User.id, ondelete="CASCADE"))
+    value: Mapped[str]
