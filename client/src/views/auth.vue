@@ -9,18 +9,18 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const authForm = ref<{
-  login: string
+  email: string
   password: string
 }>({
-  login: "",
+  email: "",
   password: "",
 })
 
 async function handleSubmit() {
   try {
-    await authStore.login(authForm.value.login, authForm.value.password)
+    await authStore.login(authForm.value.email, authForm.value.password)
   } catch {
-    notify.error("Неверный логин или пароль")
+    notify.error("Неверный email или пароль")
     return
   }
   router.push("/")
@@ -38,7 +38,7 @@ async function handleSubmit() {
       </div>
 
       <form class="flex flex-col gap-4" @submit.prevent="handleSubmit">
-        <Input placeholder="Логин" v-model="authForm.login" />
+        <Input placeholder="Email" v-model="authForm.email" />
         <Input placeholder="Пароль" type="password" v-model="authForm.password" />
         <button
           type="submit"

@@ -26,9 +26,9 @@ export const useAuthStore = defineStore("auth", () => {
     fetchUser()
   }
 
-  async function login(login: string, password: string) {
+  async function login(email: string, password: string) {
     const { data, error } = await client.POST("/api/auth/login", {
-      body: { login, password },
+      body: { email, password },
     })
 
     if (error !== undefined) {
