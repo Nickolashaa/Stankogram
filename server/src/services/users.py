@@ -2,7 +2,6 @@ from secrets import choice
 from string import ascii_letters, digits
 
 import bcrypt
-from asyncpg.exceptions import UniqueViolationError
 from sqlalchemy import Select, insert, or_, select
 from sqlalchemy.exc import IntegrityError
 
@@ -15,26 +14,11 @@ from ..schemas.users import (
     UserResponse,
 )
 from ..utils.stmt_modificators import _get_count_stmt
-from ..utils.transliteration import transliterate
 from .base import BaseService
 from .exceptions import ObjectAlreadyExists, ObjectNotFound
 
 
 class UserService(BaseService):
-    @staticmethod
-    def _generate_login(
-        name: str,
-        surname: str,
-        patronymic: str | None,
-        salt_number: int | None,
-    ) -> str:
-        return (
-            f"{transliterate(surname).capitalize()}"
-            f"{transliterate(name[0]).upper()}"
-            f"{transliterate(patronymic[0]).upper() if patronymic is not None else ''}"
-            f"{salt_number if salt_number is not None else ''}"
-        )
-
     @staticmethod
     def _generate_password() -> str:
         return "".join(choice(ascii_letters + digits) for _ in range(MIN_PASSWORD_LEN))
@@ -42,48 +26,27 @@ class UserService(BaseService):
     async def create(
         self,
         payload: UserCreate,
-    ) -> UserCredentials:
-        salt_number = None
+    ) -> UserResponse:
         password = self._generate_password()
         hashed_password = bcrypt.hashpw(
             password=password.encode(), salt=bcrypt.gensalt()
         ).decode()
-        while True:
-            login = self._generate_login(
-                name=payload.name,
-                surname=payload.surname,
-                patronymic=payload.patronymic,
-                salt_number=salt_number,
+
+        stmt = (
+            insert(User)
+            .values(
+                hashed_password=hashed_password,
+                **payload.model_dump(),
             )
-            try:
-                stmt = insert(User).values(
-                    login=login,
-                    hashed_password=hashed_password,
-                    **payload.model_dump(),
-                )
-                await self._session.execute(stmt)
-                return UserCredentials(
-                    login=login,
-                    password=password,
-                )
-            except IntegrityError as e:
-                await self._session.rollback()
-                assert e.orig is not None
-                cause = e.orig.__cause__
-                if isinstance(cause, UniqueViolationError):
-                    match cause.constraint_name:
-                        case "uq_users_login":
-                            if salt_number is None:
-                                salt_number = 0
-                            else:
-                                salt_number += 1
-                            continue
-                        case "uq_users_phone_number":
-                            raise ObjectAlreadyExists(
-                                f"User with phone number {payload.phone_number} "
-                                "already exists"
-                            )
-                raise
+            .returning(User)
+        )
+
+        try:
+            res = await self._session.execute(stmt)
+        except IntegrityError:
+            raise ObjectAlreadyExists(f"User with email {payload.email} already exists")
+
+        return UserResponse.model_validate(res.scalar_one())
 
     async def get(
         self,
@@ -112,8 +75,7 @@ class UserService(BaseService):
                     User.name.icontains(filters.search_query),
                     User.surname.icontains(filters.search_query),
                     User.patronymic.icontains(filters.search_query),
-                    User.login.icontains(filters.search_query),
-                    User.phone_number.icontains(filters.search_query),
+                    User.email.icontains(filters.search_query),
                 )
             )
 
@@ -156,16 +118,16 @@ class UserService(BaseService):
 
         return res.scalar_one()
 
-    async def get_by_login(
+    async def get_by_email(
         self,
-        login: str,
+        email: str,
     ) -> UserResponse:
-        stmt = select(User).where(User.login == login)
+        stmt = select(User).where(User.email == email)
         res = await self._session.execute(stmt)
         entity = res.scalar_one_or_none()
         if entity is None:
             raise ObjectNotFound(
-                f"User with login {login} not found",
+                f"User with email {email} not found",
             )
         return UserResponse.model_validate(entity)
 
@@ -173,12 +135,12 @@ class UserService(BaseService):
         self,
         credentials: UserCredentials,
     ) -> UserResponse:
-        user = await self.get_by_login(credentials.login)
+        user = await self.get_by_email(credentials.email)
 
         if bcrypt.checkpw(credentials.password.encode(), user.hashed_password.encode()):
             return user
 
         raise ObjectNotFound(
-            f"User with login {credentials.login} and password "
+            f"User with email {credentials.email} and password "
             f"{credentials.password} not found"
         )

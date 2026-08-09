@@ -44,7 +44,7 @@ async def get_users_count(
 @router.post("/create", response_model=UserCredentials)
 async def register(
     data: UserCreate, service: UserService = Depends(get_user_service)
-) -> UserCredentials:
+) -> UserResponse:
     try:
         return await service.create(data)
     except ObjectAlreadyExists as e:

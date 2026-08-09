@@ -17,20 +17,19 @@ async def main() -> None:
             return
 
         service = UserService(session)
-        creds = await service.create(
+        await service.create(
             UserCreate(
                 name=input("Name: "),
                 surname=input("Surname: "),
                 patronymic=input("Patronymic: "),
-                phone_number=input("Phone number: "),
+                email=input("Email: "),
                 role=Role.STUDENT,
                 is_admin=True,
             )
         )
         await session.commit()
 
-    print("login:", creds.login)
-    print("password:", creds.password)
+    print("Success, credentials sended in your email.")
 
 
 asyncio.run(main())
