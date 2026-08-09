@@ -20,7 +20,9 @@ from ..base import BaseService
 from ..exceptions import ObjectAlreadyExists, ObjectNotFound
 
 _CREATE_USER_EMAIL_TEMPLATE = Template(
-    (Path(__file__).resolve().parent / "create_user_email.html").read_text(encoding="utf-8")
+    (Path(__file__).resolve().parent / "create_user_email.html").read_text(
+        encoding="utf-8"
+    )
 )
 
 
