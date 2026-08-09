@@ -2,7 +2,7 @@ from secrets import choice
 from string import ascii_letters, digits
 
 import bcrypt
-from sqlalchemy import Select, insert, or_, select
+from sqlalchemy import Select, delete, insert, or_, select
 from sqlalchemy.exc import IntegrityError
 
 from ..config import MIN_PASSWORD_LEN
@@ -159,3 +159,10 @@ class UserService(BaseService):
             f"User with email {credentials.email} and password "
             f"{credentials.password} not found"
         )
+
+    async def delete(
+        self,
+        id: int,
+    ) -> None:
+        stmt = delete(User).where(User.id == id)
+        await self._session.execute(stmt)

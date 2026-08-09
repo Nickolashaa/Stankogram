@@ -49,3 +49,8 @@ async def register(
         return await service.create(data)
     except ObjectAlreadyExists as e:
         raise e.to_http_exception()
+
+
+@router.delete("/delete", response_model=None)
+async def delete(id: int, service: UserService = Depends(get_user_service)) -> None:
+    await service.delete(id)
