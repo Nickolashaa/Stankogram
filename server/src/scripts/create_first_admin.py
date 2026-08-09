@@ -5,7 +5,7 @@ from sqlalchemy import select
 from ..database.connection import session_maker
 from ..database.models.users import User
 from ..enums.users import Role
-from ..schemas.users import UserCreate
+from ..schemas.users import UserInput
 from ..services.users import UserService
 
 
@@ -18,7 +18,7 @@ async def main() -> None:
 
         service = UserService(session)
         await service.create(
-            UserCreate(
+            UserInput(
                 name=input("Name: "),
                 surname=input("Surname: "),
                 patronymic=input("Patronymic: "),

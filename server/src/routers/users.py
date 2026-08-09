@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 
 from ..config import LIMIT, OFFSET
 from ..dependencies import get_user_service, is_admin
-from ..schemas.users import UserCreate, UserCredentials, UserFilters, UserResponse
+from ..schemas.users import UserCredentials, UserFilters, UserInput, UserResponse
 from ..services import UserService
 from ..services.exceptions import ObjectAlreadyExists, ObjectNotFound
 
@@ -43,7 +43,7 @@ async def get_users_count(
 
 @router.post("/create", response_model=UserCredentials)
 async def register(
-    data: UserCreate, service: UserService = Depends(get_user_service)
+    data: UserInput, service: UserService = Depends(get_user_service)
 ) -> UserResponse:
     try:
         return await service.create(data)
@@ -54,3 +54,15 @@ async def register(
 @router.delete("/delete", response_model=None)
 async def delete(id: int, service: UserService = Depends(get_user_service)) -> None:
     await service.delete(id)
+
+
+@router.put("/update", response_model=UserResponse)
+async def update(
+    id: int,
+    data: UserInput,
+    service: UserService = Depends(get_user_service),
+) -> UserResponse:
+    try:
+        return await service.update(id=id, data=data)
+    except (ObjectNotFound, ObjectAlreadyExists) as e:
+        raise e.to_http_exception()

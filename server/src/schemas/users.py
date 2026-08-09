@@ -23,7 +23,7 @@ class UserCredentials(Schema):
     password: str = Field(..., min_length=MIN_PASSWORD_LEN)
 
 
-class UserCreate(Schema):
+class UserInput(Schema):
     name: str = Field(..., max_length=50)
     surname: str = Field(..., max_length=50)
     patronymic: str | None = Field(..., max_length=60)

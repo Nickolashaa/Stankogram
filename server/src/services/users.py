@@ -2,15 +2,15 @@ from secrets import choice
 from string import ascii_letters, digits
 
 import bcrypt
-from sqlalchemy import Select, delete, insert, or_, select
+from sqlalchemy import Select, delete, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError
 
 from ..config import MIN_PASSWORD_LEN
 from ..database.models.users import User
 from ..schemas.users import (
-    UserCreate,
     UserCredentials,
     UserFilters,
+    UserInput,
     UserResponse,
 )
 from ..utils.smtp import send_email
@@ -34,7 +34,7 @@ class UserService(BaseService):
 
     async def create(
         self,
-        data: UserCreate,
+        data: UserInput,
     ) -> UserResponse:
         password = self._generate_password()
         hashed_password = bcrypt.hashpw(
@@ -166,3 +166,23 @@ class UserService(BaseService):
     ) -> None:
         stmt = delete(User).where(User.id == id)
         await self._session.execute(stmt)
+
+    async def update(
+        self,
+        id: int,
+        data: UserInput,
+    ) -> UserResponse:
+        await self.get(id)
+
+        stmt = (
+            update(User)
+            .where(User.id == id)
+            .values(**data.model_dump())
+            .returning(User)
+        )
+
+        try:
+            res = await self._session.execute(stmt)
+            return UserResponse.model_validate(res.scalar_one())
+        except IntegrityError:
+            raise ObjectAlreadyExists(f"User with email {data.email} already exists")
