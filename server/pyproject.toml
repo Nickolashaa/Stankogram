@@ -8,17 +8,14 @@ dependencies = [
     "asyncpg-stubs>=0.31.3",
     "bcrypt>=5.0.0",
     "fastapi>=0.135.1",
-    "mypy>=1.19.1",
     "pydantic>=2.12.5",
     "pydantic-settings>=2.13.1",
     "pyjwt>=2.13.0",
     "ruff>=0.15.7",
     "sqlalchemy>=2.0.51",
+    "ty>=0.0.69",
     "uvicorn>=0.42.0",
 ]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
-
-[tool.mypy]
-strict = true
