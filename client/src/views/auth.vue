@@ -3,6 +3,7 @@ import Input from "@/components/input.vue"
 import { ref } from "vue"
 import { useRouter } from "vue-router"
 import { useAuthStore } from "@/stores/auth"
+import { notify } from "@/lib/notify"
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -16,7 +17,12 @@ const authForm = ref<{
 })
 
 async function handleSubmit() {
-  await authStore.login(authForm.value.login, authForm.value.password)
+  try {
+    await authStore.login(authForm.value.login, authForm.value.password)
+  } catch {
+    notify.error("Неверный логин или пароль")
+    return
+  }
   router.push("/")
 }
 </script>
