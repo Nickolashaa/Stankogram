@@ -1,3 +1,4 @@
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from secrets import choice
 from string import Template, ascii_letters, digits
@@ -6,8 +7,12 @@ import bcrypt
 from sqlalchemy import Select, delete, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError
 
-from ...config import MIN_PASSWORD_LEN
-from ...database.models.users import User
+from ...config import (
+    PASSWORD_LEN,
+    PASSWORD_RESET_CODE_EXP_MINUTES,
+    PASSWORD_RESET_CODE_LEN,
+)
+from ...database.models.users import PasswordResetCode, User
 from ...schemas.users import (
     UserCredentials,
     UserFilters,
@@ -24,16 +29,41 @@ _CREATE_USER_EMAIL_TEMPLATE = Template(
         encoding="utf-8"
     )
 )
+_PASSWORD_RESET_EMAIL_TEMPLATE = Template(
+    (Path(__file__).resolve().parent / "password_reset_email.html").read_text(
+        encoding="utf-8"
+    )
+)
+_PASSWORD_RESET_CONFIRM_EMAIL_TEMPLATE = Template(
+    (Path(__file__).resolve().parent / "password_reset_confirm_email.html").read_text(
+        encoding="utf-8"
+    )
+)
 
 
 class UserService(BaseService):
     @staticmethod
     def _generate_password() -> str:
-        return "".join(choice(ascii_letters + digits) for _ in range(MIN_PASSWORD_LEN))
+        return "".join(choice(ascii_letters + digits) for _ in range(PASSWORD_LEN))
+
+    @staticmethod
+    def _generate_password_reset_code() -> str:
+        return "".join(choice(digits) for _ in range(PASSWORD_RESET_CODE_LEN))
 
     @staticmethod
     def _generate_create_email(email: str, password: str) -> str:
         return _CREATE_USER_EMAIL_TEMPLATE.substitute(email=email, password=password)
+
+    @staticmethod
+    def _generate_password_reset_email(user_id: int, code: str) -> str:
+        url = f"https://stankogram.ru/api/users/{user_id}/reset_password_confirm/{code}"
+        return _PASSWORD_RESET_EMAIL_TEMPLATE.substitute(url=url)
+
+    @staticmethod
+    def _generate_password_reset_confirm_email(email: str, password: str) -> str:
+        return _PASSWORD_RESET_CONFIRM_EMAIL_TEMPLATE.substitute(
+            email=email, password=password
+        )
 
     async def create(
         self,
@@ -189,3 +219,75 @@ class UserService(BaseService):
             return UserResponse.model_validate(res.scalar_one())
         except IntegrityError:
             raise ObjectAlreadyExists(f"User with email {data.email} already exists")
+
+    async def reset_password_request(
+        self,
+        id: int,
+    ) -> None:
+        user = await self.get(id)
+
+        code = self._generate_password_reset_code()
+        stmt = (
+            insert(PasswordResetCode)
+            .values(
+                user_id=user.id,
+                value=code,
+            )
+            .returning(PasswordResetCode)
+        )
+
+        await self._session.execute(stmt)
+
+        await send_email(
+            to_email=user.email,
+            subject="Stankogram:Подтверждение сброса пароля",
+            body=self._generate_password_reset_email(
+                user_id=user.id,
+                code=code,
+            ),
+        )
+
+    async def reset_password_confirm(
+        self,
+        id: int,
+        code: str,
+    ) -> None:
+        user = await self.get(id)
+
+        stmt = select(PasswordResetCode).where(
+            PasswordResetCode.user_id == user.id,
+            PasswordResetCode.value == code,
+            PasswordResetCode.created_at
+            >= datetime.now(UTC) - timedelta(minutes=PASSWORD_RESET_CODE_EXP_MINUTES),
+        )
+
+        res = await self._session.execute(stmt)
+        entity = res.scalar_one_or_none()
+        if entity is None:
+            raise ObjectNotFound(
+                f"Valid password reset code for user {user.id} not found"
+            )
+
+        stmt = delete(PasswordResetCode).where(PasswordResetCode.id == entity.id)
+        await self._session.execute(stmt)
+
+        new_password = self._generate_password()
+        new_hashed_password = bcrypt.hashpw(
+            password=new_password.encode(), salt=bcrypt.gensalt()
+        ).decode()
+
+        stmt = (
+            update(User)
+            .where(User.id == id)
+            .values(hashed_password=new_hashed_password)
+        )
+        await self._session.execute(stmt)
+
+        await send_email(
+            to_email=user.email,
+            subject="Stankogram:Данные для входа",
+            body=self._generate_password_reset_confirm_email(
+                email=user.email,
+                password=new_password,
+            ),
+        )

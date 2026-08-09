@@ -1,7 +1,7 @@
 from pydantic import EmailStr, Field
 
 from ..config import (
-    MIN_PASSWORD_LEN,
+    PASSWORD_LEN,
 )
 from ..enums.users import Role
 from .base import Schema
@@ -20,7 +20,7 @@ class UserResponse(Schema):
 
 class UserCredentials(Schema):
     email: str
-    password: str = Field(..., min_length=MIN_PASSWORD_LEN)
+    password: str = Field(..., min_length=PASSWORD_LEN)
 
 
 class UserInput(Schema):
@@ -36,3 +36,9 @@ class UserFilters(Schema):
     search_query: str | None = Field(None)
     role: Role | None = Field(None)
     is_admin: bool | None = Field(None)
+
+
+class PasswordResetCodeResponse(Schema):
+    id: int
+    user_id: int
+    value: str

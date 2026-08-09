@@ -5,7 +5,7 @@ from sqlalchemy import insert
 from sqlalchemy.exc import IntegrityError
 
 from ..config import JWT_ACCESS_EXP_MINUTES, JWT_REFRESH_EXP_DAYS
-from ..database.models.cancelled_tokens import CancelledToken
+from ..database.models.auth import CancelledToken
 from ..schemas.jwt import JWTTokens, UserJWTPayload
 from ..schemas.users import UserResponse
 from .base import BaseService
