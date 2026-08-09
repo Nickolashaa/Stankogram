@@ -3,7 +3,13 @@ from fastapi import APIRouter, Depends
 from ..config import LIMIT, OFFSET
 from ..dependencies import get_user_service
 from ..permissions import is_admin
-from ..schemas.users import UserCredentials, UserFilters, UserInput, UserResponse
+from ..schemas.users import (
+    PasswordResetRequest,
+    UserCredentials,
+    UserFilters,
+    UserInput,
+    UserResponse,
+)
 from ..services import UserService
 from ..services.exceptions import ObjectAlreadyExists, ObjectNotFound
 
@@ -73,12 +79,15 @@ async def update(
         raise e.to_http_exception()
 
 
-@router.post("/{id}/reset_password_request", response_model=None)
+@router.post("/reset_password_request", response_model=None)
 async def reset_password_request(
-    id: int,
+    data: PasswordResetRequest,
     service: UserService = Depends(get_user_service),
 ) -> None:
-    await service.reset_password_request(id)
+    try:
+        await service.reset_password_request(data.email)
+    except ObjectNotFound as e:
+        raise e.to_http_exception()
 
 
 @router.get("/{id}/reset_password_confirm/{code}", response_model=None)

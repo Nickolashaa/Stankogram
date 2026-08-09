@@ -222,9 +222,9 @@ class UserService(BaseService):
 
     async def reset_password_request(
         self,
-        id: int,
+        email: str,
     ) -> None:
-        user = await self.get(id)
+        user = await self.get_by_email(email)
 
         code = self._generate_password_reset_code()
         stmt = (

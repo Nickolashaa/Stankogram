@@ -23,6 +23,10 @@ class UserCredentials(Schema):
     password: str = Field(..., min_length=PASSWORD_LEN)
 
 
+class PasswordResetRequest(Schema):
+    email: EmailStr
+
+
 class UserInput(Schema):
     name: str = Field(..., max_length=50)
     surname: str = Field(..., max_length=50)
