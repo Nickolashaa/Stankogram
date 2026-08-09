@@ -3,7 +3,7 @@ from string import ascii_letters, digits
 
 import bcrypt
 from asyncpg.exceptions import UniqueViolationError
-from sqlalchemy import insert, select
+from sqlalchemy import Select, insert, or_, select
 from sqlalchemy.exc import IntegrityError
 
 from ..config import MIN_PASSWORD_LEN
@@ -11,8 +11,10 @@ from ..database.models.users import User
 from ..schemas.users import (
     UserCreate,
     UserCredentials,
+    UserFilters,
     UserResponse,
 )
+from ..utils.stmt_modificators import _get_count_stmt
 from ..utils.transliteration import transliterate
 from .base import BaseService
 from .exceptions import ObjectAlreadyExists, ObjectNotFound
@@ -95,6 +97,67 @@ class UserService(BaseService):
                 f"User with id {id} not found",
             )
         return UserResponse.model_validate(entity)
+
+    @staticmethod
+    def _apply_filters(
+        stmt: Select[tuple[User]],
+        filters: UserFilters | None,
+    ) -> Select[tuple[User]]:
+        if filters is None:
+            return stmt
+
+        fields = filters.model_fields_set
+
+        if "search_query" in fields:
+            search_query = filters.search_query
+            stmt = stmt.where(
+                or_(
+                    User.name.icontains(search_query),
+                    User.surname.icontains(search_query),
+                    User.patronymic.icontains(search_query),
+                    User.login.icontains(search_query),
+                    User.phone_number.icontains(search_query),
+                )
+            )
+
+        if "role" in fields:
+            stmt = stmt.where(User.role == filters.role)
+
+        if "is_admin" in fields:
+            stmt = stmt.where(User.is_admin == filters.is_admin)
+
+        return stmt
+
+    async def get_list(
+        self,
+        filters: UserFilters | None,
+        limit: int | None,
+        offset: int | None,
+    ) -> list[UserResponse]:
+        stmt = select(User).order_by(User.id)
+
+        stmt = self._apply_filters(stmt=stmt, filters=filters)
+
+        stmt = stmt.limit(limit).offset(offset)
+
+        res = await self._session.execute(stmt)
+        entities = res.scalars().all()
+
+        return [UserResponse.model_validate(entity) for entity in entities]
+
+    async def count(
+        self,
+        filters: UserFilters | None,
+    ) -> int:
+        stmt = select(User)
+
+        stmt = self._apply_filters(stmt=stmt, filters=filters)
+
+        stmt = _get_count_stmt(stmt)
+
+        res = await self._session.execute(stmt)
+
+        return res.scalar_one()
 
     async def get_by_login(
         self,

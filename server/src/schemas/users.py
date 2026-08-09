@@ -30,3 +30,9 @@ class UserCreate(Schema):
     phone_number: str = Field(..., min_length=12, max_length=12)
     role: Role
     is_admin: bool
+
+
+class UserFilters(Schema):
+    search_query: str | None = Field(None)
+    role: Role | None = Field(None)
+    is_admin: bool | None = Field(None)
