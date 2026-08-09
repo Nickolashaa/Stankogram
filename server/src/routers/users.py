@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
 
 from ..config import LIMIT, OFFSET
-from ..dependencies import get_user_service, is_admin
+from ..dependencies import get_user_service
+from ..permissions import is_admin
 from ..schemas.users import UserCredentials, UserFilters, UserInput, UserResponse
 from ..services import UserService
 from ..services.exceptions import ObjectAlreadyExists, ObjectNotFound
