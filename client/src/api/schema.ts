@@ -89,7 +89,7 @@ export interface paths {
     patch?: never
     trace?: never
   }
-  "/api/users/update": {
+  "/api/users/{id}/update": {
     parameters: {
       query?: never
       header?: never
@@ -98,7 +98,41 @@ export interface paths {
     }
     get?: never
     /** Update */
-    put: operations["update_api_users_update_put"]
+    put: operations["update_api_users__id__update_put"]
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/users/reset_password_request": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Reset Password Request */
+    post: operations["reset_password_request_api_users_reset_password_request_post"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/users/{id}/reset_password_confirm/{code}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Reset Password Confirm */
+    get: operations["reset_password_confirm_api_users__id__reset_password_confirm__code__get"]
+    put?: never
     post?: never
     delete?: never
     options?: never
@@ -213,6 +247,14 @@ export interface components {
       access_token: string
       /** Refresh Token */
       refresh_token: string
+    }
+    /** PasswordResetRequest */
+    PasswordResetRequest: {
+      /**
+       * Email
+       * Format: email
+       */
+      email: string
     }
     /**
      * Role
@@ -455,13 +497,13 @@ export interface operations {
       }
     }
   }
-  update_api_users_update_put: {
+  update_api_users__id__update_put: {
     parameters: {
-      query: {
+      query?: never
+      header?: never
+      path: {
         id: number
       }
-      header?: never
-      path?: never
       cookie?: never
     }
     requestBody: {
@@ -477,6 +519,71 @@ export interface operations {
         }
         content: {
           "application/json": components["schemas"]["UserResponse"]
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"]
+        }
+      }
+    }
+  }
+  reset_password_request_api_users_reset_password_request_post: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PasswordResetRequest"]
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": unknown
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"]
+        }
+      }
+    }
+  }
+  reset_password_confirm_api_users__id__reset_password_confirm__code__get: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: number
+        code: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": unknown
         }
       }
       /** @description Validation Error */
