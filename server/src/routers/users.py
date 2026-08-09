@@ -57,7 +57,7 @@ async def delete(id: int, service: UserService = Depends(get_user_service)) -> N
     await service.delete(id)
 
 
-@router.put("/update", response_model=UserResponse)
+@router.put("/{id}/update", response_model=UserResponse)
 async def update(
     id: int,
     data: UserInput,
