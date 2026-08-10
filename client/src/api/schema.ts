@@ -4,23 +4,6 @@
  */
 
 export interface paths {
-  "/api/users/{id}": {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get User */
-    get: operations["get_user_api_users__id__get"]
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
   "/api/users": {
     parameters: {
       query?: never
@@ -47,6 +30,23 @@ export interface paths {
     }
     /** Get Users Count */
     get: operations["get_users_count_api_users_count_get"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/users/{id}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get User */
+    get: operations["get_user_api_users__id__get"]
     put?: never
     post?: never
     delete?: never
@@ -268,14 +268,6 @@ export interface components {
       /** Password */
       password: string
     }
-    /** UserFilters */
-    UserFilters: {
-      /** Search Query */
-      search_query?: string | null
-      role?: components["schemas"]["Role"] | null
-      /** Is Admin */
-      is_admin?: boolean | null
-    }
     /** UserInput */
     UserInput: {
       /** Name */
@@ -333,52 +325,20 @@ export interface components {
 }
 export type $defs = Record<string, never>
 export interface operations {
-  get_user_api_users__id__get: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        id: number
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/json": components["schemas"]["UserResponse"]
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"]
-        }
-      }
-    }
-  }
   get_users_api_users_get: {
     parameters: {
       query?: {
         limit?: number | null
         offset?: number | null
+        search_query?: string | null
+        role?: components["schemas"]["Role"] | null
+        is_admin?: boolean | null
       }
       header?: never
       path?: never
       cookie?: never
     }
-    requestBody?: {
-      content: {
-        "application/json": components["schemas"]["UserFilters"] | null
-      }
-    }
+    requestBody?: never
     responses: {
       /** @description Successful Response */
       200: {
@@ -402,16 +362,16 @@ export interface operations {
   }
   get_users_count_api_users_count_get: {
     parameters: {
-      query?: never
+      query?: {
+        search_query?: string | null
+        role?: components["schemas"]["Role"] | null
+        is_admin?: boolean | null
+      }
       header?: never
       path?: never
       cookie?: never
     }
-    requestBody?: {
-      content: {
-        "application/json": components["schemas"]["UserFilters"] | null
-      }
-    }
+    requestBody?: never
     responses: {
       /** @description Successful Response */
       200: {
@@ -420,6 +380,37 @@ export interface operations {
         }
         content: {
           "application/json": number
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"]
+        }
+      }
+    }
+  }
+  get_user_api_users__id__get: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: number
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["UserResponse"]
         }
       }
       /** @description Validation Error */
@@ -452,7 +443,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": components["schemas"]["UserCredentials"]
+          "application/json": components["schemas"]["UserResponse"]
         }
       }
       /** @description Validation Error */
