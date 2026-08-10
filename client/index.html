@@ -9,6 +9,18 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./src/root.css">
+    <script>
+      (function () {
+        var stored = localStorage.getItem("theme")
+        var dark = stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches
+        document.documentElement.classList.toggle("dark", dark)
+
+        var storedScheme = localStorage.getItem("colorScheme")
+        if (storedScheme) {
+          document.documentElement.setAttribute("data-scheme", storedScheme)
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="app"></div>

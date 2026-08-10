@@ -12,6 +12,13 @@ defineEmits<{
   edit: [user: UserResponse]
   delete: [user: UserResponse]
 }>()
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleString("ru-RU", {
+    dateStyle: "short",
+    timeStyle: "short",
+  })
+}
 </script>
 
 <template>
@@ -26,6 +33,8 @@ defineEmits<{
           <th class="px-5 py-3 font-medium">Email</th>
           <th class="px-5 py-3 font-medium">Роль</th>
           <th class="px-5 py-3 font-medium">Админ</th>
+          <th class="px-5 py-3 font-medium">Создан</th>
+          <th class="px-5 py-3 font-medium">Обновлён</th>
           <th class="px-5 py-3 font-medium"></th>
         </tr>
       </thead>
@@ -42,6 +51,8 @@ defineEmits<{
           <td class="px-5 py-3 text-main">{{ user.email }}</td>
           <td class="px-5 py-3 text-main">{{ roleLabels[user.role] }}</td>
           <td class="px-5 py-3 text-main">{{ user.is_admin ? "Да" : "Нет" }}</td>
+          <td class="px-5 py-3 text-second">{{ formatDate(user.created_at) }}</td>
+          <td class="px-5 py-3 text-second">{{ formatDate(user.updated_at) }}</td>
           <td class="px-5 py-3">
             <div class="flex justify-end gap-4">
               <button
@@ -62,7 +73,7 @@ defineEmits<{
           </td>
         </tr>
         <tr v-if="users.length === 0">
-          <td colspan="6" class="px-5 py-8 text-center text-second">Пользователи не найдены</td>
+          <td colspan="8" class="px-5 py-8 text-center text-second">Пользователи не найдены</td>
         </tr>
       </tbody>
     </table>

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from ..config import LIMIT, OFFSET
@@ -10,11 +12,12 @@ class Schema(BaseModel):
     )
 
 
-class HealthResponse(BaseModel):
-    code: int
-    message: str
-
-
 class PaginationSchema(Schema):
     limit: int | None = Field(LIMIT)
     offset: int | None = Field(OFFSET)
+
+
+class BaseResponse(Schema):
+    id: int
+    created_at: datetime
+    updated_at: datetime

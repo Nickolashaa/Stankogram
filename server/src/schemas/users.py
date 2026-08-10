@@ -4,11 +4,10 @@ from ..config import (
     PASSWORD_LEN,
 )
 from ..enums.users import Role
-from .base import PaginationSchema, Schema
+from .base import BaseResponse, PaginationSchema, Schema
 
 
-class UserResponse(Schema):
-    id: int
+class UserResponse(BaseResponse):
     name: str
     surname: str
     patronymic: str | None
@@ -44,9 +43,3 @@ class UserFilters(Schema):
 
 class UserListQuery(UserFilters, PaginationSchema):
     pass
-
-
-class PasswordResetCodeResponse(Schema):
-    id: int
-    user_id: int
-    value: str
