@@ -25,6 +25,62 @@
   --color-accent: #6bb69b;
 }
 
+:root[data-scheme="ocean"] {
+  --color-bg: #eef2f6;
+  --color-main: #1a2430;
+  --color-second: #64748b;
+  --color-accent: #3d7dd8;
+}
+
+:root[data-scheme="ocean"].dark {
+  --color-bg: #10161f;
+  --color-main: #e2e8f0;
+  --color-second: #8592a6;
+  --color-accent: #5b9bf0;
+}
+
+:root[data-scheme="violet"] {
+  --color-bg: #f1eff6;
+  --color-main: #241f2e;
+  --color-second: #79728a;
+  --color-accent: #7c5cd6;
+}
+
+:root[data-scheme="violet"].dark {
+  --color-bg: #17131f;
+  --color-main: #e7e2f0;
+  --color-second: #948da8;
+  --color-accent: #9b7ef0;
+}
+
+:root[data-scheme="sunset"] {
+  --color-bg: #f6f1ec;
+  --color-main: #2c2018;
+  --color-second: #8a7a6b;
+  --color-accent: #d97a3f;
+}
+
+:root[data-scheme="sunset"].dark {
+  --color-bg: #1c1510;
+  --color-main: #f0e6da;
+  --color-second: #a8927e;
+  --color-accent: #f0954f;
+}
+
+:root[data-scheme="rose"] {
+  --color-bg: #f6eef1;
+  --color-main: #2c1a20;
+  --color-second: #8a6b74;
+  --color-accent: #d9456f;
+}
+
+:root[data-scheme="rose"].dark {
+  --color-bg: #1c1015;
+  --color-main: #f0dde2;
+  --color-second: #a87e8a;
+  --color-accent: #f06690;
+}
+
 @keyframes appear {
   from {
     opacity: 0;

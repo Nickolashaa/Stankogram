@@ -14,6 +14,11 @@
         var stored = localStorage.getItem("theme")
         var dark = stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches
         document.documentElement.classList.toggle("dark", dark)
+
+        var storedScheme = localStorage.getItem("colorScheme")
+        if (storedScheme) {
+          document.documentElement.setAttribute("data-scheme", storedScheme)
+        }
       })()
     </script>
   </head>
