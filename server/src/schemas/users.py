@@ -4,7 +4,7 @@ from ..config import (
     PASSWORD_LEN,
 )
 from ..enums.users import Role
-from .base import Schema
+from .base import PaginationSchema, Schema
 
 
 class UserResponse(Schema):
@@ -40,6 +40,10 @@ class UserFilters(Schema):
     search_query: str | None = Field(None)
     role: Role | None = Field(None)
     is_admin: bool | None = Field(None)
+
+
+class UserListQuery(UserFilters, PaginationSchema):
+    pass
 
 
 class PasswordResetCodeResponse(Schema):

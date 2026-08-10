@@ -6,6 +6,21 @@ export const router = createRouter({
     {
       path: "/",
       component: () => import("./views/main.vue"),
+      children: [
+        { path: "", redirect: "/chats" },
+        { path: "chats", component: () => import("./views/chats.vue") },
+        { path: "profile", component: () => import("./views/profile.vue") },
+        { path: "support", component: () => import("./views/support.vue") },
+        {
+          path: "admin",
+          component: () => import("./views/admin.vue"),
+          meta: { requiresAdmin: true },
+          children: [
+            { path: "", redirect: "/admin/users" },
+            { path: "users", component: () => import("./views/admin-users.vue") },
+          ],
+        },
+      ],
     },
     {
       path: "/auth",
@@ -23,6 +38,10 @@ router.beforeEach((to) => {
   }
 
   if (authStore.accessToken && to.path === "/auth") {
+    return "/"
+  }
+
+  if (to.matched.some((record) => record.meta.requiresAdmin) && !authStore.user?.is_admin) {
     return "/"
   }
 })
