@@ -18,6 +18,6 @@ const model = defineModel<string>()
     :type="props.type"
     :placeholder="props.placeholder"
     v-model="model"
-    class="box-border h-12 w-full rounded-input border-[1.5px] border-second/30 bg-white px-4 font-sans text-[15px] text-main outline-none transition-colors duration-150 placeholder:text-second focus:border-accent"
+    class="box-border h-12 w-full rounded-input border-[1.5px] border-second/30 bg-bg px-4 font-sans text-[15px] text-main outline-none transition-colors duration-150 placeholder:text-second focus:border-accent"
   />
 </template>

@@ -1,29 +1,14 @@
 @import "tailwindcss";
 
-:root {
-  --bg-color: #eff2f0;
-  --main-color: #1e2422;
-  --second-color: #6b7a74;
-  --accent-color: #4f8a76;
-
-  --bg-color-inverted: #121613;
-  --main-color-inverted: #e3e9e5;
-  --second-color-inverted: #8a9a92;
-  --accent-color-inverted: #6bb69b;
-
-  --font-family: "Montserrat", sans-serif;
-  --font-style: normal;
-}
-
 @theme {
-  --color-bg: var(--bg-color);
-  --color-main: var(--main-color);
-  --color-second: var(--second-color);
-  --color-accent: var(--accent-color);
-  --color-accent-hover: #436f60;
-  --color-card: color-mix(in srgb, var(--bg-color) 96%, var(--main-color) 4%);
+  --color-bg: #eff2f0;
+  --color-main: #1e2422;
+  --color-second: #6b7a74;
+  --color-accent: #4f8a76;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 96%, var(--color-main) 4%);
 
-  --font-sans: var(--font-family);
+  --font-sans: "Montserrat", sans-serif;
 
   --radius-input: 10px;
   --radius-card: 1.25rem;
@@ -31,6 +16,13 @@
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.08);
 
   --animate-appear: appear 0.4s ease-out;
+}
+
+:root.dark {
+  --color-bg: #121613;
+  --color-main: #e3e9e5;
+  --color-second: #8a9a92;
+  --color-accent: #6bb69b;
 }
 
 @keyframes appear {
@@ -45,11 +37,14 @@
 }
 
 body {
-  color: var(--main-color);
-  background-color: var(--bg-color);
-  font-family: var(--font-family);
-  font-style: var(--font-style);
+  color: var(--color-main);
+  background-color: var(--color-bg);
+  font-family: var(--font-sans);
+  font-style: normal;
   font-size: 100%;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 main {
