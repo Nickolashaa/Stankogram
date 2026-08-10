@@ -22,7 +22,7 @@ function getInitialTheme(): Theme {
     return stored
   }
 
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+  return "light"
 }
 
 function getInitialScheme(): ColorScheme {
@@ -31,7 +31,7 @@ function getInitialScheme(): ColorScheme {
     return stored as ColorScheme
   }
 
-  return "forest"
+  return "ocean"
 }
 
 export const useThemeStore = defineStore("theme", () => {
