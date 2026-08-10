@@ -1,17 +1,28 @@
 <script setup lang="ts">
+import { computed } from "vue"
 import { useRouter } from "vue-router"
+import { storeToRefs } from "pinia"
 import { useAuthStore } from "@/stores/auth"
 import AppBrand from "@/components/app-brand.vue"
 import Button from "@/components/button.vue"
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { user } = storeToRefs(authStore)
 
-const navItems = [
-  { to: "/chats", label: "Чаты" },
-  { to: "/profile", label: "Профиль" },
-  { to: "/support", label: "Поддержка" },
-]
+const navItems = computed(() => {
+  const items = [
+    { to: "/chats", label: "Чаты" },
+    { to: "/profile", label: "Профиль" },
+    { to: "/support", label: "Поддержка" },
+  ]
+
+  if (user.value?.is_admin) {
+    items.push({ to: "/admin", label: "Админка" })
+  }
+
+  return items
+})
 
 async function handleLogout() {
   await authStore.logout()
@@ -20,7 +31,9 @@ async function handleLogout() {
 </script>
 
 <template>
-  <nav class="flex w-64 shrink-0 flex-col justify-between border-r border-second/15 bg-card px-5 py-8">
+  <nav
+    class="flex w-64 shrink-0 flex-col justify-between border-r border-second/15 bg-card px-5 py-8"
+  >
     <div class="flex flex-col gap-8">
       <AppBrand />
       <div class="flex flex-col gap-1">

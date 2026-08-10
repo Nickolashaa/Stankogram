@@ -5,7 +5,7 @@ import AppNav from "@/components/app-nav.vue"
 <template>
   <div class="flex min-h-screen">
     <AppNav />
-    <div class="flex flex-1 items-center justify-center overflow-y-auto px-10 py-10">
+    <div class="flex-1 overflow-y-auto">
       <RouterView />
     </div>
   </div>

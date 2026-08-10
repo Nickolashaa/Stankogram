@@ -1,18 +1,16 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia"
 import { useAuthStore } from "@/stores/auth"
+import { roleLabels } from "@/lib/roles"
 
 const authStore = useAuthStore()
 const { user } = storeToRefs(authStore)
-
-const roleLabels: Record<string, string> = {
-  STUDENT: "Студент",
-  TEACHER: "Преподаватель",
-}
 </script>
 
 <template>
-  <div class="mx-auto flex w-full max-w-2xl animate-appear flex-col gap-8">
+  <div
+    class="mx-auto flex h-full w-full max-w-2xl animate-appear flex-col justify-center gap-8 p-10"
+  >
     <h1 class="m-0 text-3xl font-semibold text-main">Профиль</h1>
 
     <div v-if="user" class="flex flex-col gap-6 rounded-card bg-card p-10 shadow-card">
@@ -35,7 +33,9 @@ const roleLabels: Record<string, string> = {
         <span class="text-lg text-main">{{ roleLabels[user.role] ?? user.role }}</span>
       </div>
       <div class="flex flex-col gap-1">
-        <span class="text-xs font-medium uppercase tracking-wide text-second">Права администратора</span>
+        <span class="text-xs font-medium uppercase tracking-wide text-second"
+          >Права администратора</span
+        >
         <span class="text-lg text-main">{{ user.is_admin ? "Да" : "Нет" }}</span>
       </div>
     </div>
