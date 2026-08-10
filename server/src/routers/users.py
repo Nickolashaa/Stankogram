@@ -1,13 +1,15 @@
-from fastapi import APIRouter, Depends
+from typing import Annotated
 
-from ..config import LIMIT, OFFSET
+from fastapi import APIRouter, Body, Depends, Path, Query
+
 from ..dependencies import get_user_service
 from ..permissions import is_admin
+from ..schemas.base import PaginationSchema
 from ..schemas.users import (
     PasswordResetRequest,
-    UserCredentials,
     UserFilters,
     UserInput,
+    UserListQuery,
     UserResponse,
 )
 from ..services import UserService
@@ -16,9 +18,28 @@ from ..services.exceptions import ObjectAlreadyExists, ObjectNotFound
 router = APIRouter(prefix="/users", tags=["users"])
 
 
+@router.get("", response_model=list[UserResponse], dependencies=[Depends(is_admin)])
+async def get_users(
+    query: Annotated[UserListQuery, Query()],
+    service: UserService = Depends(get_user_service),
+) -> list[UserResponse]:
+    return await service.get_list(
+        filters=query,
+        pagination=PaginationSchema(limit=query.limit, offset=query.offset),
+    )
+
+
+@router.get("/count", response_model=int, dependencies=[Depends(is_admin)])
+async def get_users_count(
+    filters: Annotated[UserFilters, Query()],
+    service: UserService = Depends(get_user_service),
+) -> int:
+    return await service.count(filters)
+
+
 @router.get("/{id}", response_model=UserResponse, dependencies=[Depends(is_admin)])
 async def get_user(
-    id: int, service: UserService = Depends(get_user_service)
+    id: Annotated[int, Path()], service: UserService = Depends(get_user_service)
 ) -> UserResponse:
     try:
         return await service.get(id)
@@ -26,33 +47,10 @@ async def get_user(
         raise e.to_http_exception()
 
 
-@router.get("", response_model=list[UserResponse], dependencies=[Depends(is_admin)])
-async def get_users(
-    filters: UserFilters | None = None,
-    limit: int | None = LIMIT,
-    offset: int | None = OFFSET,
-    service: UserService = Depends(get_user_service),
-) -> list[UserResponse]:
-    return await service.get_list(
-        filters=filters,
-        limit=limit,
-        offset=offset,
-    )
-
-
-@router.get("/count", response_model=int, dependencies=[Depends(is_admin)])
-async def get_users_count(
-    filters: UserFilters | None = None,
-    service: UserService = Depends(get_user_service),
-) -> int:
-    return await service.count(filters)
-
-
-@router.post(
-    "/create", response_model=UserCredentials, dependencies=[Depends(is_admin)]
-)
+@router.post("/create", response_model=UserResponse, dependencies=[Depends(is_admin)])
 async def register(
-    data: UserInput, service: UserService = Depends(get_user_service)
+    data: Annotated[UserInput, Body()],
+    service: UserService = Depends(get_user_service),
 ) -> UserResponse:
     try:
         return await service.create(data)
@@ -61,7 +59,9 @@ async def register(
 
 
 @router.delete("/delete", response_model=None, dependencies=[Depends(is_admin)])
-async def delete(id: int, service: UserService = Depends(get_user_service)) -> None:
+async def delete(
+    id: Annotated[int, Query()], service: UserService = Depends(get_user_service)
+) -> None:
     await service.delete(id)
 
 
@@ -69,8 +69,8 @@ async def delete(id: int, service: UserService = Depends(get_user_service)) -> N
     "/{id}/update", response_model=UserResponse, dependencies=[Depends(is_admin)]
 )
 async def update(
-    id: int,
-    data: UserInput,
+    id: Annotated[int, Path()],
+    data: Annotated[UserInput, Body()],
     service: UserService = Depends(get_user_service),
 ) -> UserResponse:
     try:
@@ -81,7 +81,7 @@ async def update(
 
 @router.post("/reset_password_request", response_model=None)
 async def reset_password_request(
-    data: PasswordResetRequest,
+    data: Annotated[PasswordResetRequest, Body()],
     service: UserService = Depends(get_user_service),
 ) -> None:
     try:
@@ -92,8 +92,8 @@ async def reset_password_request(
 
 @router.get("/{id}/reset_password_confirm/{code}", response_model=None)
 async def reset_password_confirm(
-    id: int,
-    code: str,
+    id: Annotated[int, Path()],
+    code: Annotated[str, Path()],
     service: UserService = Depends(get_user_service),
 ) -> None:
     try:

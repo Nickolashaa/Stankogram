@@ -14,6 +14,7 @@ from ...config import (
     PASSWORD_RESET_CODE_LEN,
 )
 from ...database.models.users import PasswordResetCode, User
+from ...schemas.base import PaginationSchema
 from ...schemas.users import (
     UserCredentials,
     UserFilters,
@@ -139,14 +140,13 @@ class UserService(BaseService):
     async def get_list(
         self,
         filters: UserFilters | None,
-        limit: int | None,
-        offset: int | None,
+        pagination: PaginationSchema | None,
     ) -> list[UserResponse]:
         stmt = select(User).order_by(User.id)
 
         stmt = self._apply_filters(stmt=stmt, filters=filters)
 
-        stmt = stmt.limit(limit).offset(offset)
+        stmt = self._apply_pagination(stmt=stmt, pagination=pagination)
 
         res = await self._session.execute(stmt)
         entities = res.scalars().all()

@@ -2,7 +2,7 @@ from typing import Annotated
 from uuid import UUID
 
 import jwt
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
+from fastapi import APIRouter, Body, Cookie, Depends, HTTPException, Response
 
 from ..config import JWT_REFRESH_EXP_DAYS
 from ..dependencies import (
@@ -28,7 +28,7 @@ async def get_me(
 @router.post("/login", response_model=JWTTokens)
 async def login(
     response: Response,
-    credentials: UserCredentials,
+    credentials: Annotated[UserCredentials, Body()],
     service: AuthService = Depends(get_auth_service),
     user_service: UserService = Depends(get_user_service),
 ) -> JWTTokens:
