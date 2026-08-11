@@ -26,3 +26,5 @@ SMTP_LOGIN = os.getenv("SMTP_LOGIN", "")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
 SMTP_SERVER = "smtp.yandex.ru"
 SMTP_PORT = 587
+
+ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY", "")
