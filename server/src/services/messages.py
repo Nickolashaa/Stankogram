@@ -54,8 +54,8 @@ class MessagesService(BaseService):
 
     async def get_list(
         self,
-        filters: MessageFilters | None,
-        pagination: PaginationSchema | None,
+        filters: MessageFilters | None = None,
+        pagination: PaginationSchema | None = None,
     ) -> list[MessageResponse]:
         stmt = select(Message).order_by(Message.created_at.desc())
 
@@ -64,7 +64,6 @@ class MessagesService(BaseService):
         stmt = self._apply_pagination(stmt=stmt, pagination=pagination)
 
         res = await self._session.execute(stmt)
-        entities = res.scalars().all()
 
         return [
             MessageResponse(
@@ -75,5 +74,5 @@ class MessagesService(BaseService):
                 created_at=entity.created_at,
                 updated_at=entity.updated_at,
             )
-            for entity in entities
+            for entity in res.scalars().all()
         ]

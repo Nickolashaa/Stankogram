@@ -139,8 +139,8 @@ class UserService(BaseService):
 
     async def get_list(
         self,
-        filters: UserFilters | None,
-        pagination: PaginationSchema | None,
+        filters: UserFilters | None = None,
+        pagination: PaginationSchema | None = None,
     ) -> list[UserResponse]:
         stmt = select(User).order_by(User.id)
 
