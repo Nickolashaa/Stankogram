@@ -13,6 +13,7 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       SMTP_LOGIN: ${SMTP_LOGIN}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
 
   database:
     image: postgres:18.4
