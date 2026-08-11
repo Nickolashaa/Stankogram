@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..database.models.messages import Message
 from ..schemas.base import PaginationSchema
 from ..schemas.messages import MessageCreate, MessageFilters, MessageResponse
+from ..utils.stmt_modificators import _get_count_stmt
 from .base import BaseService
 from .exceptions import ObjectNotFound
 
@@ -76,3 +77,17 @@ class MessagesService(BaseService):
             )
             for entity in res.scalars().all()
         ]
+
+    async def count(
+        self,
+        filters: MessageFilters | None = None,
+    ) -> int:
+        stmt = select(Message)
+
+        stmt = self._apply_filters(stmt=stmt, filters=filters)
+
+        stmt = _get_count_stmt(stmt)
+
+        res = await self._session.execute(stmt)
+
+        return res.scalar_one()

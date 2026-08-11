@@ -8,6 +8,7 @@ from ..schemas.users_to_chats import (
     UsersToChatsInput,
     UsersToChatsResponse,
 )
+from ..utils.stmt_modificators import _get_count_stmt
 from .base import BaseService
 from .exceptions import ObjectAlreadyExists, ObjectNotFound
 
@@ -75,3 +76,17 @@ class UsersToChatsService(BaseService):
             UsersToChatsResponse.model_validate(entity)
             for entity in res.scalars().all()
         ]
+
+    async def count(
+        self,
+        filters: UsersToChatsFilters | None = None,
+    ) -> int:
+        stmt = select(UsersToChats)
+
+        stmt = self._apply_filters(stmt=stmt, filters=filters)
+
+        stmt = _get_count_stmt(stmt)
+
+        res = await self._session.execute(stmt)
+
+        return res.scalar_one()
