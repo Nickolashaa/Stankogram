@@ -1,13 +1,7 @@
-from enum import StrEnum
-
 from sqlalchemy.orm import Mapped
 
+from ...enums.chats import ChatType
 from ..connection import Base
-
-
-class ChatType(StrEnum):
-    PRIVATE = "PRIVATE"
-    PUBLIC = "PUBLIC"
 
 
 class Chat(Base):

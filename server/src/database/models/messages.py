@@ -1,14 +1,9 @@
-from enum import StrEnum
-
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
+from ...enums.messages import MessageType
 from ..connection import Base
 from .chats import Chat
-
-
-class MessageType(StrEnum):
-    TEXT = "TEXT"
 
 
 class Message(Base):
