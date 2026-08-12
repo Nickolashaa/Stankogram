@@ -3,8 +3,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from ...enums.messages import MessageType
 from ..connection import Base
-from .chats import Chat
 from .auth import User
+from .chats import Chat
 
 
 class Message(Base):
