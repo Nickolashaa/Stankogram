@@ -21,3 +21,7 @@ class ObjectNotFound(BaseException):
 
 class InvalidInput(BaseException):
     http_code = 422
+
+
+class Forbidden(BaseException):
+    http_code = 403

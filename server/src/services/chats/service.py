@@ -1,6 +1,6 @@
 from typing import Unpack
 
-from sqlalchemy import insert, select
+from sqlalchemy import exists, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...database.models.chats import Chat, ChatParticipant
@@ -9,7 +9,7 @@ from ...schemas.chats import ChatProfileResponse, ChatResponse
 from ..auth import AuthService
 from ..base import BaseService
 from ..exceptions import InvalidInput, ObjectNotFound
-from .types import ChatRecipientsCreateParams, PrivateChatCreateParams
+from .types import ChatParticipantInputParams, PrivateChatCreateParams
 
 
 class ChatService(BaseService):
@@ -54,11 +54,11 @@ class ChatService(BaseService):
 
         add_participants_stmt = insert(ChatParticipant).values(
             [
-                ChatRecipientsCreateParams(
+                ChatParticipantInputParams(
                     user_id=data.get("my_id"),
                     chat_id=chat.id,
                 ),
-                ChatRecipientsCreateParams(
+                ChatParticipantInputParams(
                     user_id=data.get("participant_id"),
                     chat_id=chat.id,
                 ),
@@ -86,3 +86,14 @@ class ChatService(BaseService):
             chat=chat,
             title=participant.full_name,
         )
+
+    async def is_exists(
+        self,
+        **data: Unpack[ChatParticipantInputParams],
+    ) -> bool:
+        stmt = select(exists()).where(
+            ChatParticipant.user_id == data.get("user_id"),
+            ChatParticipant.chat_id == data.get("chat_id"),
+        )
+        res = await self._session.execute(stmt)
+        return res.scalar_one()

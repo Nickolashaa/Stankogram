@@ -9,32 +9,62 @@ from ...database.models.messages import Message
 from ...schemas.messages import MessageResponse
 from ...utils.stmt_modificators import _get_count_stmt
 from ..base import BaseService
-from ..exceptions import ObjectNotFound
+from ..chats import ChatService
+from ..exceptions import Forbidden, ObjectNotFound
 from .types import MessageCreateParams, MessageGetListFilters
 
 
 class MessageService(BaseService):
-    def __init__(self, session: AsyncSession, fernet: Fernet):
+    def __init__(
+        self, session: AsyncSession, fernet: Fernet, chat_service: ChatService
+    ):
         super().__init__(session)
         self._fernet = fernet
+        self._chat_service = chat_service
+
+    async def can_message_to_chat(
+        self,
+        chat_id: int,
+        user_id: int,
+    ) -> bool:
+        return await self._chat_service.is_exists(
+            user_id=user_id,
+            chat_id=chat_id,
+        )
 
     async def create(
         self,
         **values: Unpack[MessageCreateParams],
     ) -> MessageResponse:
+        if (
+            self.can_message_to_chat(
+                chat_id=values.get("chat_id"),
+                user_id=values.get("user_id"),
+            )
+            is False
+        ):
+            raise Forbidden("Dont have access to this chat.")
+
         stmt = (
             insert(Message)
             .values(
-                chat_id=values["chat_id"],
-                type=values["type"],
-                encrypted_text=self._fernet.encrypt(values["text"].encode()).decode(),
+                chat_id=values.get("chat_id"),
+                user_id=values.get("user_id"),
+                type=values.get("type"),
+                encrypted_text=self._fernet.encrypt(
+                    values.get("text").encode()
+                ).decode(),
             )
             .returning(Message)
         )
         try:
             res = await self._session.execute(stmt)
-        except IntegrityError:
-            raise ObjectNotFound(f"Chat with id {values['chat_id']} not found")
+        except IntegrityError as e:
+            if "fk_messages_chat_id" in str(e.orig):
+                raise ObjectNotFound(f"Chat with id {values.get('chat_id')} not found")
+            if "fk_messages_user_id" in str(e.orig):
+                raise ObjectNotFound(f"User with id {values.get('user_id')} not found")
+            raise
 
         return MessageResponse.model_validate(res.scalar_one())
 
@@ -50,15 +80,15 @@ class MessageService(BaseService):
         if (chat_id := filters.get("chat_id")) is not None:
             stmt = stmt.where(Message.chat_id == chat_id)
 
-        if (type_ := filters.get("type")) is not None:
-            stmt = stmt.where(Message.type == type_)
+        if (user_id := filters.get("user_id")) is not None:
+            stmt = stmt.where(Message.user_id == user_id)
 
         return stmt
 
     async def get_list(
         self,
-        limit: int,
-        offset: int,
+        limit: int | None,
+        offset: int | None,
         **filters: Unpack[MessageGetListFilters],
     ) -> list[MessageResponse]:
         stmt = select(Message).order_by(Message.created_at.desc())
@@ -73,6 +103,7 @@ class MessageService(BaseService):
             MessageResponse(
                 id=entity.id,
                 chat_id=entity.chat_id,
+                user_id=entity.user_id,
                 type=entity.type,
                 text=self._fernet.decrypt(entity.encrypted_text.encode()).decode(),
                 created_at=entity.created_at,
