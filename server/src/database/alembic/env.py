@@ -10,9 +10,9 @@ from src.config import DATABASE_URL
 from src.database.connection import Base
 from src.database.models.auth import CancelledToken  # noqa: F401
 from src.database.models.chats import Chat  # noqa: F401
+from src.database.models.chats_to_users import ChatToUser  # noqa: F401
 from src.database.models.messages import Message  # noqa: F401
 from src.database.models.users import User  # noqa: F401
-from src.database.models.users_to_chats import UsersToChats  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

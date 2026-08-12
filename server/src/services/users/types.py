@@ -1,0 +1,32 @@
+from typing import NotRequired, Required, TypedDict
+
+from ...enums.users import Role
+
+
+class UserCreateParams(TypedDict):
+    name: Required[str]
+    surname: Required[str]
+    patronymic: NotRequired[str | None]
+    email: Required[str]
+    role: Required[Role]
+    is_admin: NotRequired[bool]
+
+
+class UserUpdateParams(TypedDict):
+    name: NotRequired[str]
+    surname: NotRequired[str]
+    patronymic: NotRequired[str | None]
+    email: NotRequired[str]
+    role: NotRequired[Role]
+    is_admin: NotRequired[bool]
+
+
+class UserLoginParams(TypedDict):
+    email: Required[str]
+    password: Required[str]
+
+
+class UserGetListFilters(TypedDict):
+    search_query: NotRequired[str]
+    role: NotRequired[Role]
+    is_admin: NotRequired[bool]

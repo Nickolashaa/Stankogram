@@ -33,11 +33,11 @@ async def login(
     user_service: UserService = Depends(get_user_service),
 ) -> JWTTokens:
     try:
-        user = await user_service.login(credentials)
+        user = await user_service.login(**credentials.model_dump())
     except ObjectNotFound as e:
         raise e.to_http_exception()
 
-    tokens = service.generate_jwt_tokens(user)
+    tokens = service.generate_jwt_tokens(id=user.id, is_admin=user.is_admin)
 
     response.set_cookie(
         key="refresh_token",
@@ -101,7 +101,7 @@ async def refresh(
     except ObjectNotFound as e:
         raise e.to_http_exception()
 
-    tokens = service.generate_jwt_tokens(user)
+    tokens = service.generate_jwt_tokens(id=user.id, is_admin=user.is_admin)
 
     response.set_cookie(
         key="refresh_token",

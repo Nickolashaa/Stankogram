@@ -1,7 +1,8 @@
 from .auth import get_auth_service, get_current_user
-from .chats import get_chats_service
+from .chats import get_chat_service
+from .chats_to_users import get_chat_to_user_service
 from .database import get_session
-from .messages import get_messages_service
+from .messages import get_message_service
 from .users import get_user_service
 
 __all__ = (
@@ -9,6 +10,7 @@ __all__ = (
     "get_user_service",
     "get_current_user",
     "get_auth_service",
-    "get_chats_service",
-    "get_messages_service",
+    "get_chat_service",
+    "get_message_service",
+    "get_chat_to_user_service",
 )

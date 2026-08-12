@@ -3,16 +3,16 @@ from pydantic import Field
 from .base import BaseResponse, Schema
 
 
-class UsersToChatsInput(Schema):
+class ChatToUserInput(Schema):
     user_id: int
     chat_id: int
 
 
-class UsersToChatsResponse(BaseResponse):
+class ChatToUserInputResponse(BaseResponse):
     user_id: int
     chat_id: int
 
 
-class UsersToChatsFilters(Schema):
+class ChatToUserInputFilters(Schema):
     user_id: int | None = Field(None)
     chat_id: int | None = Field(None)

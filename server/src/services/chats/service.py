@@ -1,16 +1,19 @@
+from typing import Unpack
+
 from sqlalchemy import delete, insert
 
-from ..database.models.chats import Chat
-from ..schemas.chats import ChatInput, ChatResponse
-from .base import BaseService
+from ...database.models.chats import Chat
+from ...schemas.chats import ChatResponse
+from ..base import BaseService
+from .types import ChatCreateParams
 
 
-class ChatsService(BaseService):
+class ChatService(BaseService):
     async def create(
         self,
-        data: ChatInput,
+        **values: Unpack[ChatCreateParams],
     ) -> ChatResponse:
-        stmt = insert(Chat).values(**data.model_dump()).returning(Chat)
+        stmt = insert(Chat).values(**values).returning(Chat)
 
         res = await self._session.execute(stmt)
 

@@ -26,6 +26,11 @@ class PasswordResetRequest(Schema):
     email: EmailStr
 
 
+class PasswordResetConfirm(Schema):
+    id: int
+    code: str
+
+
 class UserInput(Schema):
     name: str = Field(..., max_length=50)
     surname: str = Field(..., max_length=50)

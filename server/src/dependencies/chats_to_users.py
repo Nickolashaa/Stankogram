@@ -1,11 +1,11 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..services import UsersToChatsService
+from ..services import ChatToUserService
 from .database import get_session
 
 
-def get_users_to_chats_service(
+def get_chat_to_user_service(
     session: AsyncSession = Depends(get_session),
-) -> UsersToChatsService:
-    return UsersToChatsService(session)
+) -> ChatToUserService:
+    return ChatToUserService(session)

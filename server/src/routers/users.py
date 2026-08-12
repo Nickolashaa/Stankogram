@@ -4,8 +4,8 @@ from fastapi import APIRouter, Body, Depends, Path, Query
 
 from ..dependencies import get_user_service
 from ..permissions import is_admin
-from ..schemas.base import PaginationSchema
 from ..schemas.users import (
+    PasswordResetConfirm,
     PasswordResetRequest,
     UserFilters,
     UserInput,
@@ -24,8 +24,11 @@ async def get_users(
     service: UserService = Depends(get_user_service),
 ) -> list[UserResponse]:
     return await service.get_list(
-        filters=query,
-        pagination=PaginationSchema(limit=query.limit, offset=query.offset),
+        limit=query.limit,
+        offset=query.offset,
+        filters=UserFilters(
+            search_query=query.search_query, role=query.role, is_admin=query.is_admin
+        ).model_dump(exclude_unset=True),
     )
 
 
@@ -34,7 +37,7 @@ async def get_users_count(
     filters: Annotated[UserFilters, Query()],
     service: UserService = Depends(get_user_service),
 ) -> int:
-    return await service.count(filters)
+    return await service.count(**filters.model_dump(exclude_unset=True))
 
 
 @router.get("/{id}", response_model=UserResponse, dependencies=[Depends(is_admin)])
@@ -53,7 +56,7 @@ async def register(
     service: UserService = Depends(get_user_service),
 ) -> UserResponse:
     try:
-        return await service.create(data)
+        return await service.create(**data.model_dump())
     except ObjectAlreadyExists as e:
         raise e.to_http_exception()
 
@@ -74,7 +77,7 @@ async def update(
     service: UserService = Depends(get_user_service),
 ) -> UserResponse:
     try:
-        return await service.update(id=id, data=data)
+        return await service.update(id=id, **data.model_dump())
     except (ObjectNotFound, ObjectAlreadyExists) as e:
         raise e.to_http_exception()
 
@@ -90,13 +93,12 @@ async def reset_password_request(
         raise e.to_http_exception()
 
 
-@router.get("/{id}/reset_password_confirm/{code}", response_model=None)
+@router.post("/reset_password_confirm", response_model=None)
 async def reset_password_confirm(
-    id: Annotated[int, Path()],
-    code: Annotated[str, Path()],
+    data: Annotated[PasswordResetConfirm, Body()],
     service: UserService = Depends(get_user_service),
 ) -> None:
     try:
-        await service.reset_password_confirm(id=id, code=code)
+        await service.reset_password_confirm(id=data.id, code=data.code)
     except ObjectNotFound as e:
         raise e.to_http_exception()
