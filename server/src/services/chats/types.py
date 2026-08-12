@@ -1,7 +1,6 @@
 from typing import Required, TypedDict
 
-from ...enums.chats import ChatType
 
-
-class ChatCreateParams(TypedDict):
-    type: Required[ChatType]
+class ChatRecipientsCreateParams(TypedDict):
+    user_id: Required[int]
+    chat_id: Required[int]
