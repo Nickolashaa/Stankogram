@@ -4,11 +4,9 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from ..schemas.jwt import UserJWTPayload
 
-security = HTTPBearer()
-
 
 async def is_admin(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
 ) -> None:
     try:
         payload = UserJWTPayload.from_token(credentials.credentials)
