@@ -1,24 +1,36 @@
+from typing import Unpack
+
 from sqlalchemy import insert, select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...database.models.chats import Chat, ChatParticipant
 from ...enums.chats import ChatType
-from ...schemas.chats import ChatResponse
+from ...schemas.chats import ChatProfileResponse, ChatResponse
 from ..base import BaseService
-from ..exceptions import InvalidInputData, ObjectNotFound
-from .types import ChatRecipientsCreateParams
+from ..exceptions import InvalidInput, ObjectNotFound
+from ..users import UserService
+from .types import ChatRecipientsCreateParams, PrivateChatCreateParams
 
 
 class ChatService(BaseService):
+    def __init__(
+        self,
+        session: AsyncSession,
+        user_service: UserService,
+    ) -> None:
+        super().__init__(session)
+        self._user_service = user_service
+
     async def _get_private_chat_by_participants(
-        self, participant_ids: list[int]
+        self,
+        **data: Unpack[PrivateChatCreateParams],
     ) -> ChatResponse:
         stmt = (
             select(Chat)
             .join(ChatParticipant, ChatParticipant.chat_id == Chat.id)
             .where(
                 Chat.type == ChatType.PRIVATE,
-                ChatParticipant.user_id.in_(participant_ids),
+                ChatParticipant.user_id.in_(data.values()),
             )
             .limit(1)
         )
@@ -27,27 +39,15 @@ class ChatService(BaseService):
         chat = res.scalar_one_or_none()
         if chat is None:
             raise ObjectNotFound(
-                f"Private chat with participants {participant_ids} not found"
+                f"Private chat with participant {data.get('participant_id')} not found"
             )
 
         return ChatResponse.model_validate(chat)
 
-    async def get_private_chat_or_create(
-        self,
-        participant_ids: list[int],
-    ) -> ChatResponse:
-        try:
-            return await self._get_private_chat_by_participants(participant_ids)
-        except ObjectNotFound:
-            return await self._create_private_chat(participant_ids)
-
     async def _create_private_chat(
         self,
-        participant_ids: list[int],
+        **data: Unpack[PrivateChatCreateParams],
     ) -> ChatResponse:
-        if len(participant_ids) != 2:
-            raise InvalidInputData("Private chat can have only 2 participants")
-
         create_chat_stmt = insert(Chat).values(type=ChatType.PRIVATE).returning(Chat)
         create_chat_res = await self._session.execute(create_chat_stmt)
         chat = create_chat_res.scalar_one()
@@ -55,17 +55,34 @@ class ChatService(BaseService):
         add_participants_stmt = insert(ChatParticipant).values(
             [
                 ChatRecipientsCreateParams(
-                    user_id=participant_id,
+                    user_id=data.get("my_id"),
                     chat_id=chat.id,
-                )
-                for participant_id in participant_ids
+                ),
+                ChatRecipientsCreateParams(
+                    user_id=data.get("participant_id"),
+                    chat_id=chat.id,
+                ),
             ]
         )
-        try:
-            await self._session.execute(add_participants_stmt)
-        except IntegrityError:
-            raise ObjectNotFound(f"Users with ids {participant_ids} not found")
+        await self._session.execute(add_participants_stmt)
 
         return ChatResponse.model_validate(chat)
 
+    async def get_private_chat_or_create(
+        self,
+        **data: Unpack[PrivateChatCreateParams],
+    ) -> ChatProfileResponse:
+        if data.get("my_id") == data.get("participant_id"):
+            raise InvalidInput("You cannot chat to yourself")
 
+        participant = await self._user_service.get(data.get("participant_id"))
+
+        try:
+            chat = await self._get_private_chat_by_participants(**data)
+        except ObjectNotFound:
+            chat = await self._create_private_chat(**data)
+
+        return ChatProfileResponse(
+            chat=chat,
+            title=participant.full_name,
+        )

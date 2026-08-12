@@ -16,6 +16,10 @@ class UserResponse(BaseResponse):
     role: Role
     is_admin: bool
 
+    @property
+    def full_name(self) -> str:
+        return f"{self.surname} {self.name} {self.patronymic or ''}".strip()
+
 
 class UserCredentials(Schema):
     email: str

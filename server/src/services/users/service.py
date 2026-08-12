@@ -59,7 +59,7 @@ class UserService(BaseService):
 
     @staticmethod
     def _generate_password_reset_email(user_id: int, code: str) -> str:
-        url = f"{APP_BASE_URL}/api/users/{user_id}/reset_password_confirm/{code}"
+        url = f"{APP_BASE_URL}/reset-password-confirm?id={user_id}&code={code}"
         return _PASSWORD_RESET_EMAIL_TEMPLATE.substitute(url=url)
 
     @staticmethod

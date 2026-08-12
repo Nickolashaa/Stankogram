@@ -19,5 +19,5 @@ class ObjectNotFound(BaseException):
     http_code = 404
 
 
-class InvalidInputData(BaseException):
+class InvalidInput(BaseException):
     http_code = 422
