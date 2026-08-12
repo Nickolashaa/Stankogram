@@ -26,14 +26,20 @@ export const router = createRouter({
       path: "/auth",
       component: () => import("./views/auth.vue"),
     },
+    {
+      path: "/reset-password-confirm",
+      component: () => import("./views/reset-password-confirm.vue"),
+    },
   ],
   history: createWebHistory(),
 })
 
+const PUBLIC_PATHS = ["/auth", "/reset-password-confirm"]
+
 router.beforeEach((to) => {
   const authStore = useAuthStore()
 
-  if (!authStore.accessToken && to.path !== "/auth") {
+  if (!authStore.accessToken && !PUBLIC_PATHS.includes(to.path)) {
     return "/auth"
   }
 
