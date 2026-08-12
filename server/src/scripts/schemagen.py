@@ -1,6 +1,6 @@
 import json
 
-from ..server import app
+from ..app import app
 
 if __name__ == "__main__":
     with open("schema.json", "w", encoding="utf-8") as f:
