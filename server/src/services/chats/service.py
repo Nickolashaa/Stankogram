@@ -2,10 +2,13 @@ from typing import Unpack
 
 from sqlalchemy import exists, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 
+from ...database.models.auth import User
 from ...database.models.chats import Chat, ChatParticipant
 from ...enums.chats import ChatType
 from ...schemas.chats import ChatProfileResponse, ChatResponse
+from ...schemas.users import UserResponse
 from ..auth import AuthService
 from ..base import BaseService
 from ..exceptions import InvalidInput, ObjectNotFound
@@ -97,3 +100,27 @@ class ChatService(BaseService):
         )
         res = await self._session.execute(stmt)
         return res.scalar_one()
+
+    async def get_list(self, user_id: int) -> list[ChatProfileResponse]:
+        other_participant = aliased(ChatParticipant)
+
+        stmt = (
+            select(Chat, User)
+            .join(ChatParticipant, ChatParticipant.chat_id == Chat.id)
+            .join(other_participant, other_participant.chat_id == Chat.id)
+            .join(User, User.id == other_participant.user_id)
+            .where(
+                ChatParticipant.user_id == user_id,
+                other_participant.user_id != user_id,
+            )
+            .order_by(Chat.created_at.desc())
+        )
+        res = await self._session.execute(stmt)
+
+        return [
+            ChatProfileResponse(
+                chat=ChatResponse.model_validate(chat),
+                title=UserResponse.model_validate(participant).full_name,
+            )
+            for chat, participant in res.all()
+        ]
