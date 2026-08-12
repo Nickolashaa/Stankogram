@@ -41,7 +41,7 @@ export const useAuthStore = defineStore("auth", () => {
   }
 
   async function requestPasswordReset(email: string) {
-    const { error } = await client.POST("/api/users/reset_password_request", {
+    const { error } = await client.POST("/api/auth/reset_password_request", {
       body: { email },
     })
 
@@ -51,7 +51,7 @@ export const useAuthStore = defineStore("auth", () => {
   }
 
   async function confirmPasswordReset(id: number, code: string) {
-    const { error } = await client.POST("/api/users/reset_password_confirm", {
+    const { error } = await client.POST("/api/auth/reset_password_confirm", {
       body: { id, code },
     })
 
