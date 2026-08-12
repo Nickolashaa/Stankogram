@@ -8,3 +8,8 @@ class ChatInput(Schema):
 
 class ChatResponse(BaseResponse):
     type: ChatType
+
+
+class PrivateChatParticipants(Schema):
+    first_user_id: int
+    second_user_id: int

@@ -8,7 +8,7 @@ class ChatToUserInput(Schema):
     chat_id: int
 
 
-class ChatToUserInputResponse(BaseResponse):
+class ChatToUserResponse(BaseResponse):
     user_id: int
     chat_id: int
 
