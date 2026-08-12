@@ -3,9 +3,9 @@ import asyncio
 from sqlalchemy import select
 
 from ..database.connection import session_maker
-from ..database.models.users import User
+from ..database.models.auth import User
 from ..enums.users import Role
-from ..services.users import UserService
+from ..services.auth import AuthService
 
 
 async def main() -> None:
@@ -15,7 +15,7 @@ async def main() -> None:
             print("Admin already exists, aborting.")
             return
 
-        service = UserService(session)
+        service = AuthService(session)
         await service.create(
             name=input("Name: "),
             surname=input("Surname: "),

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from ...enums.chats import ChatType
 from ..connection import Base
-from .users import User
+from .auth import User
 
 
 class Chat(Base):

@@ -3,6 +3,7 @@ from pathlib import Path
 from secrets import choice
 from string import Template, ascii_letters, digits
 from typing import Unpack
+from uuid import UUID, uuid4
 
 import bcrypt
 from sqlalchemy import Select, delete, insert, or_, select, update
@@ -10,11 +11,14 @@ from sqlalchemy.exc import IntegrityError
 
 from ...config import (
     APP_BASE_URL,
+    JWT_ACCESS_EXP_MINUTES,
+    JWT_REFRESH_EXP_DAYS,
     PASSWORD_LEN,
     PASSWORD_RESET_CODE_EXP_MINUTES,
     PASSWORD_RESET_CODE_LEN,
 )
-from ...database.models.users import PasswordResetCode, User
+from ...database.models.auth import CancelledToken, PasswordResetCode, User
+from ...schemas.jwt import JWTTokens, UserJWTPayload
 from ...schemas.users import UserResponse
 from ...utils.smtp import send_email
 from ...utils.stmt_modificators import _get_count_stmt
@@ -44,7 +48,7 @@ _PASSWORD_RESET_CONFIRM_EMAIL_TEMPLATE = Template(
 )
 
 
-class UserService(BaseService):
+class AuthService(BaseService):
     @staticmethod
     def _generate_password() -> str:
         return "".join(choice(ascii_letters + digits) for _ in range(PASSWORD_LEN))
@@ -67,6 +71,32 @@ class UserService(BaseService):
         return _PASSWORD_RESET_CONFIRM_EMAIL_TEMPLATE.substitute(
             email=email, password=password
         )
+
+    @staticmethod
+    def generate_jwt_tokens(id: int, is_admin: bool) -> JWTTokens:
+        return JWTTokens(
+            access_token=UserJWTPayload(
+                id=id,
+                is_admin=is_admin,
+                jti=str(uuid4()),
+                type="access",
+                exp=datetime.now(UTC) + timedelta(minutes=JWT_ACCESS_EXP_MINUTES),
+            ).generate_token(),
+            refresh_token=UserJWTPayload(
+                id=id,
+                is_admin=is_admin,
+                jti=str(uuid4()),
+                type="refresh",
+                exp=datetime.now(UTC) + timedelta(days=JWT_REFRESH_EXP_DAYS),
+            ).generate_token(),
+        )
+
+    async def cancel_token(self, jti: UUID) -> None:
+        stmt = insert(CancelledToken).values(jti=jti)
+        try:
+            await self._session.execute(stmt)
+        except IntegrityError:
+            raise ObjectAlreadyExists(f"Token with jti {jti} already exists")
 
     async def create(
         self,

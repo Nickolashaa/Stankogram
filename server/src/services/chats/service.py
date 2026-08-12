@@ -6,9 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ...database.models.chats import Chat, ChatParticipant
 from ...enums.chats import ChatType
 from ...schemas.chats import ChatProfileResponse, ChatResponse
+from ..auth import AuthService
 from ..base import BaseService
 from ..exceptions import InvalidInput, ObjectNotFound
-from ..users import UserService
 from .types import ChatRecipientsCreateParams, PrivateChatCreateParams
 
 
@@ -16,10 +16,10 @@ class ChatService(BaseService):
     def __init__(
         self,
         session: AsyncSession,
-        user_service: UserService,
+        auth_service: AuthService,
     ) -> None:
         super().__init__(session)
-        self._user_service = user_service
+        self._user_service = auth_service
 
     async def _get_private_chat_by_participants(
         self,

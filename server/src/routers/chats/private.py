@@ -8,7 +8,7 @@ from ...schemas.users import UserResponse
 from ...services.chats import ChatService
 from ...services.exceptions import InvalidInput, ObjectNotFound
 
-router = APIRouter(prefix="/private", tags=["private"])
+router = APIRouter(prefix="/private")
 
 
 @router.post("/get_or_create", response_model=ChatProfileResponse)

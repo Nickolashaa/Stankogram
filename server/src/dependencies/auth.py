@@ -5,10 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..schemas.jwt import UserJWTPayload
 from ..schemas.users import UserResponse
-from ..services import AuthService, UserService
+from ..services import AuthService
 from ..services.exceptions import ObjectNotFound
 from .database import get_session
-from .users import get_user_service
 
 
 def get_auth_service(
@@ -19,7 +18,7 @@ def get_auth_service(
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
-    service: UserService = Depends(get_user_service),
+    service: AuthService = Depends(get_auth_service),
 ) -> UserResponse:
     try:
         payload = UserJWTPayload.from_token(credentials.credentials)
