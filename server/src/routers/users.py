@@ -18,7 +18,7 @@ from ..services.exceptions import ObjectAlreadyExists, ObjectNotFound
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.get("", response_model=list[UserResponse], dependencies=[Depends(is_admin)])
+@router.get("", response_model=list[UserResponse])
 async def get_users(
     query: Annotated[UserListQuery, Query()],
     service: UserService = Depends(get_user_service),
@@ -29,7 +29,7 @@ async def get_users(
     )
 
 
-@router.get("/count", response_model=int, dependencies=[Depends(is_admin)])
+@router.get("/count", response_model=int)
 async def get_users_count(
     filters: Annotated[UserFilters, Query()],
     service: UserService = Depends(get_user_service),
