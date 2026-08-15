@@ -17,6 +17,7 @@ dependencies = [
     "ty>=0.0.69",
     "uvicorn>=0.42.0",
     "cryptography>=50.0.0",
+    "websockets>=17.0.1",
 ]
 
 [tool.ruff.lint]
