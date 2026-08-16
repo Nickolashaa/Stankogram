@@ -22,7 +22,7 @@ class MessageService(BaseService):
         self._fernet = fernet
         self._chat_service = chat_service
 
-    async def can_message_to_chat(
+    async def _can_message_to_chat(
         self,
         chat_id: int,
         user_id: int,
@@ -37,7 +37,7 @@ class MessageService(BaseService):
         **values: Unpack[MessageCreateParams],
     ) -> MessageResponse:
         if (
-            self.can_message_to_chat(
+            self._can_message_to_chat(
                 chat_id=values.get("chat_id"),
                 user_id=values.get("user_id"),
             )
