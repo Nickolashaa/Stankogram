@@ -31,7 +31,7 @@ async def websocket_endpoint(
                 )
             except ValidationError:
                 await websocket.send_json(
-                    data=WebSocketError(
+                    WebSocketError(
                         code=422,
                         message="Validation failed",
                     ).model_dump(),
