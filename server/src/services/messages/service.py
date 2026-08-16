@@ -1,4 +1,4 @@
-from typing import Iterable, Unpack
+from typing import Unpack
 
 from cryptography.fernet import Fernet
 from sqlalchemy import Select, delete, insert, select
@@ -66,7 +66,7 @@ class MessageService(BaseService):
                 raise ObjectNotFound(f"User with id {values.get('user_id')} not found")
             raise
 
-        return MessageResponse.model_validate(res.scalar_one())
+        return MessageResponse.from_ORM(fernet=self._fernet, instance=res.scalar_one())
 
     async def delete(self, id: int) -> None:
         stmt = delete(Message).where(Message.id == id)
@@ -100,30 +100,9 @@ class MessageService(BaseService):
         res = await self._session.execute(stmt)
 
         return [
-            MessageResponse(
-                id=entity.id,
-                chat_id=entity.chat_id,
-                user_id=entity.user_id,
-                type=entity.type,
-                text=self._fernet.decrypt(entity.encrypted_text.encode()).decode(),
-                created_at=entity.created_at,
-                updated_at=entity.updated_at,
-            )
+            MessageResponse.from_ORM(fernet=self._fernet, instance=entity)
             for entity in res.scalars().all()
         ]
-
-    async def load(
-        self,
-        ids: Iterable[int],
-    ) -> dict[int, MessageResponse]:
-        return {
-            entity.id: entity
-            for entity in await self.get_list(
-                limit=None,
-                offset=None,
-                ids=ids,
-            )
-        }
 
     async def count(
         self,

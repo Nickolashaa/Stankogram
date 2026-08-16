@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from .schemas.websockets import WebSocketError
 
 
-class BaseException(Exception):
+class AppException(Exception):
     code: int
 
     def to_http_exception(self) -> HTTPException:
@@ -16,17 +16,17 @@ class BaseException(Exception):
         return WebSocketError(code=self.code, message=str(self))
 
 
-class ObjectAlreadyExists(BaseException):
+class ObjectAlreadyExists(AppException):
     code = 422
 
 
-class ObjectNotFound(BaseException):
+class ObjectNotFound(AppException):
     code = 404
 
 
-class InvalidInput(BaseException):
+class InvalidInput(AppException):
     code = 422
 
 
-class Forbidden(BaseException):
+class Forbidden(AppException):
     code = 403

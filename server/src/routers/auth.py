@@ -137,7 +137,7 @@ async def get_users(
     return await service.get_list(
         limit=query.limit,
         offset=query.offset,
-        filters=UserFilters(
+        **UserFilters(
             search_query=query.search_query, role=query.role, is_admin=query.is_admin
         ).model_dump(exclude_unset=True),
     )

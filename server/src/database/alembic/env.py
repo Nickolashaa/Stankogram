@@ -14,9 +14,6 @@ from src.database.models.auth import (  # noqa: F401
     User,
 )
 from src.database.models.chats import Chat, ChatParticipant  # noqa: F401
-from src.database.models.deferred_message_events import (
-    DeferredMessageEvent,  # noqa: F401
-)
 from src.database.models.messages import Message  # noqa: F401
 
 # this is the Alembic Config object, which provides
