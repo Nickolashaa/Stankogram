@@ -12,9 +12,7 @@ dependencies = [
     "pydantic[email]>=2.12.5",
     "pydantic-settings>=2.13.1",
     "pyjwt>=2.13.0",
-    "ruff>=0.15.7",
     "sqlalchemy>=2.0.51",
-    "ty>=0.0.69",
     "uvicorn>=0.42.0",
     "cryptography>=50.0.0",
     "websockets>=17.0.1",
@@ -22,3 +20,9 @@ dependencies = [
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.3",
+    "ty>=0.0.72",
+]
