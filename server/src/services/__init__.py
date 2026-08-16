@@ -1,5 +1,6 @@
 from .auth import AuthService
 from .chats import ChatService
+from .deferred_message_events import DeferredMessageEventService
 from .messages import MessageService
 
 __all__ = (
@@ -7,4 +8,5 @@ __all__ = (
     "AuthService",
     "MessageService",
     "ChatService",
+    "DeferredMessageEventService",
 )
