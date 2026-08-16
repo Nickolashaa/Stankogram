@@ -1,4 +1,4 @@
-from typing import Unpack
+from typing import Iterable, Unpack
 
 from cryptography.fernet import Fernet
 from sqlalchemy import Select, delete, insert, select
@@ -37,7 +37,7 @@ class MessageService(BaseService):
         **values: Unpack[MessageCreateParams],
     ) -> MessageResponse:
         if (
-            self._can_message_to_chat(
+            await self._can_message_to_chat(
                 chat_id=values.get("chat_id"),
                 user_id=values.get("user_id"),
             )
@@ -80,8 +80,8 @@ class MessageService(BaseService):
         if (chat_id := filters.get("chat_id")) is not None:
             stmt = stmt.where(Message.chat_id == chat_id)
 
-        if (user_id := filters.get("user_id")) is not None:
-            stmt = stmt.where(Message.user_id == user_id)
+        if (ids := filters.get("ids")) is not None:
+            stmt = stmt.where(Message.id.in_(ids))
 
         return stmt
 
@@ -111,6 +111,19 @@ class MessageService(BaseService):
             )
             for entity in res.scalars().all()
         ]
+
+    async def load(
+        self,
+        ids: Iterable[int],
+    ) -> dict[int, MessageResponse]:
+        return {
+            entity.id: entity
+            for entity in await self.get_list(
+                limit=None,
+                offset=None,
+                ids=ids,
+            )
+        }
 
     async def count(
         self,
