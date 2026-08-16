@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 474a6bc3f740
+Revision ID: 06bcaf9a7595
 Revises: c92a12e7afd4
-Create Date: 2026-08-16 17:39:39.557328
+Create Date: 2026-08-16 19:20:53.169550
 
 """
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "474a6bc3f740"
+revision: str = "06bcaf9a7595"
 down_revision: Union[str, Sequence[str], None] = "c92a12e7afd4"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -25,7 +25,9 @@ def upgrade() -> None:
         "deferred_message_events",
         sa.Column("message_id", sa.Integer(), nullable=False),
         sa.Column(
-            "type", sa.Enum("CREATE", name="deferredmessageeventtype"), nullable=False
+            "type",
+            sa.Enum("CREATE", "UPDATE", "DELETE", name="deferredmessageeventtype"),
+            nullable=False,
         ),
         sa.Column("recipient_id", sa.Integer(), nullable=False),
         sa.Column(
