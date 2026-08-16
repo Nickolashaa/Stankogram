@@ -3,10 +3,10 @@ from typing import Annotated
 from fastapi import APIRouter, Body, Depends
 
 from ...dependencies import get_chat_service, get_current_user
+from ...exceptions import InvalidInput, ObjectNotFound
 from ...schemas.chats import ChatResponse
 from ...schemas.users import UserResponse
 from ...services.chats import ChatService
-from ...services.exceptions import InvalidInput, ObjectNotFound
 
 router = APIRouter(prefix="/private")
 

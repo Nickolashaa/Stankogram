@@ -3,10 +3,10 @@ from fastapi import Depends, HTTPException, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..exceptions import ObjectNotFound
 from ..schemas.jwt import UserJWTPayload
 from ..schemas.users import UserResponse
 from ..services import AuthService
-from ..services.exceptions import ObjectNotFound
 from .database import get_session
 
 

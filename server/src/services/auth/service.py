@@ -18,12 +18,12 @@ from ...config import (
     PASSWORD_RESET_CODE_LEN,
 )
 from ...database.models.auth import CancelledToken, PasswordResetCode, User
+from ...exceptions import ObjectAlreadyExists, ObjectNotFound
 from ...schemas.jwt import JWTTokens, UserJWTPayload
 from ...schemas.users import UserResponse
 from ...utils.smtp import send_email
 from ...utils.stmt_modificators import _get_count_stmt
 from ..base import BaseService
-from ..exceptions import ObjectAlreadyExists, ObjectNotFound
 from .types import (
     UserCreateParams,
     UserGetListFilters,

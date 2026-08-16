@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 
-from ..schemas.websockets import WebSocketError
+from .schemas.websockets import WebSocketError
 
 
 class BaseException(Exception):

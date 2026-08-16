@@ -5,10 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...database.models.chats import Chat, ChatParticipant
 from ...enums.chats import ChatType
+from ...exceptions import InvalidInput, ObjectNotFound
 from ...schemas.chats import ChatResponse
 from ..auth import AuthService
 from ..base import BaseService
-from ..exceptions import InvalidInput, ObjectNotFound
 from .types import (
     ChatParticipantInputParams,
     PrivateChatCreateParams,

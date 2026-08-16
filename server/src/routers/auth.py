@@ -18,6 +18,7 @@ from ..dependencies import (
     get_auth_service,
     get_current_user,
 )
+from ..exceptions import ObjectAlreadyExists, ObjectNotFound
 from ..permissions import is_admin
 from ..schemas.jwt import JWTTokens, UserJWTPayload
 from ..schemas.users import (
@@ -30,7 +31,6 @@ from ..schemas.users import (
     UserResponse,
 )
 from ..services import AuthService
-from ..services.exceptions import ObjectAlreadyExists, ObjectNotFound
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
