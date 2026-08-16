@@ -1,11 +1,6 @@
 from ..enums.chats import ChatType
-from .base import BaseResponse, Schema
+from .base import BaseResponse
 
 
 class ChatResponse(BaseResponse):
     type: ChatType
-
-
-class ChatProfileResponse(Schema):
-    chat: ChatResponse
-    title: str

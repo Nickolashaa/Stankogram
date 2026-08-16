@@ -2,17 +2,17 @@ from typing import Unpack
 
 from sqlalchemy import exists, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import aliased
 
-from ...database.models.auth import User
 from ...database.models.chats import Chat, ChatParticipant
 from ...enums.chats import ChatType
-from ...schemas.chats import ChatProfileResponse, ChatResponse
-from ...schemas.users import UserResponse
+from ...schemas.chats import ChatResponse
 from ..auth import AuthService
 from ..base import BaseService
 from ..exceptions import InvalidInput, ObjectNotFound
-from .types import ChatParticipantInputParams, PrivateChatCreateParams
+from .types import (
+    ChatParticipantInputParams,
+    PrivateChatCreateParams,
+)
 
 
 class ChatService(BaseService):
@@ -74,21 +74,19 @@ class ChatService(BaseService):
     async def get_private_chat_or_create(
         self,
         **data: Unpack[PrivateChatCreateParams],
-    ) -> ChatProfileResponse:
+    ) -> ChatResponse:
         if data.get("my_id") == data.get("participant_id"):
             raise InvalidInput("You cannot chat to yourself")
 
-        participant = await self._user_service.get(data.get("participant_id"))
+        # participant = await self._user_service.get(data.get("participant_id"))
+        # Надо в будущем для ChatProfile
 
         try:
             chat = await self._get_private_chat_by_participants(**data)
         except ObjectNotFound:
             chat = await self._create_private_chat(**data)
 
-        return ChatProfileResponse(
-            chat=chat,
-            title=participant.full_name,
-        )
+        return chat
 
     async def is_exists(
         self,
@@ -101,26 +99,12 @@ class ChatService(BaseService):
         res = await self._session.execute(stmt)
         return res.scalar_one()
 
-    async def get_list(self, user_id: int) -> list[ChatProfileResponse]:
-        other_participant = aliased(ChatParticipant)
+    async def get_recipient_ids(
+        self,
+        chat_id: int,
+    ) -> list[int]:
+        stmt = select(ChatParticipant.user_id).where(ChatParticipant.chat_id == chat_id)
 
-        stmt = (
-            select(Chat, User)
-            .join(ChatParticipant, ChatParticipant.chat_id == Chat.id)
-            .join(other_participant, other_participant.chat_id == Chat.id)
-            .join(User, User.id == other_participant.user_id)
-            .where(
-                ChatParticipant.user_id == user_id,
-                other_participant.user_id != user_id,
-            )
-            .order_by(Chat.created_at.desc())
-        )
         res = await self._session.execute(stmt)
 
-        return [
-            ChatProfileResponse(
-                chat=ChatResponse.model_validate(chat),
-                title=UserResponse.model_validate(participant).full_name,
-            )
-            for chat, participant in res.all()
-        ]
+        return list(res.scalars().all())
