@@ -1,11 +1,9 @@
-from typing import Required, TypedDict
+from ...enums.messages import MessageType
+from typing import TypedDict, Required
 
 
-class ChatParticipantInputParams(TypedDict):
-    user_id: Required[int]
+class MessageCreateParams(TypedDict):
     chat_id: Required[int]
-
-
-class PrivateChatCreateParams(TypedDict):
-    my_id: Required[int]
-    participant_id: Required[int]
+    user_id: Required[int]
+    type: Required[MessageType]
+    text: Required[str]

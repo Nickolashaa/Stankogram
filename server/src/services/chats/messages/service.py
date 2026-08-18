@@ -5,46 +5,26 @@ from sqlalchemy import Select, delete, insert, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...database.models.messages import Message
-from ...exceptions import Forbidden, ObjectNotFound
-from ...schemas.messages import MessageResponse
-from ...utils.stmt_modificators import _get_count_stmt
-from ..base import BaseService
-from ..chats import ChatService
-from .types import MessageCreateParams, MessageGetListFilters
+from ....database.models.messages import Message
+from ....exceptions import ObjectNotFound
+from ....schemas.messages import MessageResponse
+from ....utils.stmt_modificators import _get_count_stmt
+from ...base import BaseService
+from .types import MessageGetListFilters
+from ..types import MessageCreateParams
 
 
 class MessageService(BaseService):
     def __init__(
-        self, session: AsyncSession, fernet: Fernet, chat_service: ChatService
+        self, session: AsyncSession, fernet: Fernet,
     ):
         super().__init__(session)
         self._fernet = fernet
-        self._chat_service = chat_service
-
-    async def _can_message_to_chat(
-        self,
-        chat_id: int,
-        user_id: int,
-    ) -> bool:
-        return await self._chat_service.is_exists(
-            user_id=user_id,
-            chat_id=chat_id,
-        )
 
     async def create(
         self,
         **values: Unpack[MessageCreateParams],
     ) -> MessageResponse:
-        if (
-            await self._can_message_to_chat(
-                chat_id=values.get("chat_id"),
-                user_id=values.get("user_id"),
-            )
-            is False
-        ):
-            raise Forbidden("Dont have access to this chat.")
-
         stmt = (
             insert(Message)
             .values(
@@ -117,3 +97,16 @@ class MessageService(BaseService):
         res = await self._session.execute(stmt)
 
         return res.scalar_one()
+
+    async def get_last_message(
+        self,
+        chat_id: int,
+    ) -> MessageResponse | None:
+        messages = await self.get_list(
+            limit=1,
+            offset=None,
+            chat_id=chat_id,
+        )
+
+        if len(messages) > 0:
+            return messages[0]

@@ -1,3 +1,3 @@
-from .service import ChatService
+from .manager import ChatManager
 
-__all__ = ("ChatService",)
+__all__ = ("ChatManager",)
