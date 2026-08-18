@@ -4,7 +4,7 @@ from ..exceptions import AppException
 from ..schemas.messages import MessageCreate
 from ..schemas.users import UserResponse
 from ..schemas.websockets import WebSocketSchema
-from ..services import ChatService, MessageService
+from .chats import ChatManager
 
 
 class ConnectionRegistry:
@@ -24,13 +24,11 @@ class ConnectionRegistry:
 class WebSocketConnectionManager:
     def __init__(
         self,
-        message_service: MessageService,
-        chat_service: ChatService,
         connection_registry: ConnectionRegistry,
+        chat_manager: ChatManager,
     ) -> None:
-        self._message_service = message_service
-        self._chat_service = chat_service
         self._connections = connection_registry
+        self._chat_manager = chat_manager
 
     async def connect(self, websocket: WebSocket, user_id: int) -> None:
         await websocket.accept()
@@ -46,16 +44,14 @@ class WebSocketConnectionManager:
     ) -> None:
         if isinstance(data, MessageCreate):
             try:
-                message = await self._message_service.create(
+                message = await self._chat_manager.send_message(
                     user_id=user.id,
                     **data.model_dump(),
                 )
-                await self._message_service.commit()
             except AppException:
-                await self._message_service.rollback()
                 raise
 
-            recipient_ids = await self._chat_service.get_recipient_ids(
+            recipient_ids = await self._chat_manager.get_recipient_ids(
                 chat_id=data.chat_id
             )
 

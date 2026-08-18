@@ -1,5 +1,4 @@
-
 from ...base import BaseService
 
-class PublicChatService(BaseService):
-    ...
+
+class PublicChatService(BaseService): ...

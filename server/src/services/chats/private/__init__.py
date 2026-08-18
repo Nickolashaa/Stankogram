@@ -1,6 +1,3 @@
 from .service import PrivateChatService
 
-
-__all__ = (
-    "PrivateChatService",
-)
+__all__ = ("PrivateChatService",)

@@ -1,4 +1,4 @@
-from typing import Required, TypedDict, NotRequired, Sequence
+from typing import Required, TypedDict
 
 
 class PrivateChatCreateParams(TypedDict):

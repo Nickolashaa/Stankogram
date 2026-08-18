@@ -1,5 +1,4 @@
-from typing import Required, TypedDict, NotRequired, Sequence
-
+from typing import NotRequired, Required, Sequence, TypedDict
 
 
 class PublicChatCreateParams(TypedDict):

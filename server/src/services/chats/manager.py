@@ -1,17 +1,19 @@
+from typing import Sequence, Unpack
+
+from sqlalchemy import exists, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ...database.models.chats import ChatParticipant
+from ...exceptions import Forbidden
+from ...schemas.chats import ChatProfile
+from ...schemas.messages import MessageResponse
+from ..auth import AuthService
+from ..base import BaseService
+from .messages import MessageService
 from .private import PrivateChatService
 from .public import PublicChatService
-from .messages import MessageService
-from ..base import BaseService
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, exists
-from ...database.models.chats import ChatParticipant
-from typing import Sequence
-from ...schemas.chats import ChatProfile
-from ..auth import AuthService
 from .types import MessageCreateParams
-from typing import Unpack
-from ...schemas.messages import MessageResponse
-from ...exceptions import Forbidden
+
 
 class ChatManager(BaseService):
     def __init__(
@@ -55,7 +57,7 @@ class ChatManager(BaseService):
         user_id: int,
         participant_id: int,
     ) -> ChatProfile:
-        chat = await self._private_chat_service.get_private_chat_or_create(
+        chat = await self._private_chat_service.get_or_create(
             user_id=user_id,
             participant_id=participant_id,
         )
@@ -63,7 +65,7 @@ class ChatManager(BaseService):
         last_message = await self._message_service.get_last_message(chat_id=chat.id)
 
         participant = await self._auth_service.get(id=participant_id)
-        
+
         return ChatProfile(
             chat=chat,
             last_message=last_message,
@@ -82,3 +84,5 @@ class ChatManager(BaseService):
             is False
         ):
             raise Forbidden("Dont have access to this chat.")
+
+        return await self._message_service.create(**data)

@@ -1,5 +1,6 @@
+from typing import Required, TypedDict
+
 from ...enums.messages import MessageType
-from typing import TypedDict, Required
 
 
 class MessageCreateParams(TypedDict):

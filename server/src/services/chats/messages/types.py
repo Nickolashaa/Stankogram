@@ -1,4 +1,4 @@
-from typing import Sequence, NotRequired, TypedDict
+from typing import NotRequired, Sequence, TypedDict
 
 
 class MessageGetListFilters(TypedDict):

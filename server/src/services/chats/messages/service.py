@@ -10,13 +10,15 @@ from ....exceptions import ObjectNotFound
 from ....schemas.messages import MessageResponse
 from ....utils.stmt_modificators import _get_count_stmt
 from ...base import BaseService
-from .types import MessageGetListFilters
 from ..types import MessageCreateParams
+from .types import MessageGetListFilters
 
 
 class MessageService(BaseService):
     def __init__(
-        self, session: AsyncSession, fernet: Fernet,
+        self,
+        session: AsyncSession,
+        fernet: Fernet,
     ):
         super().__init__(session)
         self._fernet = fernet

@@ -2,24 +2,24 @@ from typing import Annotated
 
 from fastapi import APIRouter, Body, Depends
 
-from ...dependencies import get_chat_service, get_current_user
+from ...dependencies import get_chat_manager, get_current_user
 from ...exceptions import InvalidInput, ObjectNotFound
-from ...schemas.chats import ChatResponse
+from ...schemas.chats import ChatProfile
 from ...schemas.users import UserResponse
-from ...services.chats import ChatService
+from ...services.chats import ChatManager
 
 router = APIRouter(prefix="/private")
 
 
-@router.post("/get_or_create", response_model=ChatResponse)
+@router.post("/get_or_create", response_model=ChatProfile)
 async def get_private_or_create(
     participant_id: Annotated[int, Body()],
     user: UserResponse = Depends(get_current_user),
-    service: ChatService = Depends(get_chat_service),
-) -> ChatResponse:
+    manager: ChatManager = Depends(get_chat_manager),
+) -> ChatProfile:
     try:
-        return await service.get_private_chat_or_create(
-            my_id=user.id,
+        return await manager.get_or_create_private_chat(
+            user_id=user.id,
             participant_id=participant_id,
         )
     except (ObjectNotFound, InvalidInput) as e:

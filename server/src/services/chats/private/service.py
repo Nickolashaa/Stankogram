@@ -5,15 +5,15 @@ from sqlalchemy import insert, select
 from ....database.models.chats import Chat, ChatParticipant
 from ....enums.chats import ChatType
 from ....exceptions import InvalidInput, ObjectNotFound
+from ....schemas.chats import ChatResponse
 from ...base import BaseService
 from .types import (
     PrivateChatCreateParams,
 )
-from ....schemas.chats import ChatResponse
 
 
 class PrivateChatService(BaseService):
-    async def _get_private_chat_by_participants(
+    async def _get_by_participants(
         self,
         **data: Unpack[PrivateChatCreateParams],
     ) -> ChatResponse:
@@ -36,7 +36,7 @@ class PrivateChatService(BaseService):
 
         return ChatResponse.model_validate(chat)
 
-    async def _create_private_chat(
+    async def _create(
         self,
         **data: Unpack[PrivateChatCreateParams],
     ) -> ChatResponse:
@@ -60,7 +60,7 @@ class PrivateChatService(BaseService):
 
         return ChatResponse.model_validate(chat)
 
-    async def get_private_chat_or_create(
+    async def get_or_create(
         self,
         **data: Unpack[PrivateChatCreateParams],
     ) -> ChatResponse:
@@ -68,6 +68,6 @@ class PrivateChatService(BaseService):
             raise InvalidInput("You cannot chat to yourself")
 
         try:
-            return await self._get_private_chat_by_participants(**data)
+            return await self._get_by_participants(**data)
         except ObjectNotFound:
-            return await self._create_private_chat(**data)
+            return await self._create(**data)

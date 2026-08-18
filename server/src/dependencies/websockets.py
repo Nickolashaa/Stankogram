@@ -3,13 +3,11 @@ from functools import lru_cache
 from fastapi import Depends
 
 from ..services import (
-    ChatService,
+    ChatManager,
     ConnectionRegistry,
-    MessageService,
     WebSocketConnectionManager,
 )
-from .chats import get_chat_service
-from .messages import get_message_service
+from .chats import get_chat_manager
 
 
 @lru_cache
@@ -18,12 +16,10 @@ def get_connection_registry() -> ConnectionRegistry:
 
 
 def get_websocket_connection_manager(
-    message_service: MessageService = Depends(get_message_service),
-    chat_service: ChatService = Depends(get_chat_service),
     connection_registry: ConnectionRegistry = Depends(get_connection_registry),
+    chat_manager: ChatManager = Depends(get_chat_manager),
 ) -> WebSocketConnectionManager:
     return WebSocketConnectionManager(
-        message_service=message_service,
-        chat_service=chat_service,
         connection_registry=connection_registry,
+        chat_manager=chat_manager,
     )
