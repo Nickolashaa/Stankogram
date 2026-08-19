@@ -26,6 +26,3 @@ class PublicChatProfile(Base):
 
     title: Mapped[str]
     chat_id: Mapped[int] = mapped_column(ForeignKey(Chat.id, ondelete="CASCADE"))
-    last_message_id: Mapped[int] = mapped_column(
-        ForeignKey(User.id, ondelete="CASCADE")
-    )
