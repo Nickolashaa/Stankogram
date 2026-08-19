@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ...database.models.chats import ChatParticipant
 from ...exceptions import Forbidden
 from ...schemas.chats import ChatProfile
-from ...schemas.messages import MessageResponse, MessageProfile
+from ...schemas.messages import MessageProfile, MessageResponse
 from ..auth import AuthService
 from ..base import BaseService
 from .messages import MessageService
@@ -94,7 +94,7 @@ class ChatManager(BaseService):
         chat_id: int,
     ) -> list[MessageProfile]:
         result: list[MessageProfile] = []
-        
+
         messages = await self._message_service.get_list(
             limit=limit,
             offset=offset,
@@ -104,16 +104,13 @@ class ChatManager(BaseService):
         user_id_to_user = {
             user.id: user
             for user in await self._auth_service.get_list(
-                limit=None,
-                offset=None,
-                ids=(message.user_id for message in messages)
+                limit=None, offset=None, ids=[message.user_id for message in messages]
             )
         }
 
         for message in messages:
-            result.append(MessageProfile(
-                message=message,
-                author=user_id_to_user[message.user_id]
-            ))
+            result.append(
+                MessageProfile(message=message, author=user_id_to_user[message.user_id])
+            )
 
         return result

@@ -1,4 +1,4 @@
-from typing import NotRequired, Required, TypedDict, Sequence
+from typing import NotRequired, Required, Sequence, TypedDict
 
 from ...enums.users import Role
 

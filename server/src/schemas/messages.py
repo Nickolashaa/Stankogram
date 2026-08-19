@@ -4,7 +4,7 @@ from cryptography.fernet import Fernet
 
 from ..database.models.messages import Message
 from ..enums.messages import MessageType
-from .base import BaseResponse, PaginationSchema, Schema
+from .base import BaseResponse, Schema
 from .users import UserResponse
 
 
@@ -31,14 +31,6 @@ class MessageCreate(Schema):
     chat_id: int
     type: MessageType
     text: str
-
-
-class MessageFilters(Schema):
-    chat_id: int
-
-
-class MessageListQuery(MessageFilters, PaginationSchema):
-    pass
 
 
 class MessageProfile(Schema):
