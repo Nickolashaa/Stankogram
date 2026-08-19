@@ -1,4 +1,4 @@
-from typing import NotRequired, Required, TypedDict
+from typing import NotRequired, Required, TypedDict, Sequence
 
 from ...enums.users import Role
 
@@ -30,3 +30,4 @@ class UserGetListFilters(TypedDict):
     search_query: NotRequired[str]
     role: NotRequired[Role]
     is_admin: NotRequired[bool]
+    ids: NotRequired[Sequence[int]]

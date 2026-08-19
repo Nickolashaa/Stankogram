@@ -168,6 +168,9 @@ class AuthService(BaseService):
         if (is_admin := filters.get("is_admin")) is not None:
             stmt = stmt.where(User.is_admin == is_admin)
 
+        if (ids := filters.get("ids")) is not None:
+            stmt = stmt.where(User.id.in_(ids))
+
         return stmt
 
     async def get_list(
