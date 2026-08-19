@@ -1,11 +1,11 @@
 from typing import Self
 
 from cryptography.fernet import Fernet
-from pydantic import Field
 
 from ..database.models.messages import Message
 from ..enums.messages import MessageType
 from .base import BaseResponse, PaginationSchema, Schema
+from .users import UserResponse
 
 
 class MessageResponse(BaseResponse):
@@ -34,8 +34,13 @@ class MessageCreate(Schema):
 
 
 class MessageFilters(Schema):
-    chat_id: int | None = Field(None)
+    chat_id: int
 
 
 class MessageListQuery(MessageFilters, PaginationSchema):
     pass
+
+
+class MessageProfile(Schema):
+    message: MessageResponse
+    author: UserResponse
