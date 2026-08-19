@@ -30,13 +30,6 @@ class WebSocketConnectionManager:
         self._connections = connection_registry
         self._chat_manager = chat_manager
 
-    async def connect(self, websocket: WebSocket, user_id: int) -> None:
-        await websocket.accept()
-        self._connections.add(user_id, websocket)
-
-    def disconnect(self, user_id: int) -> None:
-        self._connections.remove(user_id)
-
     async def process_event(
         self,
         data: WebSocketSchema,

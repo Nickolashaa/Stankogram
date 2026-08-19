@@ -30,3 +30,7 @@ class InvalidInput(AppException):
 
 class Forbidden(AppException):
     code = 403
+
+
+class Unauthorized(AppException):
+    code = 401

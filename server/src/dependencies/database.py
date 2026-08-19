@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -5,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..database.connection import session_maker
 
 
-async def get_session() -> AsyncGenerator[AsyncSession]:
+async def _get_session() -> AsyncGenerator[AsyncSession]:
     session = session_maker()
     try:
         yield session
@@ -15,3 +16,6 @@ async def get_session() -> AsyncGenerator[AsyncSession]:
         raise
     finally:
         await session.close()
+
+
+get_session = asynccontextmanager(_get_session)

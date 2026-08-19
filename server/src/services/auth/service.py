@@ -6,6 +6,7 @@ from typing import Unpack
 from uuid import UUID, uuid4
 
 import bcrypt
+import jwt
 from sqlalchemy import Select, delete, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError
 
@@ -18,7 +19,7 @@ from ...config import (
     PASSWORD_RESET_CODE_LEN,
 )
 from ...database.models.auth import CancelledToken, PasswordResetCode, User
-from ...exceptions import ObjectAlreadyExists, ObjectNotFound
+from ...exceptions import ObjectAlreadyExists, ObjectNotFound, Unauthorized
 from ...schemas.jwt import JWTTokens, UserJWTPayload
 from ...schemas.users import UserResponse
 from ...utils.smtp import send_email
@@ -323,3 +324,19 @@ class AuthService(BaseService):
                 password=new_password,
             ),
         )
+
+    async def get_from_token(
+        self,
+        token: str,
+    ) -> UserResponse:
+        try:
+            payload = UserJWTPayload.from_token(token)
+        except jwt.ExpiredSignatureError:
+            raise Unauthorized("Expired token")
+        except jwt.InvalidTokenError:
+            raise Unauthorized("Invalid token")
+
+        if payload.type == "refresh":
+            raise Unauthorized("Invalid token type")
+
+        return await self.get(payload.id)
