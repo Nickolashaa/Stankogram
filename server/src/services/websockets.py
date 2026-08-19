@@ -1,6 +1,5 @@
 from fastapi import WebSocket
 
-from ..exceptions import AppException
 from ..schemas.messages import MessageCreate
 from ..schemas.users import UserResponse
 from ..schemas.websockets import WebSocketSchema
@@ -36,13 +35,10 @@ class WebSocketConnectionManager:
         user: UserResponse,
     ) -> None:
         if isinstance(data, MessageCreate):
-            try:
-                message = await self._chat_manager.send_message(
-                    user_id=user.id,
-                    **data.model_dump(),
-                )
-            except AppException:
-                raise
+            message = await self._chat_manager.send_message(
+                user_id=user.id,
+                **data.model_dump(),
+            )
 
             recipient_ids = await self._chat_manager.get_recipient_ids(
                 chat_id=data.chat_id
