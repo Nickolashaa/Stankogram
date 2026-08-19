@@ -15,10 +15,10 @@ from ..services import (
     WebSocketConnectionManager,
 )
 
-router = APIRouter()
+router = APIRouter(prefix="/ws", tags=["ws"])
 
 
-@router.websocket("/ws")
+@router.websocket("")
 async def websocket_endpoint(
     websocket: WebSocket,
     token: str = Query(),
