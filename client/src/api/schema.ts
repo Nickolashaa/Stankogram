@@ -225,7 +225,7 @@ export interface paths {
     patch?: never
     trace?: never
   }
-  "/api/messages": {
+  "/api/chats/{id}/messages": {
     parameters: {
       query?: never
       header?: never
@@ -233,7 +233,7 @@ export interface paths {
       cookie?: never
     }
     /** Get Messages */
-    get: operations["get_messages_api_messages_get"]
+    get: operations["get_messages_api_chats__id__messages_get"]
     put?: never
     post?: never
     delete?: never
@@ -263,6 +263,13 @@ export interface paths {
 export type webhooks = Record<string, never>
 export interface components {
   schemas: {
+    /** ChatProfile */
+    ChatProfile: {
+      chat: components["schemas"]["ChatResponse"]
+      last_message: components["schemas"]["MessageResponse"] | null
+      /** Title */
+      title: string
+    }
     /** ChatResponse */
     ChatResponse: {
       /** Id */
@@ -296,20 +303,10 @@ export interface components {
       /** Refresh Token */
       refresh_token: string
     }
-    /** MessageListQuery */
-    MessageListQuery: {
-      /**
-       * Limit
-       * @default 10
-       */
-      limit: number | null
-      /**
-       * Offset
-       * @default 0
-       */
-      offset: number | null
-      /** Chat Id */
-      chat_id?: number | null
+    /** MessageProfile */
+    MessageProfile: {
+      message: components["schemas"]["MessageResponse"]
+      author: components["schemas"]["UserResponse"]
     }
     /** MessageResponse */
     MessageResponse: {
@@ -338,6 +335,19 @@ export interface components {
      * @enum {string}
      */
     MessageType: "TEXT"
+    /** PaginationSchema */
+    PaginationSchema: {
+      /**
+       * Limit
+       * @default 10
+       */
+      limit: number | null
+      /**
+       * Offset
+       * @default 0
+       */
+      offset: number | null
+    }
     /** PasswordResetConfirm */
     PasswordResetConfirm: {
       /** Id */
@@ -830,7 +840,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": components["schemas"]["ChatResponse"]
+          "application/json": components["schemas"]["ChatProfile"]
         }
       }
       /** @description Validation Error */
@@ -844,14 +854,16 @@ export interface operations {
       }
     }
   }
-  get_messages_api_messages_get: {
+  get_messages_api_chats__id__messages_get: {
     parameters: {
       query: {
-        query: components["schemas"]["MessageListQuery"]
+        query: components["schemas"]["PaginationSchema"]
         chat_id: number
       }
       header?: never
-      path?: never
+      path: {
+        chat_id: number
+      }
       cookie?: never
     }
     requestBody?: never
@@ -862,7 +874,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": components["schemas"]["MessageResponse"][]
+          "application/json": components["schemas"]["MessageProfile"][]
         }
       }
       /** @description Validation Error */
