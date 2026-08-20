@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from sqlalchemy import ForeignKey
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import expression
 
@@ -28,6 +29,14 @@ class User(Base):
     is_admin: Mapped[bool] = mapped_column(
         server_default=expression.false(),
     )
+
+    @hybrid_property
+    def _full_name(self) -> str:
+        return f"{self.surname} {self.name} {self.patronymic or ''}".strip()
+
+    @_full_name.expression
+    def full_name(cls) -> str:
+        return f"{cls.surname} {cls.name} {cls.patronymic or ''}".strip()
 
 
 class PasswordResetCode(Base):
