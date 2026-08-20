@@ -40,11 +40,9 @@ class WebSocketConnectionManager:
                 **data.model_dump(),
             )
 
-            recipient_ids = await self._chat_manager.get_recipient_ids(
-                chat_id=data.chat_id
-            )
+            recipients = await self._chat_manager.get_recipients(data.chat_id)
 
-            for recipient_id in recipient_ids:
+            for recipient_id in [recipient.id for recipient in recipients]:
                 websocket = self._connections.get(recipient_id)
                 if websocket is None:
                     continue

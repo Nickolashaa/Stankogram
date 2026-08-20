@@ -9,9 +9,10 @@ from ..schemas.websockets import WebSocketError, WebSocketSchemaAdapter
 from ..services import (
     AuthService,
     ChatManager,
+    ChatParticipantService,
     MessageService,
     PrivateChatService,
-    PublicChatService,
+    PublicChatProfileService,
     WebSocketConnectionManager,
 )
 
@@ -60,11 +61,14 @@ async def websocket_endpoint(
                         chat_manager=ChatManager(
                             session=session,
                             private_chat_service=PrivateChatService(session),
-                            public_chat_service=PublicChatService(session),
+                            public_chat_profile_service=PublicChatProfileService(
+                                session
+                            ),
                             message_service=MessageService(
                                 session=session, fernet=Fernet(ENCRYPTION_KEY)
                             ),
                             auth_service=AuthService(session),
+                            chat_participant_service=ChatParticipantService(session),
                         ),
                     )
                     await manager.process_event(

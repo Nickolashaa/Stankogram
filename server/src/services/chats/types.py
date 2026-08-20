@@ -1,10 +1,13 @@
-from typing import Required, TypedDict
+from typing import NotRequired, Required, Sequence, TypedDict
 
-from ...enums.messages import MessageType
+from ...enums.chats import ChatType
 
 
-class MessageCreateParams(TypedDict):
-    chat_id: Required[int]
-    user_id: Required[int]
-    type: Required[MessageType]
-    text: Required[str]
+class ChatGetListFilters(TypedDict):
+    type: NotRequired[ChatType]
+    ids: NotRequired[Sequence[int]]
+
+
+class ChatCreateParams(TypedDict):
+    type: Required[ChatType]
+    title: Required[str | None]
