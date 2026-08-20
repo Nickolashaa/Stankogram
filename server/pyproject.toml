@@ -15,6 +15,7 @@ dependencies = [
     "pyjwt>=2.13.0",
     "sqlalchemy>=2.0.52",
     "strawberry-graphql[fastapi]>=0.324.0",
+    "uvicorn>=0.52.4",
 ]
 
 [project.scripts]
