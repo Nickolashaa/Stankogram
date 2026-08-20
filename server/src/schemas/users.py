@@ -15,10 +15,7 @@ class UserResponse(BaseResponse):
     hashed_password: str
     role: Role
     is_admin: bool
-
-    @property
-    def full_name(self) -> str:
-        return f"{self.surname} {self.name} {self.patronymic or ''}".strip()
+    full_name: str
 
 
 class UserCredentials(Schema):
