@@ -2,29 +2,35 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from secrets import choice
 from string import Template, ascii_letters, digits
+from typing import Unpack
+from uuid import UUID, uuid4
 
 import bcrypt
+import jwt
 from sqlalchemy import Select, delete, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError
 
 from ...config import (
     APP_BASE_URL,
+    JWT_ACCESS_EXP_MINUTES,
+    JWT_REFRESH_EXP_DAYS,
     PASSWORD_LEN,
     PASSWORD_RESET_CODE_EXP_MINUTES,
     PASSWORD_RESET_CODE_LEN,
 )
-from ...database.models.users import PasswordResetCode, User
-from ...schemas.base import PaginationSchema
-from ...schemas.users import (
-    UserCredentials,
-    UserFilters,
-    UserInput,
-    UserResponse,
-)
+from ...database.models.auth import CancelledToken, PasswordResetCode, User
+from ...exceptions import ObjectAlreadyExists, ObjectNotFound, Unauthorized
+from ...schemas.jwt import JWTTokens, UserJWTPayload
+from ...schemas.users import UserResponse
 from ...utils.smtp import send_email
 from ...utils.stmt_modificators import _get_count_stmt
 from ..base import BaseService
-from ..exceptions import ObjectAlreadyExists, ObjectNotFound
+from .types import (
+    UserCreateParams,
+    UserGetListFilters,
+    UserLoginParams,
+    UserUpdateParams,
+)
 
 _CREATE_USER_EMAIL_TEMPLATE = Template(
     (Path(__file__).resolve().parent / "create_user_email.html").read_text(
@@ -43,7 +49,7 @@ _PASSWORD_RESET_CONFIRM_EMAIL_TEMPLATE = Template(
 )
 
 
-class UserService(BaseService):
+class AuthService(BaseService):
     @staticmethod
     def _generate_password() -> str:
         return "".join(choice(ascii_letters + digits) for _ in range(PASSWORD_LEN))
@@ -58,7 +64,7 @@ class UserService(BaseService):
 
     @staticmethod
     def _generate_password_reset_email(user_id: int, code: str) -> str:
-        url = f"{APP_BASE_URL}/api/users/{user_id}/reset_password_confirm/{code}"
+        url = f"{APP_BASE_URL}/reset-password-confirm?id={user_id}&code={code}"
         return _PASSWORD_RESET_EMAIL_TEMPLATE.substitute(url=url)
 
     @staticmethod
@@ -67,9 +73,35 @@ class UserService(BaseService):
             email=email, password=password
         )
 
+    @staticmethod
+    def generate_jwt_tokens(id: int, is_admin: bool) -> JWTTokens:
+        return JWTTokens(
+            access_token=UserJWTPayload(
+                id=id,
+                is_admin=is_admin,
+                jti=str(uuid4()),
+                type="access",
+                exp=datetime.now(UTC) + timedelta(minutes=JWT_ACCESS_EXP_MINUTES),
+            ).generate_token(),
+            refresh_token=UserJWTPayload(
+                id=id,
+                is_admin=is_admin,
+                jti=str(uuid4()),
+                type="refresh",
+                exp=datetime.now(UTC) + timedelta(days=JWT_REFRESH_EXP_DAYS),
+            ).generate_token(),
+        )
+
+    async def cancel_token(self, jti: UUID) -> None:
+        stmt = insert(CancelledToken).values(jti=jti)
+        try:
+            await self._session.execute(stmt)
+        except IntegrityError:
+            raise ObjectAlreadyExists(f"Token with jti {jti} already exists")
+
     async def create(
         self,
-        data: UserInput,
+        **values: Unpack[UserCreateParams],
     ) -> UserResponse:
         password = self._generate_password()
         hashed_password = bcrypt.hashpw(
@@ -80,7 +112,7 @@ class UserService(BaseService):
             insert(User)
             .values(
                 hashed_password=hashed_password,
-                **data.model_dump(),
+                **values,
             )
             .returning(User)
         )
@@ -88,12 +120,16 @@ class UserService(BaseService):
         try:
             res = await self._session.execute(stmt)
         except IntegrityError:
-            raise ObjectAlreadyExists(f"User with email {data.email} already exists")
+            raise ObjectAlreadyExists(
+                f"User with email {values.get('email')} already exists"
+            )
 
         await send_email(
-            to_email=data.email,
+            to_email=values.get("email"),
             subject="Stankogram:Данные для входа",
-            body=self._generate_create_email(email=data.email, password=password),
+            body=self._generate_create_email(
+                email=values.get("email"), password=password
+            ),
         )
 
         return UserResponse.model_validate(res.scalar_one())
@@ -114,52 +150,52 @@ class UserService(BaseService):
     @staticmethod
     def _apply_filters(
         stmt: Select[tuple[User]],
-        filters: UserFilters | None,
+        **filters: Unpack[UserGetListFilters],
     ) -> Select[tuple[User]]:
-        if filters is None:
-            return stmt
-
-        if "search_query" in filters.model_fields_set:
+        if (search_query := filters.get("search_query")) is not None:
             stmt = stmt.where(
                 or_(
-                    User.name.icontains(filters.search_query),
-                    User.surname.icontains(filters.search_query),
-                    User.patronymic.icontains(filters.search_query),
-                    User.email.icontains(filters.search_query),
+                    User.name.icontains(search_query),
+                    User.surname.icontains(search_query),
+                    User.patronymic.icontains(search_query),
+                    User.email.icontains(search_query),
                 )
             )
 
-        if "role" in filters.model_fields_set:
-            stmt = stmt.where(User.role == filters.role)
+        if (role := filters.get("role")) is not None:
+            stmt = stmt.where(User.role == role)
 
-        if "is_admin" in filters.model_fields_set:
-            stmt = stmt.where(User.is_admin == filters.is_admin)
+        if (is_admin := filters.get("is_admin")) is not None:
+            stmt = stmt.where(User.is_admin == is_admin)
+
+        if (ids := filters.get("ids")) is not None:
+            stmt = stmt.where(User.id.in_(ids))
 
         return stmt
 
     async def get_list(
         self,
-        filters: UserFilters | None,
-        pagination: PaginationSchema | None,
+        limit: int | None,
+        offset: int | None,
+        **filters: Unpack[UserGetListFilters],
     ) -> list[UserResponse]:
         stmt = select(User).order_by(User.id)
 
-        stmt = self._apply_filters(stmt=stmt, filters=filters)
+        stmt = self._apply_filters(stmt=stmt, **filters)
 
-        stmt = self._apply_pagination(stmt=stmt, pagination=pagination)
+        stmt = stmt.limit(limit).offset(offset)
 
         res = await self._session.execute(stmt)
-        entities = res.scalars().all()
 
-        return [UserResponse.model_validate(entity) for entity in entities]
+        return [UserResponse.model_validate(entity) for entity in res.scalars().all()]
 
     async def count(
         self,
-        filters: UserFilters | None,
+        **filters: Unpack[UserGetListFilters],
     ) -> int:
         stmt = select(User)
 
-        stmt = self._apply_filters(stmt=stmt, filters=filters)
+        stmt = self._apply_filters(stmt=stmt, **filters)
 
         stmt = _get_count_stmt(stmt)
 
@@ -182,16 +218,18 @@ class UserService(BaseService):
 
     async def login(
         self,
-        credentials: UserCredentials,
+        **credentials: Unpack[UserLoginParams],
     ) -> UserResponse:
-        user = await self.get_by_email(credentials.email)
+        user = await self.get_by_email(credentials.get("email"))
 
-        if bcrypt.checkpw(credentials.password.encode(), user.hashed_password.encode()):
+        if bcrypt.checkpw(
+            credentials.get("password").encode(), user.hashed_password.encode()
+        ):
             return user
 
         raise ObjectNotFound(
-            f"User with email {credentials.email} and password "
-            f"{credentials.password} not found"
+            f"User with email {credentials.get('email')} and password "
+            f"{credentials.get('password')} not found"
         )
 
     async def delete(
@@ -204,22 +242,19 @@ class UserService(BaseService):
     async def update(
         self,
         id: int,
-        data: UserInput,
+        **values: Unpack[UserUpdateParams],
     ) -> UserResponse:
         await self.get(id)
 
-        stmt = (
-            update(User)
-            .where(User.id == id)
-            .values(**data.model_dump())
-            .returning(User)
-        )
+        stmt = update(User).where(User.id == id).values(**values).returning(User)
 
         try:
             res = await self._session.execute(stmt)
             return UserResponse.model_validate(res.scalar_one())
         except IntegrityError:
-            raise ObjectAlreadyExists(f"User with email {data.email} already exists")
+            raise ObjectAlreadyExists(
+                f"User with email {values.get('email')} already exists"
+            )
 
     async def reset_password_request(
         self,
@@ -292,3 +327,19 @@ class UserService(BaseService):
                 password=new_password,
             ),
         )
+
+    async def get_from_token(
+        self,
+        token: str,
+    ) -> UserResponse:
+        try:
+            payload = UserJWTPayload.from_token(token)
+        except jwt.ExpiredSignatureError:
+            raise Unauthorized("Expired token")
+        except jwt.InvalidTokenError:
+            raise Unauthorized("Invalid token")
+
+        if payload.type == "refresh":
+            raise Unauthorized("Invalid token type")
+
+        return await self.get(payload.id)

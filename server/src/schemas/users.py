@@ -15,6 +15,7 @@ class UserResponse(BaseResponse):
     hashed_password: str
     role: Role
     is_admin: bool
+    full_name: str
 
 
 class UserCredentials(Schema):
@@ -24,6 +25,11 @@ class UserCredentials(Schema):
 
 class PasswordResetRequest(Schema):
     email: EmailStr
+
+
+class PasswordResetConfirm(Schema):
+    id: int
+    code: str
 
 
 class UserInput(Schema):

@@ -9,6 +9,7 @@ export const router = createRouter({
       children: [
         { path: "", redirect: "/chats" },
         { path: "chats", component: () => import("./views/chats.vue") },
+        { path: "users", component: () => import("./views/users.vue") },
         { path: "profile", component: () => import("./views/profile.vue") },
         { path: "support", component: () => import("./views/support.vue") },
         {
@@ -26,14 +27,20 @@ export const router = createRouter({
       path: "/auth",
       component: () => import("./views/auth.vue"),
     },
+    {
+      path: "/reset-password-confirm",
+      component: () => import("./views/reset-password-confirm.vue"),
+    },
   ],
   history: createWebHistory(),
 })
 
+const PUBLIC_PATHS = ["/auth", "/reset-password-confirm"]
+
 router.beforeEach((to) => {
   const authStore = useAuthStore()
 
-  if (!authStore.accessToken && to.path !== "/auth") {
+  if (!authStore.accessToken && !PUBLIC_PATHS.includes(to.path)) {
     return "/auth"
   }
 
