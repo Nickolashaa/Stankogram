@@ -1,33 +1,62 @@
 from typing import Unpack
 
-from sqlalchemy import Select, insert, select
+from sqlalchemy import Select, delete, insert, select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ....database.models.chats import ChatParticipant
-from ....exceptions import ObjectNotFound
+from ....enums.chats import ChatType
+from ....exceptions import InvalidInput, ObjectNotFound
 from ....schemas.chats import ChatParticipantResponse
 from ....utils.stmt_modificators import _get_count_stmt
 from ...base import BaseService
+from ..service import ChatService
 from .types import ChatParticipantCreateParams, ChatParticipantGetListFilters
 
 
 class ChatParticipantService(BaseService):
+    def __init__(
+        self,
+        session: AsyncSession,
+        chat_service: ChatService,
+    ) -> None:
+        super().__init__(session)
+        self._chat_service = chat_service
+
     async def create(
         self,
         **data: Unpack[ChatParticipantCreateParams],
     ) -> ChatParticipantResponse:
+        chat = await self._chat_service.get(data.get("chat_id"))
+        if chat.type == ChatType.PRIVATE:
+            participants_count = await self.count(chat_id=chat.id)
+            if participants_count >= 2:
+                raise InvalidInput(
+                    "You cannot change the participants of a private chat"
+                )
+
         stmt = insert(ChatParticipant).values(**data).returning(ChatParticipant)
 
         try:
             res = await self._session.execute(stmt)
-        except IntegrityError as e:
-            if "fk_chat_participants_chat_id" == str(e.orig):
-                raise ObjectNotFound(f"Chat with id {data.get('chat_id')} not found")
-            if "fk_chat_participants_user_id" == str(e.orig):
-                raise ObjectNotFound(f"User with id {data.get('user_id')} not found")
-            raise
+        except IntegrityError:
+            raise ObjectNotFound(f"User with id {data.get('user_id')} not found")
 
         return ChatParticipantResponse.model_validate(res.scalar_one())
+
+    async def delete(
+        self,
+        chat_id: int,
+        user_id: int,
+    ) -> None:
+        chat = await self._chat_service.get(chat_id)
+        if chat.type == ChatType.PRIVATE:
+            raise InvalidInput("You cannot change the participants of a private chat")
+
+        stmt = delete(ChatParticipant).where(
+            ChatParticipant.chat_id == chat_id, ChatParticipant.user_id == user_id
+        )
+        await self._session.execute(stmt)
 
     async def get_or_none(
         self,
