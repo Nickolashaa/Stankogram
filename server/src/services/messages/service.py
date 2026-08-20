@@ -5,13 +5,12 @@ from sqlalchemy import Select, delete, insert, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ....database.models.messages import Message
-from ....exceptions import ObjectNotFound
-from ....schemas.messages import MessageResponse
-from ....utils.stmt_modificators import _get_count_stmt
-from ...base import BaseService
-from ..types import MessageCreateParams
-from .types import MessageGetListFilters
+from ...database.models.messages import Message
+from ...exceptions import ObjectNotFound
+from ...schemas.messages import MessageResponse
+from ...utils.stmt_modificators import _get_count_stmt
+from ..base import BaseService
+from .types import MessageCreateParams, MessageGetListFilters
 
 
 class MessageService(BaseService):
