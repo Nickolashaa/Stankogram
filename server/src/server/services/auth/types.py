@@ -21,7 +21,7 @@ class UserUpdateParams(TypedDict):
     is_admin: NotRequired[bool]
 
 
-class UserLoginParams(TypedDict):
+class UserCredentials(TypedDict):
     email: Required[str]
     password: Required[str]
 

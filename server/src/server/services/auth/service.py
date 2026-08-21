@@ -27,7 +27,7 @@ from .schemas import JWTTokens, UserJWTPayload, UserResponse
 from .types import (
     UserCreateParams,
     UserGetListFilters,
-    UserLoginParams,
+    UserCredentials,
     UserUpdateParams,
 )
 
@@ -217,7 +217,7 @@ class AuthService(BaseService):
 
     async def login(
         self,
-        **credentials: Unpack[UserLoginParams],
+        **credentials: Unpack[UserCredentials],
     ) -> UserResponse:
         user = await self.get_by_email(credentials.get("email"))
 
