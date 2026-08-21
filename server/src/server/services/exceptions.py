@@ -1,22 +1,22 @@
 class AppException(Exception):
-    code: int
+    pass
 
 
 class ObjectAlreadyExists(AppException):
-    code = 422
+    pass
 
 
 class ObjectNotFound(AppException):
-    code = 404
+    pass
 
 
 class InvalidInput(AppException):
-    code = 422
+    pass
 
 
 class Forbidden(AppException):
-    code = 403
+    pass
 
 
 class Unauthorized(AppException):
-    code = 401
+    pass
