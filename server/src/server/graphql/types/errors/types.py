@@ -21,3 +21,8 @@ class InvalidInputError(IAppError):
 @strawberry.type
 class ForbiddenError(IAppError):
     pass
+
+
+@strawberry.type
+class UnauthorizedError(IAppError):
+    pass
