@@ -8,13 +8,13 @@ from ....config import JWT_REFRESH_EXP_DAYS
 from ....services.auth.schemas import JWTPayload
 from ....services.exceptions import ObjectAlreadyExists, ObjectNotFound
 from ...context import AppInfo
+from ...permissions.auth import IsAdmin
 from ...types.auth import JWTs, User, UserCredentialsIn, UserIn
 from ...types.errors import (
     ObjectAlreadyExistsError,
     ObjectNotFoundError,
     UnauthorizedError,
 )
-from ...permissions.auth import IsAdmin
 
 
 @strawberry.type
@@ -150,3 +150,31 @@ class AuthMutation:
     ) -> None:
         await info.context.services.auth_service.delete(id)
         await info.context.session.commit()
+
+    @strawberry.mutation
+    async def user_reset_password_request(
+        self, info: AppInfo, email: str
+    ) -> None | ObjectNotFoundError:
+        try:
+            await info.context.services.auth_service.reset_password_request(email)
+            await info.context.session.commit()
+        except ObjectNotFound as e:
+            await info.context.session.rollback()
+            return ObjectNotFoundError.from_service_exception(e)
+
+    @strawberry.mutation
+    async def user_reset_password_confirm(
+        self,
+        info: AppInfo,
+        id: int,
+        code: str,
+    ) -> None | ObjectNotFoundError:
+        try:
+            await info.context.services.auth_service.reset_password_confirm(
+                id=id,
+                code=code,
+            )
+            await info.context.session.commit()
+        except ObjectNotFound as e:
+            await info.context.session.rollback()
+            return ObjectNotFoundError.from_service_exception(e)
