@@ -4,7 +4,7 @@ from sqlalchemy import select
 
 from ..database.connection import session_maker
 from ..database.models.auth import User
-from ..enums.users import Role
+from ..enums.users import UserRole
 from ..services.auth import AuthService
 
 
@@ -21,7 +21,7 @@ async def main() -> None:
             surname=input("Surname: "),
             patronymic=input("Patronymic: "),
             email=input("Email: "),
-            role=Role.STUDENT,
+            role=UserRole.STUDENT,
             is_admin=True,
         )
         await session.commit()

@@ -5,7 +5,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import expression
 
-from ...enums.users import Role
+from ...enums.users import UserRole
 from ..connection import Base
 
 
@@ -25,7 +25,7 @@ class User(Base):
     email: Mapped[str] = mapped_column(unique=True)
     hashed_password: Mapped[str]
 
-    role: Mapped[Role]
+    role: Mapped[UserRole]
     is_admin: Mapped[bool] = mapped_column(
         server_default=expression.false(),
     )

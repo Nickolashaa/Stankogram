@@ -1,6 +1,6 @@
 from typing import NotRequired, Required, Sequence, TypedDict
 
-from ...enums.users import Role
+from ...enums.users import UserRole
 
 
 class UserCreateParams(TypedDict):
@@ -8,7 +8,7 @@ class UserCreateParams(TypedDict):
     surname: Required[str]
     patronymic: NotRequired[str | None]
     email: Required[str]
-    role: Required[Role]
+    role: Required[UserRole]
     is_admin: NotRequired[bool]
 
 
@@ -17,7 +17,7 @@ class UserUpdateParams(TypedDict):
     surname: NotRequired[str]
     patronymic: NotRequired[str | None]
     email: NotRequired[str]
-    role: NotRequired[Role]
+    role: NotRequired[UserRole]
     is_admin: NotRequired[bool]
 
 
@@ -28,6 +28,6 @@ class UserLoginParams(TypedDict):
 
 class UserGetListFilters(TypedDict):
     search_query: NotRequired[str]
-    role: NotRequired[Role]
+    role: NotRequired[UserRole]
     is_admin: NotRequired[bool]
     ids: NotRequired[Sequence[int]]

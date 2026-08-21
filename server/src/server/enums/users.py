@@ -1,6 +1,6 @@
 from enum import StrEnum
 
 
-class Role(StrEnum):
+class UserRole(StrEnum):
     STUDENT = "STUDENT"
     TEACHER = "TEACHER"

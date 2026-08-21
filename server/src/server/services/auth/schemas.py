@@ -9,7 +9,7 @@ from ...config import (
     JWT_SECRET_KEY,
     PASSWORD_LEN,
 )
-from ...enums.users import Role
+from ...enums.users import UserRole
 from ..base import BasePagination, BaseResponse, Schema
 
 
@@ -47,7 +47,7 @@ class UserResponse(BaseResponse):
     patronymic: str | None
     email: str
     hashed_password: str
-    role: Role
+    role: UserRole
     is_admin: bool
     full_name: str
 
@@ -71,13 +71,13 @@ class UserInput(Schema):
     surname: str = Field(..., max_length=50)
     patronymic: str | None = Field(..., max_length=60)
     email: EmailStr
-    role: Role
+    role: UserRole
     is_admin: bool
 
 
 class UserFilters(Schema):
     search_query: str | None = Field(None)
-    role: Role | None = Field(None)
+    role: UserRole | None = Field(None)
     is_admin: bool | None = Field(None)
 
 
