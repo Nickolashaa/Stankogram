@@ -8,7 +8,7 @@ from ..enums.users import UserRole
 from ..services.auth import AuthService
 
 
-async def main() -> None:
+async def _create_first_admin() -> None:
     async with session_maker() as session:
         existing = await session.execute(select(User).where(User.is_admin.is_(True)))
         if existing.scalar_one_or_none() is not None:
@@ -29,4 +29,5 @@ async def main() -> None:
     print("Success, credentials sended in your email.")
 
 
-asyncio.run(main())
+def main() -> None:
+    asyncio.run(_create_first_admin())
