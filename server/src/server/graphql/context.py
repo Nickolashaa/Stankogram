@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from fastapi import Depends
+from fastapi import Depends, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from strawberry import Info
 from strawberry.fastapi import BaseContext
@@ -14,23 +14,26 @@ from ..services.auth.schemas import UserResponse
 
 @dataclass(slots=True)
 class Context(BaseContext):
+    response: Response
     session: AsyncSession
+    current_user: UserResponse | None
     services: Services
     # data_loaders: DataLoaders
-    current_user: UserResponse | None
 
 
 async def context_getter(
+    response: Response,
     session: AsyncSession = Depends(get_session),
-    auth_service: AuthService = Depends(get_auth_service),
     current_user: UserResponse | None = Depends(get_current_user),
+    auth_service: AuthService = Depends(get_auth_service),
 ) -> Context:
     return Context(
         session=session,
+        response=response,
+        current_user=current_user,
         services=Services(
             auth_service=auth_service,
         ),
-        current_user=current_user,
     )
 
 
