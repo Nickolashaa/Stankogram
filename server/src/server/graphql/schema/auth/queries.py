@@ -3,13 +3,14 @@ from typing import Union
 import strawberry
 
 from ...context import AppInfo
+from ...permissions.auth import IsAuthenticated
 from ...types.auth import User
 from ...types.errors import ObjectNotFoundError
 
 
 @strawberry.type
 class AuthQuery:
-    @strawberry.field
+    @strawberry.field(permission_classes=[IsAuthenticated])
     async def get_me(
         info: AppInfo,
     ) -> Union[User, ObjectNotFoundError]:
