@@ -1,0 +1,111 @@
+input BasePaginationIn {
+  limit: Int
+  offset: Int
+}
+
+"""Date with time (isoformat)"""
+scalar DateTime
+
+enum EUserRole {
+  STUDENT
+  TEACHER
+}
+
+interface IAppError {
+  message: String!
+}
+
+interface IBaseMeta {
+  count: Int!
+}
+
+interface IBaseType {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type JWTs {
+  accessToken: String!
+  refreshToken: String!
+}
+
+union JWTsObjectNotFoundError = JWTs | ObjectNotFoundError
+
+union JWTsUnauthorizedErrorObjectNotFoundError = JWTs | UnauthorizedError | ObjectNotFoundError
+
+type Mutation {
+  login(input: UserCredentialsIn!): JWTsObjectNotFoundError!
+  refresh: JWTsUnauthorizedErrorObjectNotFoundError!
+  logout: Void
+  userCreate(input: UserIn!): UserObjectAlreadyExistsError!
+  userUpdate(id: Int!, input: UserIn!): UserObjectAlreadyExistsErrorObjectNotFoundError!
+  userDelete(id: Int!): Void
+  userResetPasswordRequest(email: String!): ObjectNotFoundError
+  userResetPasswordConfirm(id: Int!, code: String!): ObjectNotFoundError
+}
+
+type ObjectAlreadyExistsError implements IAppError {
+  message: String!
+}
+
+type ObjectNotFoundError implements IAppError {
+  message: String!
+}
+
+type Query {
+  me: UserObjectNotFoundError!
+  user(id: Int!): UserObjectNotFoundError!
+  users(pagination: BasePaginationIn = null, filters: UserFiltersIn = null): UsersMeta!
+  health: Int!
+}
+
+type UnauthorizedError implements IAppError {
+  message: String!
+}
+
+type User implements IBaseType {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  surname: String!
+  patronymic: String
+  email: String!
+  role: EUserRole!
+  isAdmin: Boolean!
+}
+
+input UserCredentialsIn {
+  email: String!
+  password: String!
+}
+
+input UserFiltersIn {
+  searchQuery: String
+  role: EUserRole
+  isAdmin: Boolean
+}
+
+input UserIn {
+  name: String!
+  surname: String!
+  patronymic: String
+  email: String!
+  role: EUserRole!
+  isAdmin: Boolean!
+}
+
+union UserObjectAlreadyExistsError = User | ObjectAlreadyExistsError
+
+union UserObjectAlreadyExistsErrorObjectNotFoundError = User | ObjectAlreadyExistsError | ObjectNotFoundError
+
+union UserObjectNotFoundError = User | ObjectNotFoundError
+
+type UsersMeta implements IBaseMeta {
+  count: Int!
+  users: [User!]!
+}
+
+"""Represents NULL values"""
+scalar Void
