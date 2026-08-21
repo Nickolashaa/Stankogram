@@ -8,17 +8,20 @@ from ....config import JWT_REFRESH_EXP_DAYS
 from ....services.auth.schemas import JWTPayload
 from ....services.exceptions import ObjectAlreadyExists, ObjectNotFound
 from ...context import AppInfo
-from ...types.auth import JWTs, UserCredentialsIn
+from ...types.auth import JWTs, User, UserCredentialsIn, UserIn
 from ...types.errors import (
+    ObjectAlreadyExistsError,
     ObjectNotFoundError,
     UnauthorizedError,
 )
+from ...permissions.auth import IsAdmin
 
 
 @strawberry.type
 class AuthMutation:
     @strawberry.mutation
     async def login(
+        self,
         info: AppInfo,
         input: UserCredentialsIn,
     ) -> Union[JWTs, ObjectNotFoundError]:
@@ -45,6 +48,7 @@ class AuthMutation:
 
     @strawberry.mutation
     async def refresh(
+        self,
         info: AppInfo,
     ) -> Union[JWTs, UnauthorizedError, ObjectNotFoundError]:
         if info.context.refresh_token is None:
@@ -88,6 +92,7 @@ class AuthMutation:
 
     @strawberry.mutation
     async def logout(
+        self,
         info: AppInfo,
     ) -> None:
         if info.context.refresh_token is None:
@@ -100,3 +105,48 @@ class AuthMutation:
             await info.context.services.auth_service.cancel_token(UUID(payload.jti))
         except Exception:
             pass
+
+    @strawberry.mutation(permission_classes=[IsAdmin])
+    async def user_create(
+        self,
+        info: AppInfo,
+        input: UserIn,
+    ) -> User | ObjectAlreadyExistsError:
+        try:
+            instance = await info.context.services.auth_service.create(
+                **input.to_create_service_params()
+            )
+            await info.context.session.commit()
+            return User.from_schema(instance)
+        except ObjectAlreadyExists as e:
+            await info.context.session.rollback()
+            return ObjectAlreadyExistsError.from_service_exception(e)
+
+    @strawberry.mutation(permission_classes=[IsAdmin])
+    async def user_update(
+        self,
+        info: AppInfo,
+        id: int,
+        input: UserIn,
+    ) -> User | ObjectAlreadyExistsError | ObjectNotFoundError:
+        try:
+            instance = await info.context.services.auth_service.update(
+                id=id, **input.to_update_service_params()
+            )
+            await info.context.session.commit()
+            return User.from_schema(instance)
+        except ObjectAlreadyExists as e:
+            await info.context.session.rollback()
+            return ObjectAlreadyExistsError.from_service_exception(e)
+        except ObjectNotFound as e:
+            await info.context.session.rollback()
+            return ObjectNotFoundError.from_service_exception(e)
+
+    @strawberry.mutation(permission_classes=[IsAdmin])
+    async def user_delete(
+        self,
+        info: AppInfo,
+        id: int,
+    ) -> None:
+        await info.context.services.auth_service.delete(id)
+        await info.context.session.commit()

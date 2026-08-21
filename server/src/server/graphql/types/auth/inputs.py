@@ -18,10 +18,18 @@ class UserIn:
     role: EUserRole
     is_admin: bool
 
-    def to_service_params[T: (UserCreateParams, UserUpdateParams)](
-        self, cls: type[T]
-    ) -> T:
-        return cls(
+    def to_create_service_params(self) -> UserCreateParams:
+        return UserCreateParams(
+            name=self.name,
+            surname=self.surname,
+            patronymic=self.patronymic,
+            email=self.email,
+            role=self.role,
+            is_admin=self.is_admin,
+        )
+
+    def to_update_service_params(self) -> UserUpdateParams:
+        return UserUpdateParams(
             name=self.name,
             surname=self.surname,
             patronymic=self.patronymic,
