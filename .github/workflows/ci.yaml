@@ -44,7 +44,7 @@ jobs:
         working-directory: ./server/
         run: |
           uv sync
-          uv run python -m src.scripts.schemagen
+          uv run schemagen
       - name: Check diff
         run: git diff --exit-code
   test-client-schema:
