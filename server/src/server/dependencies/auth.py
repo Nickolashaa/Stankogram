@@ -2,9 +2,9 @@ from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..exceptions import ObjectNotFound, Unauthorized
 from ..services.auth import AuthService
 from ..services.auth.schemas import UserResponse
+from ..services.exceptions import ObjectNotFound, Unauthorized
 from .session import get_session
 
 
