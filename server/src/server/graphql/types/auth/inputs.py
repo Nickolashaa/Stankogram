@@ -1,6 +1,6 @@
 import strawberry
 
-from ....services.auth.types import UserCreateParams, UserUpdateParams
+from ....services.auth.types import UserCreateParams, UserCredentials, UserUpdateParams
 from .enums import EUserRole
 
 
@@ -23,4 +23,18 @@ class UserIn:
             email=self.email,
             role=self.role,
             is_admin=self.is_admin,
+        )
+
+
+@strawberry.input
+class UserCredentialsIn:
+    email: str
+    password: str
+
+    def to_service_params(
+        self,
+    ) -> UserCredentials:
+        return UserCredentials(
+            email=self.email,
+            password=self.password,
         )

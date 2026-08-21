@@ -1,5 +1,6 @@
 import strawberry
 
+from .auth.mutations import AuthMutation
 from .auth.queries import AuthQuery
 
 
@@ -12,9 +13,11 @@ class Query(
         return 200
 
 
-# @strawberry.type
-# class Mutation:
-#     pass
+@strawberry.type
+class Mutation(
+    AuthMutation,
+):
+    pass
 
 
-schema = strawberry.Schema(query=Query)
+schema = strawberry.Schema(query=Query, mutation=Mutation)
