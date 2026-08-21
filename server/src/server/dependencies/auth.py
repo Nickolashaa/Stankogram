@@ -15,9 +15,13 @@ def get_auth_service(
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
+    credentials: HTTPAuthorizationCredentials | None = Depends(
+        HTTPBearer(auto_error=False)
+    ),
     service: AuthService = Depends(get_auth_service),
 ) -> UserResponse | None:
+    if credentials is None:
+        return None
     try:
         return await service.get_from_token(credentials.credentials)
     except Unauthorized, ObjectNotFound:
