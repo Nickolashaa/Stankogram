@@ -85,3 +85,18 @@ class AuthMutation:
         )
 
         return JWTs.from_schema(tokens)
+
+    @strawberry.mutation
+    async def logout(
+        info: AppInfo,
+    ) -> None:
+        if info.context.refresh_token is None:
+            return
+
+        info.context.response.delete_cookie("refresh_token")
+
+        try:
+            payload = JWTPayload.from_token(info.context.refresh_token)
+            await info.context.services.auth_service.cancel_token(UUID(payload.jti))
+        except Exception:
+            pass
