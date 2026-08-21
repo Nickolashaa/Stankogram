@@ -23,11 +23,11 @@ from ...utils.smtp import send_email
 from ...utils.stmt_modificators import _get_count_stmt
 from ..base import BaseService
 from ..exceptions import ObjectAlreadyExists, ObjectNotFound, Unauthorized
-from .schemas import JWTTokens, UserJWTPayload, UserResponse
+from .schemas import JWTPayload, JWTsSchema, UserResponse
 from .types import (
     UserCreateParams,
-    UserGetListFilters,
     UserCredentials,
+    UserGetListFilters,
     UserUpdateParams,
 )
 
@@ -73,16 +73,16 @@ class AuthService(BaseService):
         )
 
     @staticmethod
-    def generate_jwt_tokens(id: int, is_admin: bool) -> JWTTokens:
-        return JWTTokens(
-            access_token=UserJWTPayload(
+    def generate_jwts(id: int, is_admin: bool) -> JWTsSchema:
+        return JWTsSchema(
+            access_token=JWTPayload(
                 id=id,
                 is_admin=is_admin,
                 jti=str(uuid4()),
                 type="access",
                 exp=datetime.now(UTC) + timedelta(minutes=JWT_ACCESS_EXP_MINUTES),
             ).generate_token(),
-            refresh_token=UserJWTPayload(
+            refresh_token=JWTPayload(
                 id=id,
                 is_admin=is_admin,
                 jti=str(uuid4()),
@@ -332,7 +332,7 @@ class AuthService(BaseService):
         token: str,
     ) -> UserResponse:
         try:
-            payload = UserJWTPayload.from_token(token)
+            payload = JWTPayload.from_token(token)
         except jwt.ExpiredSignatureError:
             raise Unauthorized("Expired token")
         except jwt.InvalidTokenError:

@@ -2,23 +2,21 @@ from datetime import datetime
 from typing import Literal, Self
 
 import jwt
-from pydantic import EmailStr, Field
 
 from ...config import (
     JWT_ENCRYPTION_ALGORITHM,
     JWT_SECRET_KEY,
-    PASSWORD_LEN,
 )
 from ...enums.users import UserRole
-from ..base import BasePagination, BaseResponse, Schema
+from ..base import BaseResponse, Schema
 
 
-class JWTTokens(Schema):
+class JWTsSchema(Schema):
     access_token: str
     refresh_token: str
 
 
-class UserJWTPayload(Schema):
+class JWTPayload(Schema):
     id: int
     is_admin: bool
     jti: str
@@ -50,36 +48,3 @@ class UserResponse(BaseResponse):
     role: UserRole
     is_admin: bool
     full_name: str
-
-
-class UserCredentials(Schema):
-    email: str
-    password: str = Field(..., min_length=PASSWORD_LEN)
-
-
-class PasswordResetRequest(Schema):
-    email: EmailStr
-
-
-class PasswordResetConfirm(Schema):
-    id: int
-    code: str
-
-
-class UserInput(Schema):
-    name: str = Field(..., max_length=50)
-    surname: str = Field(..., max_length=50)
-    patronymic: str | None = Field(..., max_length=60)
-    email: EmailStr
-    role: UserRole
-    is_admin: bool
-
-
-class UserFilters(Schema):
-    search_query: str | None = Field(None)
-    role: UserRole | None = Field(None)
-    is_admin: bool | None = Field(None)
-
-
-class UserListQuery(UserFilters, BasePagination):
-    pass
