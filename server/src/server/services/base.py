@@ -19,7 +19,7 @@ class Schema(BaseModel):
     )
 
 
-class PaginationSchema(Schema):
+class BasePagination(Schema):
     limit: int | None = Field(LIMIT)
     offset: int | None = Field(OFFSET)
 

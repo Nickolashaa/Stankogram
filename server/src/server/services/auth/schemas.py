@@ -10,7 +10,7 @@ from ...config import (
     PASSWORD_LEN,
 )
 from ...enums.users import Role
-from ..base import BaseResponse, PaginationSchema, Schema
+from ..base import BasePagination, BaseResponse, Schema
 
 
 class JWTTokens(Schema):
@@ -81,5 +81,5 @@ class UserFilters(Schema):
     is_admin: bool | None = Field(None)
 
 
-class UserListQuery(UserFilters, PaginationSchema):
+class UserListQuery(UserFilters, BasePagination):
     pass
