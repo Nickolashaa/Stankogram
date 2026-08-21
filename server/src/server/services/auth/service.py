@@ -21,7 +21,7 @@ from ...config import (
 from ...database.models.auth import CancelledToken, PasswordResetCode, User
 from ...utils.smtp import send_email
 from ...utils.stmt_modificators import _get_count_stmt
-from ..base import BaseService
+from ..base import BasePagination, BaseService
 from ..exceptions import ObjectAlreadyExists, ObjectNotFound, Unauthorized
 from .schemas import JWTPayload, JWTsSchema, UserResponse
 from .types import (
@@ -174,15 +174,14 @@ class AuthService(BaseService):
 
     async def get_list(
         self,
-        limit: int | None,
-        offset: int | None,
+        pagination: BasePagination | None = None,
         **filters: Unpack[UserGetListFilters],
     ) -> list[UserResponse]:
         stmt = select(User).order_by(User.id)
 
         stmt = self._apply_filters(stmt=stmt, **filters)
 
-        stmt = stmt.limit(limit).offset(offset)
+        stmt = self._apply_pagination(stmt=stmt, pagination=pagination)
 
         res = await self._session.execute(stmt)
 

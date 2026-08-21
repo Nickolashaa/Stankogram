@@ -3,7 +3,7 @@ from typing import Self
 import strawberry
 
 from ....services.auth.schemas import JWTsSchema, UserResponse
-from ..base import IBaseType
+from ..base import IBaseMeta, IBaseType
 from .enums import EUserRole
 
 
@@ -14,7 +14,6 @@ class User(IBaseType):
     surname: str
     patronymic: str | None
     email: str
-    hashed_password: str
     role: EUserRole
     is_admin: bool
 
@@ -29,7 +28,6 @@ class User(IBaseType):
             surname=instance.surname,
             patronymic=instance.patronymic,
             email=instance.email,
-            hashed_password=instance.hashed_password,
             role=instance.role,
             is_admin=instance.is_admin,
             created_at=instance.created_at,
@@ -51,3 +49,8 @@ class JWTs:
             access_token=instance.access_token,
             refresh_token=instance.refresh_token,
         )
+
+
+@strawberry.type
+class UsersMeta(IBaseMeta):
+    users: list[User]

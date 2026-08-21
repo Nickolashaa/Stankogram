@@ -1,6 +1,11 @@
 import strawberry
 
-from ....services.auth.types import UserCreateParams, UserCredentials, UserUpdateParams
+from ....services.auth.types import (
+    UserCreateParams,
+    UserCredentials,
+    UserGetListFilters,
+    UserUpdateParams,
+)
 from .enums import EUserRole
 
 
@@ -38,3 +43,22 @@ class UserCredentialsIn:
             email=self.email,
             password=self.password,
         )
+
+
+@strawberry.input
+class UserFiltersIn:
+    search_query: strawberry.Maybe[str]
+    role: strawberry.Maybe[EUserRole]
+    is_admin: strawberry.Maybe[bool]
+
+    def to_service_params(
+        self,
+    ) -> UserGetListFilters:
+        filters: UserGetListFilters = {}
+        if self.search_query is not None:
+            filters["search_query"] = self.search_query.value
+        if self.role is not None:
+            filters["role"] = self.role.value
+        if self.is_admin is not None:
+            filters["is_admin"] = self.is_admin.value
+        return filters

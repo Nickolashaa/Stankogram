@@ -1,14 +1,23 @@
 from datetime import datetime
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
+from sqlalchemy import Select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from ..config import LIMIT, OFFSET
 
 
 class BaseService:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
+
+    @staticmethod
+    def _apply_pagination(
+        stmt: Select[tuple[Any]],
+        pagination: BasePagination | None,
+    ) -> Select[tuple[Any]]:
+        if pagination is None:
+            return stmt
+        return stmt.limit(pagination.limit).offset(pagination.offset)
 
 
 class Schema(BaseModel):
@@ -20,8 +29,8 @@ class Schema(BaseModel):
 
 
 class BasePagination(Schema):
-    limit: int | None = Field(LIMIT)
-    offset: int | None = Field(OFFSET)
+    limit: int | None
+    offset: int | None
 
 
 class BaseResponse(Schema):
