@@ -3,29 +3,26 @@ import { ref, watch } from "vue"
 import Input from "@/components/input.vue"
 import Select from "@/components/select.vue"
 import Button from "@/components/button.vue"
-import type { components } from "@/api/schema"
-
-type UserInput = components["schemas"]["UserInput"]
-type UserResponse = components["schemas"]["UserResponse"]
-type Role = components["schemas"]["Role"]
+import { EUserRole, type UserIn } from "@/graphql/base-types"
+import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
 
 const props = defineProps<{
   open: boolean
   title: string
-  initialUser?: UserResponse | null
+  initialUser?: UserFieldsFragment | null
   submitting?: boolean
 }>()
 
 const emit = defineEmits<{
   close: []
-  submit: [data: UserInput]
+  submit: [data: UserIn]
 }>()
 
 const name = ref("")
 const surname = ref("")
 const patronymic = ref("")
 const email = ref("")
-const role = ref<Role>("STUDENT")
+const role = ref<EUserRole>(EUserRole.Student)
 const isAdmin = ref(false)
 
 watch(
@@ -38,8 +35,8 @@ watch(
     surname.value = props.initialUser?.surname ?? ""
     patronymic.value = props.initialUser?.patronymic ?? ""
     email.value = props.initialUser?.email ?? ""
-    role.value = props.initialUser?.role ?? "STUDENT"
-    isAdmin.value = props.initialUser?.is_admin ?? false
+    role.value = props.initialUser?.role ?? EUserRole.Student
+    isAdmin.value = props.initialUser?.isAdmin ?? false
   },
   { immediate: true },
 )
@@ -55,7 +52,7 @@ function handleSubmit() {
     patronymic: patronymic.value.trim() === "" ? null : patronymic.value,
     email: email.value,
     role: role.value,
-    is_admin: isAdmin.value,
+    isAdmin: isAdmin.value,
   })
 }
 </script>
@@ -88,8 +85,19 @@ function handleSubmit() {
       </label>
 
       <div class="mt-2 flex gap-2">
-        <Button type="button" variant="ghost" class="flex-1" @click="handleClose">Отмена</Button>
-        <Button type="submit" class="flex-[2]" :disabled="submitting">Сохранить</Button>
+        <Button
+          type="button"
+          variant="ghost"
+          class="flex-1"
+          icon="cancel"
+          :short-mode="false"
+          @click="handleClose"
+        >
+          Отмена
+        </Button>
+        <Button type="submit" class="flex-[2]" icon="save" :short-mode="false" :disabled="submitting">
+          Сохранить
+        </Button>
       </div>
     </form>
   </div>

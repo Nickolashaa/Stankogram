@@ -46,7 +46,14 @@ onMounted(async () => {
         Ссылка недействительна или срок её действия истёк. Запросите сброс пароля ещё раз.
       </p>
 
-      <Button v-if="status !== 'loading'" @click="router.push('/auth')">На страницу входа</Button>
+      <Button
+        v-if="status !== 'loading'"
+        icon="arrow-right"
+        :short-mode="false"
+        @click="router.push('/auth')"
+      >
+        На страницу входа
+      </Button>
     </div>
   </main>
 </template>

@@ -1,12 +1,18 @@
 import { defineStore } from "pinia"
 import { ref, watch } from "vue"
-import { client } from "./../api"
-import type { components } from "./../api/schema"
+import { apolloClient } from "@/api"
+import { LoginDocument } from "@/graphql/mutations/auth/login.generated"
+import { RefreshDocument } from "@/graphql/mutations/auth/refresh.generated"
+import { LogoutDocument } from "@/graphql/mutations/auth/logout.generated"
+import { UserResetPasswordRequestDocument } from "@/graphql/mutations/auth/user-reset-password-request.generated"
+import { UserResetPasswordConfirmDocument } from "@/graphql/mutations/auth/user-reset-password-confirm.generated"
+import { MeDocument } from "@/graphql/queries/auth/me.generated"
+import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
 
 const ACCESS_TOKEN_KEY = "accessToken"
 
 export const useAuthStore = defineStore("auth", () => {
-  const user = ref<components["schemas"]["UserResponse"]>()
+  const user = ref<UserFieldsFragment>()
   const accessToken = ref<string | undefined>(localStorage.getItem(ACCESS_TOKEN_KEY) ?? undefined)
 
   watch(accessToken, (value) => {
@@ -18,8 +24,11 @@ export const useAuthStore = defineStore("auth", () => {
   })
 
   async function fetchUser() {
-    const { data } = await client.GET("/api/auth/me")
-    user.value = data
+    const { data } = await apolloClient.query({
+      query: MeDocument,
+      fetchPolicy: "network-only",
+    })
+    user.value = data.me.__typename === "User" ? data.me : undefined
   }
 
   if (accessToken.value !== undefined) {
@@ -27,55 +36,59 @@ export const useAuthStore = defineStore("auth", () => {
   }
 
   async function login(email: string, password: string) {
-    const { data, error } = await client.POST("/api/auth/login", {
-      body: { email, password },
+    const { data } = await apolloClient.mutate({
+      mutation: LoginDocument,
+      variables: { input: { email, password } },
     })
 
-    if (error !== undefined) {
-      throw new Error(error.detail?.toString())
+    if (data === undefined || data === null || data.login.__typename !== "JWTs") {
+      throw new Error(data?.login.message ?? "Login failed")
     }
 
-    accessToken.value = data.access_token
+    accessToken.value = data.login.accessToken
 
     await fetchUser()
   }
 
   async function requestPasswordReset(email: string) {
-    const { error } = await client.POST("/api/auth/reset_password_request", {
-      body: { email },
+    const { data } = await apolloClient.mutate({
+      mutation: UserResetPasswordRequestDocument,
+      variables: { email },
     })
 
-    if (error !== undefined) {
-      throw new Error(error.detail?.toString())
+    if (data?.userResetPasswordRequest) {
+      throw new Error(data.userResetPasswordRequest.message)
     }
   }
 
   async function confirmPasswordReset(id: number, code: string) {
-    const { error } = await client.POST("/api/auth/reset_password_confirm", {
-      body: { id, code },
+    const { data } = await apolloClient.mutate({
+      mutation: UserResetPasswordConfirmDocument,
+      variables: { id, code },
     })
 
-    if (error !== undefined) {
-      throw new Error(error.detail?.toString())
+    if (data?.userResetPasswordConfirm) {
+      throw new Error(data.userResetPasswordConfirm.message)
     }
   }
 
   async function logout() {
-    await client.POST("/api/auth/logout")
+    await apolloClient.mutate({ mutation: LogoutDocument })
     accessToken.value = undefined
     user.value = undefined
+    await apolloClient.clearStore()
   }
 
   async function refresh() {
-    const { data, error } = await client.POST("/api/auth/refresh")
+    const { data } = await apolloClient.mutate({ mutation: RefreshDocument })
 
-    if (error !== undefined) {
+    if (data === undefined || data === null || data.refresh.__typename !== "JWTs") {
       accessToken.value = undefined
       user.value = undefined
       return
     }
 
-    accessToken.value = data.access_token
+    accessToken.value = data.refresh.accessToken
   }
 
   return {

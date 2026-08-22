@@ -1,0 +1,8 @@
+query Users($pagination: BasePaginationIn, $filters: UserFiltersIn) {
+  users(pagination: $pagination, filters: $filters) {
+    count
+    users {
+      ...UserFields
+    }
+  }
+}

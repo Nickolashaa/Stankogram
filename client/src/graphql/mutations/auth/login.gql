@@ -1,0 +1,11 @@
+mutation Login($input: UserCredentialsIn!) {
+  login(input: $input) {
+    __typename
+    ... on JWTs {
+      accessToken
+    }
+    ... on ObjectNotFoundError {
+      message
+    }
+  }
+}

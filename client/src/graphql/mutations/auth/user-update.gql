@@ -1,0 +1,14 @@
+mutation UserUpdate($id: Int!, $input: UserIn!) {
+  userUpdate(id: $id, input: $input) {
+    __typename
+    ... on User {
+      ...UserFields
+    }
+    ... on ObjectAlreadyExistsError {
+      message
+    }
+    ... on ObjectNotFoundError {
+      message
+    }
+  }
+}

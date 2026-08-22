@@ -1,0 +1,14 @@
+mutation Refresh {
+  refresh {
+    __typename
+    ... on JWTs {
+      accessToken
+    }
+    ... on UnauthorizedError {
+      message
+    }
+    ... on ObjectNotFoundError {
+      message
+    }
+  }
+}

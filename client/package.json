@@ -13,12 +13,14 @@
     "lint:oxlint": "oxlint . --fix",
     "lint:eslint": "eslint . --fix --cache",
     "format": "prettier --write --experimental-cli src/",
-    "codegen": "npx openapi-typescript ./../server/schema.json -o ./src/api/schema.ts && prettier --write ./src/api/schema.ts"
+    "codegen": "graphql-codegen --config codegen.ts"
   },
   "dependencies": {
+    "@apollo/client": "^3.14.1",
     "@tailwindcss/vite": "^4.3.3",
+    "@vue/apollo-composable": "^4.2.2",
     "@vueuse/core": "^14.4.0",
-    "openapi-fetch": "^0.17.0",
+    "graphql": "^16.14.2",
     "pinia": "^4.0.2",
     "tailwindcss": "^4.3.3",
     "vue": "^3.5.40",
@@ -26,6 +28,11 @@
     "vue-sonner": "^2.0.9"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "^7.2.0",
+    "@graphql-codegen/near-operation-file-preset": "^5.2.2",
+    "@graphql-codegen/typescript": "^6.1.0",
+    "@graphql-codegen/typescript-operations": "^6.1.6",
+    "@graphql-codegen/typescript-vue-apollo": "^5.0.1",
     "@tsconfig/node24": "^24.0.4",
     "@types/node": "^24.13.3",
     "@vitejs/plugin-vue": "^6.0.8",
@@ -37,7 +44,6 @@
     "eslint-plugin-vue": "~10.9.2",
     "jiti": "^2.7.0",
     "npm-run-all2": "^9.0.2",
-    "openapi-typescript": "^7.13.0",
     "oxlint": "~1.75.0",
     "prettier": "3.9.5",
     "typescript": "~6.0.0",

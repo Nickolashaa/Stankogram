@@ -4,22 +4,22 @@ import { useRouter } from "vue-router"
 import { storeToRefs } from "pinia"
 import { useAuthStore } from "@/stores/auth"
 import AppBrand from "@/components/app-brand.vue"
-import Button from "@/components/button.vue"
+import NavIcon from "@/components/nav-icon.vue"
 
 const router = useRouter()
 const authStore = useAuthStore()
 const { user } = storeToRefs(authStore)
 
 const navItems = computed(() => {
-  const items = [
-    { to: "/chats", label: "Чаты" },
-    { to: "/users", label: "Пользователи" },
-    { to: "/profile", label: "Профиль" },
-    { to: "/support", label: "Поддержка" },
+  const items: { to: string; label: string; icon: "chats" | "users" | "profile" | "support" | "admin" }[] = [
+    { to: "/chats", label: "Чаты", icon: "chats" },
+    { to: "/users", label: "Пользователи", icon: "users" },
+    { to: "/profile", label: "Профиль", icon: "profile" },
+    { to: "/support", label: "Поддержка", icon: "support" },
   ]
 
-  if (user.value?.is_admin) {
-    items.push({ to: "/admin", label: "Админка" })
+  if (user.value?.isAdmin) {
+    items.push({ to: "/admin", label: "Админка", icon: "admin" })
   }
 
   return items
@@ -42,15 +42,23 @@ async function handleLogout() {
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
-          class="rounded-input px-4 py-2.5 text-[15px] font-medium text-second transition-colors duration-150 hover:bg-accent/10 hover:text-main"
+          class="flex items-center gap-3 rounded-input px-4 py-2.5 text-lg font-medium text-second transition-colors duration-150 hover:bg-accent/10 hover:text-main"
           active-class="bg-accent/10 text-accent"
         >
+          <NavIcon :name="item.icon" />
           {{ item.label }}
         </RouterLink>
       </div>
     </div>
     <div class="flex flex-col gap-3">
-      <Button variant="ghost" @click="handleLogout">Выйти</Button>
+      <button
+        type="button"
+        class="flex cursor-pointer items-center gap-3 rounded-input px-4 py-2.5 text-lg font-medium text-second transition-colors duration-150 hover:bg-accent/10 hover:text-accent"
+        @click="handleLogout"
+      >
+        <NavIcon name="logout" />
+        Выйти
+      </button>
     </div>
   </nav>
 </template>

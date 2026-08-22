@@ -36,7 +36,7 @@ const { user } = storeToRefs(authStore)
         <span class="text-xs font-medium uppercase tracking-wide text-second"
           >Права администратора</span
         >
-        <span class="text-lg text-main">{{ user.is_admin ? "Да" : "Нет" }}</span>
+        <span class="text-lg text-main">{{ user.isAdmin ? "Да" : "Нет" }}</span>
       </div>
     </div>
     <div v-else class="text-second">Загрузка...</div>
