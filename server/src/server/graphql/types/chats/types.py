@@ -2,6 +2,7 @@ from typing import Self
 
 import strawberry
 
+from ....services.chats.participants.schemas import ChatParticipantResponse
 from ....services.chats.schemas import ChatResponse
 from ...context import AppInfo
 from ..auth import IUser, User
@@ -25,13 +26,9 @@ class Chat(IBaseType):
             return UnauthorizedError(message="User not authorized")
 
         links = await info.context.services.chat_participant_service.get_list(
-            chat_id=self.id
+            chat_id=self.id, exclude_user_ids=[info.context.current_user.id]
         )
-        participant_id = [
-            link.user_id
-            for link in links
-            if link.user_id != info.context.current_user.id
-        ][0]
+        participant_id = [link.user_id for link in links][0]
         participant = await info.context.data_loaders.user_loader.load(participant_id)
         return participant.full_name
 
@@ -57,4 +54,12 @@ class Chat(IBaseType):
 
 @strawberry.type
 class ChatParticipant(IBaseType, IUser, IChat):
-    pass
+    @classmethod
+    def from_schema(cls, instance: ChatParticipantResponse) -> Self:
+        return cls(
+            id=instance.id,
+            user_id=instance.user_id,
+            chat_id=instance.chat_id,
+            created_at=instance.created_at,
+            updated_at=instance.updated_at,
+        )

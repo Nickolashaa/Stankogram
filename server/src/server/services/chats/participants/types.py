@@ -9,3 +9,4 @@ class ChatParticipantCreateParams(TypedDict):
 class ChatParticipantGetListFilters(TypedDict):
     chat_id: NotRequired[int]
     exclude_user_ids: NotRequired[Sequence[int]]
+    user_id: NotRequired[int]

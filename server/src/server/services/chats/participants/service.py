@@ -65,6 +65,9 @@ class ChatParticipantService(BaseService):
         if (chat_id := filters.get("chat_id")) is not None:
             stmt = stmt.where(ChatParticipant.chat_id == chat_id)
 
+        if (user_id := filters.get("user_id")) is not None:
+            stmt = stmt.where(ChatParticipant.user_id == user_id)
+
         if (exclude_user_ids := filters.get("exclude_user_ids")) is not None:
             stmt = stmt.where(ChatParticipant.user_id.not_in(exclude_user_ids))
 
