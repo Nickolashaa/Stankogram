@@ -1,14 +1,13 @@
 from typing import Unpack
 
-from sqlalchemy import insert, select, Select
+from sqlalchemy import Select, insert, select
 from sqlalchemy.exc import IntegrityError
 
 from ...database.models.chats import Chat
-
 from ...enums.chats import ChatType
+from ..base import BasePagination, BaseService
 from ..exceptions import InvalidInput, ObjectNotFound
 from .schemas import ChatResponse
-from ..base import BaseService, BasePagination
 from .types import ChatCreateParams, ChatGetListFilters
 
 
@@ -41,9 +40,9 @@ class ChatService(BaseService):
 
     @staticmethod
     def _apply_filters(
-        stmt: Select[tuple[ChatResponse]],
+        stmt: Select[tuple[Chat]],
         **filters: Unpack[ChatGetListFilters],
-    ) -> Select[tuple[ChatResponse]]:
+    ) -> Select[tuple[Chat]]:
         if (type := filters.get("type")) is not None:
             stmt = stmt.where(Chat.type == type)
 
@@ -66,8 +65,7 @@ class ChatService(BaseService):
         res = await self._session.execute(stmt)
 
         return [
-            ChatResponse.model_validate(instance)
-            for instance in res.scalars().all()
+            ChatResponse.model_validate(instance) for instance in res.scalars().all()
         ]
 
     async def count(
