@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ....database.models.chats import ChatParticipant
 from ....enums.chats import ChatType
-from ...base import BaseService
+from ...base import BasePagination, BaseService
 from ...exceptions import InvalidInput, ObjectNotFound
 from ..service import ChatService
 from .schemas import ChatParticipantResponse
@@ -72,15 +72,14 @@ class ChatParticipantService(BaseService):
 
     async def get_list(
         self,
-        limit: int | None,
-        offset: int | None,
+        pagination: BasePagination | None = None,
         **filters: Unpack[ChatParticipantGetListFilters],
     ) -> list[ChatParticipantResponse]:
         stmt = select(ChatParticipant)
 
         stmt = self._apply_filters(stmt, **filters)
 
-        stmt = stmt.limit(limit).offset(offset)
+        stmt = self._apply_pagination(stmt=stmt, pagination=pagination)
 
         res = await self._session.execute(stmt)
 
