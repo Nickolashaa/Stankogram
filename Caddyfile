@@ -3,7 +3,7 @@
 }
 
 :80, stankogram.ru {
-    handle /api/* {
+    handle /api /api/* {
         reverse_proxy server:8000
     }
 
