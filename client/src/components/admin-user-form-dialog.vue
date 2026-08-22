@@ -95,7 +95,13 @@ function handleSubmit() {
         >
           Отмена
         </Button>
-        <Button type="submit" class="flex-[2]" icon="save" :short-mode="false" :disabled="submitting">
+        <Button
+          type="submit"
+          class="flex-[2]"
+          icon="save"
+          :short-mode="false"
+          :disabled="submitting"
+        >
           Сохранить
         </Button>
       </div>

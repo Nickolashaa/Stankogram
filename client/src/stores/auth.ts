@@ -73,7 +73,9 @@ export const useAuthStore = defineStore("auth", () => {
   }
 
   async function logout() {
-    await apolloClient.mutate({ mutation: LogoutDocument })
+    try {
+      await apolloClient.mutate({ mutation: LogoutDocument })
+    } catch {}
     accessToken.value = undefined
     user.value = undefined
     await apolloClient.clearStore()

@@ -32,7 +32,10 @@ defineProps<{
     stroke-linejoin="round"
     class="h-5 w-5 shrink-0"
   >
-    <path v-if="name === 'chats'" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    <path
+      v-if="name === 'chats'"
+      d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+    />
 
     <template v-else-if="name === 'users'">
       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />

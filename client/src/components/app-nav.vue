@@ -11,7 +11,11 @@ const authStore = useAuthStore()
 const { user } = storeToRefs(authStore)
 
 const navItems = computed(() => {
-  const items: { to: string; label: string; icon: "chats" | "users" | "profile" | "support" | "admin" }[] = [
+  const items: {
+    to: string
+    label: string
+    icon: "chats" | "users" | "profile" | "support" | "admin"
+  }[] = [
     { to: "/chats", label: "Чаты", icon: "chats" },
     { to: "/users", label: "Пользователи", icon: "users" },
     { to: "/profile", label: "Профиль", icon: "profile" },

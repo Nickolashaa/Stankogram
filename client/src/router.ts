@@ -35,7 +35,7 @@ export const router = createRouter({
   history: createWebHistory(),
 })
 
-const PUBLIC_PATHS = ["/auth", "/reset-password-confirm"]
+export const PUBLIC_PATHS = ["/auth", "/reset-password-confirm"]
 
 router.beforeEach((to) => {
   const authStore = useAuthStore()
