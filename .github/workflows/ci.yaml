@@ -63,3 +63,10 @@ jobs:
           npm run codegen
       - name: Check diff
         run: git diff --exit-code
+  validate-caddyfile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Validate Caddyfile
+        run: docker run --rm -v ${{ github.workspace }}/Caddyfile:/etc/caddy/Caddyfile:ro caddy:2.11 caddy validate --config /etc/caddy/Caddyfile
