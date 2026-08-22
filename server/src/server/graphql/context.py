@@ -25,7 +25,7 @@ class Context(BaseContext):
 
 async def context_getter(
     response: Response,
-    refresh_token: Annotated[str | None, Cookie()],
+    refresh_token: Annotated[str | None, Cookie()] = None,
     session: AsyncSession = Depends(get_session),
     current_user: UserResponse | None = Depends(get_current_user),
     auth_service: AuthService = Depends(get_auth_service),
