@@ -22,6 +22,7 @@ dependencies = [
 server = "server:main"
 schemagen = "server.scripts.schemagen:main"
 create_first_admin = "server.scripts.create_first_admin:main"
+seed_data = "server.scripts.seed_data:main"
 
 [build-system]
 requires = ["uv_build>=0.12.3,<0.13.0"]
