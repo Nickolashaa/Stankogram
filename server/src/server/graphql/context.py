@@ -7,12 +7,13 @@ from strawberry import Info
 from strawberry.fastapi import BaseContext
 
 from ..dependencies.auth import get_auth_service, get_current_user
-from ..dependencies.chats import get_chat_service
+from ..dependencies.chats import get_chat_participant_service, get_chat_service
 from ..dependencies.session import get_session
 from ..services import Services
 from ..services.auth import AuthService
 from ..services.auth.schemas import UserResponse
 from ..services.chats import ChatService
+from ..services.chats.participants import ChatParticipantService
 
 
 @dataclass(slots=True)
@@ -32,6 +33,9 @@ async def context_getter(
     current_user: UserResponse | None = Depends(get_current_user),
     auth_service: AuthService = Depends(get_auth_service),
     chat_service: ChatService = Depends(get_chat_service),
+    chat_participant_service: ChatParticipantService = Depends(
+        get_chat_participant_service
+    ),
 ) -> Context:
     return Context(
         response=response,
@@ -41,6 +45,7 @@ async def context_getter(
         services=Services(
             auth_service=auth_service,
             chat_service=chat_service,
+            chat_participant_service=chat_participant_service,
         ),
     )
 
