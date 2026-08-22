@@ -14,6 +14,8 @@ from ..services.auth import AuthService
 from ..services.auth.schemas import UserResponse
 from ..services.chats import ChatService
 from ..services.chats.participants import ChatParticipantService
+from .data_loaders import DataLoaders
+from .data_loaders.auth import build_users_loader
 
 
 @dataclass(slots=True)
@@ -23,7 +25,7 @@ class Context(BaseContext):
     session: AsyncSession
     current_user: UserResponse | None
     services: Services
-    # data_loaders: DataLoaders
+    data_loaders: DataLoaders
 
 
 async def context_getter(
@@ -46,6 +48,9 @@ async def context_getter(
             auth_service=auth_service,
             chat_service=chat_service,
             chat_participant_service=chat_participant_service,
+        ),
+        data_loaders=DataLoaders(
+            user_loader=build_users_loader(auth_service),
         ),
     )
 
