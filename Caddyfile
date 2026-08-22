@@ -1,13 +1,15 @@
 {
-    email gracevnikolaj220@gmail.com
+	email gracevnikolaj220@gmail.com
 }
 
-:80, stankogram.ru {
-    handle /api /api/* {
-        reverse_proxy server:8000
-    }
+stankogram.ru {
+	@api path /api /api/*
 
-    handle {
-        reverse_proxy client:80
-    }
+	handle @api {
+		reverse_proxy server:8000
+	}
+
+	handle {
+		reverse_proxy client:80
+	}
 }
