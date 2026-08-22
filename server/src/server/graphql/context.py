@@ -16,6 +16,7 @@ from ..services.chats import ChatService
 from ..services.chats.participants import ChatParticipantService
 from .data_loaders import DataLoaders
 from .data_loaders.auth import build_users_loader
+from .data_loaders.chats import build_chats_loader
 
 
 @dataclass(slots=True)
@@ -51,6 +52,7 @@ async def context_getter(
         ),
         data_loaders=DataLoaders(
             user_loader=build_users_loader(auth_service),
+            chat_loader=build_chats_loader(chat_service),
         ),
     )
 
