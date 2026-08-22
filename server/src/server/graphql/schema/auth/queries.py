@@ -2,7 +2,6 @@ from typing import Union
 
 import strawberry
 
-from ....services.exceptions import ObjectNotFound
 from ...context import AppInfo
 from ...permissions.auth import IsAuthenticated
 from ...types.auth import User, UserFiltersIn, UsersMeta
@@ -20,17 +19,6 @@ class AuthQuery:
         if current_user is None:
             return ObjectNotFoundError(message="User not found")
         return User.from_schema(current_user)
-
-    @strawberry.field(permission_classes=[IsAuthenticated])
-    async def user(
-        info: AppInfo,
-        id: int,
-    ) -> Union[User, ObjectNotFoundError]:
-        try:
-            instance = await info.context.services.auth_service.get(id)
-        except ObjectNotFound as e:
-            return ObjectNotFoundError.from_service_exception(e)
-        return User.from_schema(instance)
 
     @strawberry.field(permission_classes=[IsAuthenticated])
     async def users(

@@ -2,7 +2,7 @@ import strawberry
 
 from ...context import AppInfo
 from ...permissions.auth import IsAdmin, IsAuthenticated
-from ...types.base import BasePaginationIn
+from ...types.base import BasePaginationIn, default_pagination
 from ...types.chats import (
     Chat,
     ChatFiltersIn,
@@ -24,9 +24,9 @@ class ChatQuery:
         return [
             ChatParticipant.from_schema(instance)
             for instance in await info.context.services.chat_participant_service.get_list(  # noqa: E501
-                pagination=pagination.to_service_params()
-                if pagination is not None
-                else None,
+                pagination=(
+                    pagination if pagination is not None else default_pagination
+                ).to_service_params(),
                 **filters.to_service_params() if filters is not None else {},
             )
         ]
@@ -48,9 +48,9 @@ class ChatQuery:
         return [
             Chat.from_schema(instance)
             for instance in await info.context.services.chat_service.get_list(
-                pagination=pagination.to_service_params()
-                if pagination is not None
-                else None,
+                pagination=(
+                    pagination if pagination is not None else default_pagination
+                ).to_service_params(),
                 ids=[link.chat_id for link in links],
                 **filters.to_service_params() if filters is not None else {},
             )
@@ -66,9 +66,9 @@ class ChatQuery:
         return [
             Chat.from_schema(instance)
             for instance in await info.context.services.chat_service.get_list(
-                pagination=pagination.to_service_params()
-                if pagination is not None
-                else None,
+                pagination=(
+                    pagination if pagination is not None else default_pagination
+                ).to_service_params(),
                 **filters.to_service_params() if filters is not None else {},
             )
         ]
