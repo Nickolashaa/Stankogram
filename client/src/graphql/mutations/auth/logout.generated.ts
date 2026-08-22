@@ -1,24 +1,23 @@
 /** Internal type. DO NOT USE DIRECTLY. */
-type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] }
 /** Internal type. DO NOT USE DIRECTLY. */
-export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
-import * as Types from '../../base-types';
+export type Incremental<T> =
+  T | { [P in keyof T]?: P extends " $fragmentName" | "__typename" ? T[P] : never }
+import * as Types from "../../base-types"
 
-import gql from 'graphql-tag';
-import * as VueApolloComposable from '@vue/apollo-composable';
-import * as VueCompositionApi from 'vue';
-export type ReactiveFunction<TParam> = () => TParam;
-export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
+import gql from "graphql-tag"
+import * as VueApolloComposable from "@vue/apollo-composable"
+import * as VueCompositionApi from "vue"
+export type ReactiveFunction<TParam> = () => TParam
+export type LogoutMutationVariables = Exact<{ [key: string]: never }>
 
-
-export type LogoutMutation = { logout: null | null };
-
+export type LogoutMutation = { logout: null | null }
 
 export const LogoutDocument = gql`
-    mutation Logout {
-  logout
-}
-    `;
+  mutation Logout {
+    logout
+  }
+`
 
 /**
  * __useLogoutMutation__
@@ -33,7 +32,19 @@ export const LogoutDocument = gql`
  * @example
  * const { mutate, loading, error, onDone } = useLogoutMutation();
  */
-export function useLogoutMutation(options: VueApolloComposable.UseMutationOptions<LogoutMutation, LogoutMutationVariables> | ReactiveFunction<VueApolloComposable.UseMutationOptions<LogoutMutation, LogoutMutationVariables>> = {}) {
-  return VueApolloComposable.useMutation<LogoutMutation, LogoutMutationVariables>(LogoutDocument, options);
+export function useLogoutMutation(
+  options:
+    | VueApolloComposable.UseMutationOptions<LogoutMutation, LogoutMutationVariables>
+    | ReactiveFunction<
+        VueApolloComposable.UseMutationOptions<LogoutMutation, LogoutMutationVariables>
+      > = {},
+) {
+  return VueApolloComposable.useMutation<LogoutMutation, LogoutMutationVariables>(
+    LogoutDocument,
+    options,
+  )
 }
-export type LogoutMutationCompositionFunctionResult = VueApolloComposable.UseMutationReturn<LogoutMutation, LogoutMutationVariables>;
+export type LogoutMutationCompositionFunctionResult = VueApolloComposable.UseMutationReturn<
+  LogoutMutation,
+  LogoutMutationVariables
+>

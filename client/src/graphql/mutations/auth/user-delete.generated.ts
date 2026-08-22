@@ -1,26 +1,25 @@
 /** Internal type. DO NOT USE DIRECTLY. */
-type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] }
 /** Internal type. DO NOT USE DIRECTLY. */
-export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
-import * as Types from '../../base-types';
+export type Incremental<T> =
+  T | { [P in keyof T]?: P extends " $fragmentName" | "__typename" ? T[P] : never }
+import * as Types from "../../base-types"
 
-import gql from 'graphql-tag';
-import * as VueApolloComposable from '@vue/apollo-composable';
-import * as VueCompositionApi from 'vue';
-export type ReactiveFunction<TParam> = () => TParam;
+import gql from "graphql-tag"
+import * as VueApolloComposable from "@vue/apollo-composable"
+import * as VueCompositionApi from "vue"
+export type ReactiveFunction<TParam> = () => TParam
 export type UserDeleteMutationVariables = Exact<{
-  id: number;
-}>;
+  id: number
+}>
 
-
-export type UserDeleteMutation = { userDelete: null | null };
-
+export type UserDeleteMutation = { userDelete: null | null }
 
 export const UserDeleteDocument = gql`
-    mutation UserDelete($id: Int!) {
-  userDelete(id: $id)
-}
-    `;
+  mutation UserDelete($id: Int!) {
+    userDelete(id: $id)
+  }
+`
 
 /**
  * __useUserDeleteMutation__
@@ -39,7 +38,19 @@ export const UserDeleteDocument = gql`
  *   },
  * });
  */
-export function useUserDeleteMutation(options: VueApolloComposable.UseMutationOptions<UserDeleteMutation, UserDeleteMutationVariables> | ReactiveFunction<VueApolloComposable.UseMutationOptions<UserDeleteMutation, UserDeleteMutationVariables>> = {}) {
-  return VueApolloComposable.useMutation<UserDeleteMutation, UserDeleteMutationVariables>(UserDeleteDocument, options);
+export function useUserDeleteMutation(
+  options:
+    | VueApolloComposable.UseMutationOptions<UserDeleteMutation, UserDeleteMutationVariables>
+    | ReactiveFunction<
+        VueApolloComposable.UseMutationOptions<UserDeleteMutation, UserDeleteMutationVariables>
+      > = {},
+) {
+  return VueApolloComposable.useMutation<UserDeleteMutation, UserDeleteMutationVariables>(
+    UserDeleteDocument,
+    options,
+  )
 }
-export type UserDeleteMutationCompositionFunctionResult = VueApolloComposable.UseMutationReturn<UserDeleteMutation, UserDeleteMutationVariables>;
+export type UserDeleteMutationCompositionFunctionResult = VueApolloComposable.UseMutationReturn<
+  UserDeleteMutation,
+  UserDeleteMutationVariables
+>

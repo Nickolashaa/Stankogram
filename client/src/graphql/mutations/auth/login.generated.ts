@@ -1,42 +1,42 @@
 /** Internal type. DO NOT USE DIRECTLY. */
-type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] }
 /** Internal type. DO NOT USE DIRECTLY. */
-export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
-import * as Types from '../../base-types';
+export type Incremental<T> =
+  T | { [P in keyof T]?: P extends " $fragmentName" | "__typename" ? T[P] : never }
+import * as Types from "../../base-types"
 
-import gql from 'graphql-tag';
-import * as VueApolloComposable from '@vue/apollo-composable';
-import * as VueCompositionApi from 'vue';
-export type ReactiveFunction<TParam> = () => TParam;
+import gql from "graphql-tag"
+import * as VueApolloComposable from "@vue/apollo-composable"
+import * as VueCompositionApi from "vue"
+export type ReactiveFunction<TParam> = () => TParam
 export type UserCredentialsIn = {
-  email: string;
-  password: string;
-};
+  email: string
+  password: string
+}
 
 export type LoginMutationVariables = Exact<{
-  input: Types.UserCredentialsIn;
-}>;
+  input: Types.UserCredentialsIn
+}>
 
-
-export type LoginMutation = { login:
-    | { __typename: 'JWTs', accessToken: string }
-    | { __typename: 'ObjectNotFoundError', message: string }
-   };
-
+export type LoginMutation = {
+  login:
+    | { __typename: "JWTs"; accessToken: string }
+    | { __typename: "ObjectNotFoundError"; message: string }
+}
 
 export const LoginDocument = gql`
-    mutation Login($input: UserCredentialsIn!) {
-  login(input: $input) {
-    __typename
-    ... on JWTs {
-      accessToken
-    }
-    ... on ObjectNotFoundError {
-      message
+  mutation Login($input: UserCredentialsIn!) {
+    login(input: $input) {
+      __typename
+      ... on JWTs {
+        accessToken
+      }
+      ... on ObjectNotFoundError {
+        message
+      }
     }
   }
-}
-    `;
+`
 
 /**
  * __useLoginMutation__
@@ -55,7 +55,19 @@ export const LoginDocument = gql`
  *   },
  * });
  */
-export function useLoginMutation(options: VueApolloComposable.UseMutationOptions<LoginMutation, LoginMutationVariables> | ReactiveFunction<VueApolloComposable.UseMutationOptions<LoginMutation, LoginMutationVariables>> = {}) {
-  return VueApolloComposable.useMutation<LoginMutation, LoginMutationVariables>(LoginDocument, options);
+export function useLoginMutation(
+  options:
+    | VueApolloComposable.UseMutationOptions<LoginMutation, LoginMutationVariables>
+    | ReactiveFunction<
+        VueApolloComposable.UseMutationOptions<LoginMutation, LoginMutationVariables>
+      > = {},
+) {
+  return VueApolloComposable.useMutation<LoginMutation, LoginMutationVariables>(
+    LoginDocument,
+    options,
+  )
 }
-export type LoginMutationCompositionFunctionResult = VueApolloComposable.UseMutationReturn<LoginMutation, LoginMutationVariables>;
+export type LoginMutationCompositionFunctionResult = VueApolloComposable.UseMutationReturn<
+  LoginMutation,
+  LoginMutationVariables
+>

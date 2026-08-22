@@ -1,29 +1,30 @@
 /** Internal type. DO NOT USE DIRECTLY. */
-type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] }
 /** Internal type. DO NOT USE DIRECTLY. */
-export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
-import * as Types from '../../base-types';
+export type Incremental<T> =
+  T | { [P in keyof T]?: P extends " $fragmentName" | "__typename" ? T[P] : never }
+import * as Types from "../../base-types"
 
-import gql from 'graphql-tag';
-import * as VueApolloComposable from '@vue/apollo-composable';
-import * as VueCompositionApi from 'vue';
-export type ReactiveFunction<TParam> = () => TParam;
+import gql from "graphql-tag"
+import * as VueApolloComposable from "@vue/apollo-composable"
+import * as VueCompositionApi from "vue"
+export type ReactiveFunction<TParam> = () => TParam
 export type UserResetPasswordConfirmMutationVariables = Exact<{
-  id: number;
-  code: string;
-}>;
+  id: number
+  code: string
+}>
 
-
-export type UserResetPasswordConfirmMutation = { userResetPasswordConfirm: { message: string } | null };
-
+export type UserResetPasswordConfirmMutation = {
+  userResetPasswordConfirm: { message: string } | null
+}
 
 export const UserResetPasswordConfirmDocument = gql`
-    mutation UserResetPasswordConfirm($id: Int!, $code: String!) {
-  userResetPasswordConfirm(id: $id, code: $code) {
-    message
+  mutation UserResetPasswordConfirm($id: Int!, $code: String!) {
+    userResetPasswordConfirm(id: $id, code: $code) {
+      message
+    }
   }
-}
-    `;
+`
 
 /**
  * __useUserResetPasswordConfirmMutation__
@@ -43,7 +44,26 @@ export const UserResetPasswordConfirmDocument = gql`
  *   },
  * });
  */
-export function useUserResetPasswordConfirmMutation(options: VueApolloComposable.UseMutationOptions<UserResetPasswordConfirmMutation, UserResetPasswordConfirmMutationVariables> | ReactiveFunction<VueApolloComposable.UseMutationOptions<UserResetPasswordConfirmMutation, UserResetPasswordConfirmMutationVariables>> = {}) {
-  return VueApolloComposable.useMutation<UserResetPasswordConfirmMutation, UserResetPasswordConfirmMutationVariables>(UserResetPasswordConfirmDocument, options);
+export function useUserResetPasswordConfirmMutation(
+  options:
+    | VueApolloComposable.UseMutationOptions<
+        UserResetPasswordConfirmMutation,
+        UserResetPasswordConfirmMutationVariables
+      >
+    | ReactiveFunction<
+        VueApolloComposable.UseMutationOptions<
+          UserResetPasswordConfirmMutation,
+          UserResetPasswordConfirmMutationVariables
+        >
+      > = {},
+) {
+  return VueApolloComposable.useMutation<
+    UserResetPasswordConfirmMutation,
+    UserResetPasswordConfirmMutationVariables
+  >(UserResetPasswordConfirmDocument, options)
 }
-export type UserResetPasswordConfirmMutationCompositionFunctionResult = VueApolloComposable.UseMutationReturn<UserResetPasswordConfirmMutation, UserResetPasswordConfirmMutationVariables>;
+export type UserResetPasswordConfirmMutationCompositionFunctionResult =
+  VueApolloComposable.UseMutationReturn<
+    UserResetPasswordConfirmMutation,
+    UserResetPasswordConfirmMutationVariables
+  >

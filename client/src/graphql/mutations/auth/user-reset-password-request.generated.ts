@@ -1,28 +1,29 @@
 /** Internal type. DO NOT USE DIRECTLY. */
-type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] }
 /** Internal type. DO NOT USE DIRECTLY. */
-export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
-import * as Types from '../../base-types';
+export type Incremental<T> =
+  T | { [P in keyof T]?: P extends " $fragmentName" | "__typename" ? T[P] : never }
+import * as Types from "../../base-types"
 
-import gql from 'graphql-tag';
-import * as VueApolloComposable from '@vue/apollo-composable';
-import * as VueCompositionApi from 'vue';
-export type ReactiveFunction<TParam> = () => TParam;
+import gql from "graphql-tag"
+import * as VueApolloComposable from "@vue/apollo-composable"
+import * as VueCompositionApi from "vue"
+export type ReactiveFunction<TParam> = () => TParam
 export type UserResetPasswordRequestMutationVariables = Exact<{
-  email: string;
-}>;
+  email: string
+}>
 
-
-export type UserResetPasswordRequestMutation = { userResetPasswordRequest: { message: string } | null };
-
+export type UserResetPasswordRequestMutation = {
+  userResetPasswordRequest: { message: string } | null
+}
 
 export const UserResetPasswordRequestDocument = gql`
-    mutation UserResetPasswordRequest($email: String!) {
-  userResetPasswordRequest(email: $email) {
-    message
+  mutation UserResetPasswordRequest($email: String!) {
+    userResetPasswordRequest(email: $email) {
+      message
+    }
   }
-}
-    `;
+`
 
 /**
  * __useUserResetPasswordRequestMutation__
@@ -41,7 +42,26 @@ export const UserResetPasswordRequestDocument = gql`
  *   },
  * });
  */
-export function useUserResetPasswordRequestMutation(options: VueApolloComposable.UseMutationOptions<UserResetPasswordRequestMutation, UserResetPasswordRequestMutationVariables> | ReactiveFunction<VueApolloComposable.UseMutationOptions<UserResetPasswordRequestMutation, UserResetPasswordRequestMutationVariables>> = {}) {
-  return VueApolloComposable.useMutation<UserResetPasswordRequestMutation, UserResetPasswordRequestMutationVariables>(UserResetPasswordRequestDocument, options);
+export function useUserResetPasswordRequestMutation(
+  options:
+    | VueApolloComposable.UseMutationOptions<
+        UserResetPasswordRequestMutation,
+        UserResetPasswordRequestMutationVariables
+      >
+    | ReactiveFunction<
+        VueApolloComposable.UseMutationOptions<
+          UserResetPasswordRequestMutation,
+          UserResetPasswordRequestMutationVariables
+        >
+      > = {},
+) {
+  return VueApolloComposable.useMutation<
+    UserResetPasswordRequestMutation,
+    UserResetPasswordRequestMutationVariables
+  >(UserResetPasswordRequestDocument, options)
 }
-export type UserResetPasswordRequestMutationCompositionFunctionResult = VueApolloComposable.UseMutationReturn<UserResetPasswordRequestMutation, UserResetPasswordRequestMutationVariables>;
+export type UserResetPasswordRequestMutationCompositionFunctionResult =
+  VueApolloComposable.UseMutationReturn<
+    UserResetPasswordRequestMutation,
+    UserResetPasswordRequestMutationVariables
+  >
