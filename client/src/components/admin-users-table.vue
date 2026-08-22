@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import type { components } from "@/api/schema"
+import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
 import { roleLabels } from "@/lib/roles"
-
-type UserResponse = components["schemas"]["UserResponse"]
+import Button from "@/components/button.vue"
 
 defineProps<{
-  users: UserResponse[]
+  users: UserFieldsFragment[]
 }>()
 
 defineEmits<{
-  edit: [user: UserResponse]
-  delete: [user: UserResponse]
+  edit: [user: UserFieldsFragment]
+  delete: [user: UserFieldsFragment]
 }>()
 
 function formatDate(value: string) {
@@ -50,25 +49,31 @@ function formatDate(value: string) {
           </td>
           <td class="px-5 py-3 text-main">{{ user.email }}</td>
           <td class="px-5 py-3 text-main">{{ roleLabels[user.role] }}</td>
-          <td class="px-5 py-3 text-main">{{ user.is_admin ? "Да" : "Нет" }}</td>
-          <td class="px-5 py-3 text-second">{{ formatDate(user.created_at) }}</td>
-          <td class="px-5 py-3 text-second">{{ formatDate(user.updated_at) }}</td>
+          <td class="px-5 py-3 text-main">{{ user.isAdmin ? "Да" : "Нет" }}</td>
+          <td class="px-5 py-3 text-second">{{ formatDate(user.createdAt) }}</td>
+          <td class="px-5 py-3 text-second">{{ formatDate(user.updatedAt) }}</td>
           <td class="px-5 py-3">
-            <div class="flex justify-end gap-4">
-              <button
-                type="button"
-                class="cursor-pointer text-sm font-medium text-accent transition-colors duration-150 hover:text-accent-hover"
+            <div class="flex justify-end gap-2">
+              <Button
+                variant="ghost"
+                icon="edit"
+                class="!text-accent hover:!text-accent-hover"
+                aria-label="Редактировать"
+                title="Редактировать"
                 @click="$emit('edit', user)"
               >
                 Редактировать
-              </button>
-              <button
-                type="button"
-                class="cursor-pointer text-sm font-medium text-red-600 transition-colors duration-150 hover:text-red-700"
+              </Button>
+              <Button
+                variant="ghost"
+                icon="delete"
+                class="!text-red-600 hover:!text-red-700"
+                aria-label="Удалить"
+                title="Удалить"
                 @click="$emit('delete', user)"
               >
                 Удалить
-              </button>
+              </Button>
             </div>
           </td>
         </tr>

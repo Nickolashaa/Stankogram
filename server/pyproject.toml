@@ -1,26 +1,37 @@
 [project]
 name = "server"
 version = "0.1.0"
+authors = [
+    { name = "Nickolashaa", email = "gracevnikolaj220@gmail.com" }
+]
 requires-python = ">=3.14"
 dependencies = [
     "aiosmtplib>=5.1.2",
-    "alembic>=1.18.5",
+    "alembic>=1.19.1",
     "asyncpg>=0.31.0",
     "bcrypt>=5.0.0",
-    "fastapi>=0.135.1",
-    "pydantic[email]>=2.12.5",
-    "pyjwt>=2.13.0",
-    "sqlalchemy>=2.0.51",
-    "uvicorn>=0.42.0",
     "cryptography>=50.0.0",
-    "websockets>=17.0.1",
+    "pydantic[email]>=2.13.4",
+    "pyjwt>=2.13.0",
+    "sqlalchemy>=2.0.52",
+    "strawberry-graphql[fastapi]>=0.324.0",
+    "uvicorn>=0.52.4",
+]
+
+[project.scripts]
+server = "server:main"
+schemagen = "server.scripts.schemagen:main"
+create_first_admin = "server.scripts.create_first_admin:main"
+
+[build-system]
+requires = ["uv_build>=0.12.3,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.4",
+    "ty>=0.0.73",
 ]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
-
-[dependency-groups]
-dev = [
-    "ruff>=0.16.3",
-    "ty>=0.0.72",
-]

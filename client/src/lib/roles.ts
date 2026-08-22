@@ -1,6 +1,6 @@
-import type { components } from "@/api/schema"
+import { EUserRole } from "@/graphql/base-types"
 
-export const roleLabels: Record<components["schemas"]["Role"], string> = {
-  STUDENT: "Студент",
-  TEACHER: "Преподаватель",
+export const roleLabels: Record<EUserRole, string> = {
+  [EUserRole.Student]: "Студент",
+  [EUserRole.Teacher]: "Преподаватель",
 }

@@ -48,7 +48,7 @@ router.beforeEach((to) => {
     return "/"
   }
 
-  if (to.matched.some((record) => record.meta.requiresAdmin) && !authStore.user?.is_admin) {
+  if (to.matched.some((record) => record.meta.requiresAdmin) && !authStore.user?.isAdmin) {
     return "/"
   }
 })

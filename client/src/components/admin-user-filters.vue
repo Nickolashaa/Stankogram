@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import Input from "@/components/input.vue"
 import Select from "@/components/select.vue"
-import type { components } from "@/api/schema"
-
-type Role = components["schemas"]["Role"]
+import type { EUserRole } from "@/graphql/base-types"
 
 const search = defineModel<string>("search", { default: "" })
-const role = defineModel<"" | Role>("role", { default: "" })
+const role = defineModel<"" | EUserRole>("role", { default: "" })
 const isAdmin = defineModel<"" | "true" | "false">("isAdmin", { default: "" })
 </script>
 

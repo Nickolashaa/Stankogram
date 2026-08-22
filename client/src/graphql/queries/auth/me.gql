@@ -1,0 +1,11 @@
+query Me {
+  me {
+    __typename
+    ... on User {
+      ...UserFields
+    }
+    ... on ObjectNotFoundError {
+      message
+    }
+  }
+}

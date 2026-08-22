@@ -2,16 +2,13 @@
 import { computed, onMounted, ref, watch } from "vue"
 import { storeToRefs } from "pinia"
 import { useUserStore } from "@/stores/users"
-import type { components } from "@/api/schema"
+import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
+import type { EUserRole, UserIn } from "@/graphql/base-types"
 import Button from "@/components/button.vue"
 import AdminUserFilters from "@/components/admin-user-filters.vue"
 import AdminUsersTable from "@/components/admin-users-table.vue"
 import AdminUserFormDialog from "@/components/admin-user-form-dialog.vue"
 import { notify } from "@/lib/notify"
-
-type UserResponse = components["schemas"]["UserResponse"]
-type UserInput = components["schemas"]["UserInput"]
-type Role = components["schemas"]["Role"]
 
 const PAGE_SIZE = 20
 
@@ -19,16 +16,16 @@ const userStore = useUserStore()
 const { users, totalCount } = storeToRefs(userStore)
 
 const searchQuery = ref("")
-const roleFilter = ref<"" | Role>("")
+const roleFilter = ref<"" | EUserRole>("")
 const isAdminFilter = ref<"" | "true" | "false">("")
 
 const page = ref(1)
 const loading = ref(false)
 
 const filterQuery = computed(() => ({
-  search_query: searchQuery.value.trim() === "" ? undefined : searchQuery.value.trim(),
+  searchQuery: searchQuery.value.trim() === "" ? undefined : searchQuery.value.trim(),
   role: roleFilter.value === "" ? undefined : roleFilter.value,
-  is_admin: isAdminFilter.value === "" ? undefined : isAdminFilter.value === "true",
+  isAdmin: isAdminFilter.value === "" ? undefined : isAdminFilter.value === "true",
 }))
 
 const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / PAGE_SIZE)))
@@ -53,7 +50,7 @@ onMounted(fetchUsers)
 
 const dialogOpen = ref(false)
 const dialogMode = ref<"create" | "edit">("create")
-const editingUser = ref<UserResponse | null>(null)
+const editingUser = ref<UserFieldsFragment | null>(null)
 const saving = ref(false)
 
 function openCreateDialog() {
@@ -62,7 +59,7 @@ function openCreateDialog() {
   dialogOpen.value = true
 }
 
-function openEditDialog(user: UserResponse) {
+function openEditDialog(user: UserFieldsFragment) {
   dialogMode.value = "edit"
   editingUser.value = user
   dialogOpen.value = true
@@ -72,7 +69,7 @@ function closeDialog() {
   dialogOpen.value = false
 }
 
-async function handleSubmit(data: UserInput) {
+async function handleSubmit(data: UserIn) {
   saving.value = true
   try {
     if (dialogMode.value === "create") {
@@ -93,7 +90,7 @@ async function handleSubmit(data: UserInput) {
   await fetchUsers()
 }
 
-async function handleDelete(user: UserResponse) {
+async function handleDelete(user: UserFieldsFragment) {
   const fullName = [user.surname, user.name].filter(Boolean).join(" ")
   if (!window.confirm(`Удалить пользователя ${fullName}?`)) {
     return
@@ -115,7 +112,7 @@ async function handleDelete(user: UserResponse) {
   <div class="flex animate-appear flex-col gap-6">
     <div class="flex items-center justify-between gap-4">
       <h1 class="m-0 text-2xl font-semibold text-main">Пользователи</h1>
-      <Button @click="openCreateDialog">Создать пользователя</Button>
+      <Button icon="plus" :short-mode="false" @click="openCreateDialog">Создать пользователя</Button>
     </div>
 
     <AdminUserFilters

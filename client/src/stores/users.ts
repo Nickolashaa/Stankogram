@@ -1,55 +1,55 @@
 import { defineStore } from "pinia"
 import { ref } from "vue"
-import { client } from "./../api"
-import type { components, paths } from "./../api/schema"
-
-type UserResponse = components["schemas"]["UserResponse"]
-type UserInput = components["schemas"]["UserInput"]
-type UserFilters = NonNullable<paths["/api/auth/count"]["get"]["parameters"]["query"]>
+import { apolloClient } from "@/api"
+import { UserCreateDocument } from "@/graphql/mutations/auth/user-create.generated"
+import { UserUpdateDocument } from "@/graphql/mutations/auth/user-update.generated"
+import { UserDeleteDocument } from "@/graphql/mutations/auth/user-delete.generated"
+import { UsersDocument } from "@/graphql/queries/auth/users.generated"
+import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
+import type { UserFiltersIn, UserIn } from "@/graphql/base-types"
 
 export const useUserStore = defineStore("users", () => {
-  const users = ref<UserResponse[]>([])
+  const users = ref<UserFieldsFragment[]>([])
   const totalCount = ref(0)
 
-  async function fetchUsers(filters: UserFilters, limit: number, offset: number) {
-    const [{ data: usersData }, { data: countData }] = await Promise.all([
-      client.GET("/api/auth", {
-        params: { query: { ...filters, limit, offset } },
-      }),
-      client.GET("/api/auth/count", { params: { query: filters } }),
-    ])
+  async function fetchUsers(filters: UserFiltersIn, limit: number, offset: number) {
+    const { data } = await apolloClient.query({
+      query: UsersDocument,
+      variables: { filters, pagination: { limit, offset } },
+      fetchPolicy: "network-only",
+    })
 
-    users.value = usersData ?? []
-    totalCount.value = countData ?? 0
+    users.value = data.users.users
+    totalCount.value = data.users.count
   }
 
-  async function createUser(data: UserInput) {
-    const { error } = await client.POST("/api/auth/create", { body: data })
+  async function createUser(input: UserIn) {
+    const { data } = await apolloClient.mutate({
+      mutation: UserCreateDocument,
+      variables: { input },
+    })
 
-    if (error !== undefined) {
-      throw new Error(error.detail?.toString())
+    if (data === undefined || data === null || data.userCreate.__typename !== "User") {
+      throw new Error(data?.userCreate.message ?? "Failed to create user")
     }
   }
 
-  async function updateUser(id: number, data: UserInput) {
-    const { error } = await client.PUT("/api/auth/{id}/update", {
-      params: { path: { id } },
-      body: data,
+  async function updateUser(id: number, input: UserIn) {
+    const { data } = await apolloClient.mutate({
+      mutation: UserUpdateDocument,
+      variables: { id, input },
     })
 
-    if (error !== undefined) {
-      throw new Error(error.detail?.toString())
+    if (data === undefined || data === null || data.userUpdate.__typename !== "User") {
+      throw new Error(data?.userUpdate.message ?? "Failed to update user")
     }
   }
 
   async function deleteUser(id: number) {
-    const { error } = await client.DELETE("/api/auth/delete", {
-      params: { query: { id } },
+    await apolloClient.mutate({
+      mutation: UserDeleteDocument,
+      variables: { id },
     })
-
-    if (error !== undefined) {
-      throw new Error(error.detail?.toString())
-    }
   }
 
   return {

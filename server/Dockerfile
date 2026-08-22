@@ -10,4 +10,4 @@ RUN uv sync --frozen --no-dev --no-install-project
 
 COPY ./src/ ./src/
 
-CMD ["uv", "run", "python", "-m", "src"]
+CMD ["uv", "run", "server"]
