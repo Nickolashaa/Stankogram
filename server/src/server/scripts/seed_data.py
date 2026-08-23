@@ -1,4 +1,6 @@
 import asyncio
+import json
+from pathlib import Path
 
 import bcrypt
 
@@ -10,97 +12,25 @@ from ..enums.chats import ChatType
 from ..enums.messages import MessageType
 from ..enums.users import UserRole
 
-_SEED_PASSWORD = "password123"
+_TEST_DATA_PATH = Path(__file__).parent / "test_data.json"
+_TEST_DATA = json.loads(_TEST_DATA_PATH.read_text(encoding="utf-8"))
+
+_SEED_PASSWORD: str = _TEST_DATA["seed_password"]
 
 _USERS_DATA: list[dict] = [
-    {
-        "name": "Иван",
-        "surname": "Иванов",
-        "patronymic": "Иванович",
-        "email": "ivanov@stankogram.ru",
-        "role": UserRole.TEACHER,
-        "is_admin": True,
-    },
-    {
-        "name": "Мария",
-        "surname": "Петрова",
-        "patronymic": "Сергеевна",
-        "email": "petrova@stankogram.ru",
-        "role": UserRole.TEACHER,
-        "is_admin": False,
-    },
-    {
-        "name": "Алексей",
-        "surname": "Сидоров",
-        "patronymic": "Дмитриевич",
-        "email": "sidorov@stankogram.ru",
-        "role": UserRole.STUDENT,
-        "is_admin": False,
-    },
-    {
-        "name": "Ольга",
-        "surname": "Кузнецова",
-        "patronymic": "Викторовна",
-        "email": "kuznecova@stankogram.ru",
-        "role": UserRole.STUDENT,
-        "is_admin": False,
-    },
-    {
-        "name": "Дмитрий",
-        "surname": "Смирнов",
-        "patronymic": "Андреевич",
-        "email": "smirnov@stankogram.ru",
-        "role": UserRole.STUDENT,
-        "is_admin": False,
-    },
-    {
-        "name": "Екатерина",
-        "surname": "Новикова",
-        "patronymic": "Павловна",
-        "email": "novikova@stankogram.ru",
-        "role": UserRole.STUDENT,
-        "is_admin": False,
-    },
+    {**user, "role": UserRole(user["role"])} for user in _TEST_DATA["users"]
 ]
 
 _CHATS_DATA: list[dict] = [
-    {"type": ChatType.PRIVATE, "title": None},
-    {"type": ChatType.PUBLIC, "title": "Группа ЧПУ-21"},
-    {"type": ChatType.PUBLIC, "title": "Общий чат кафедры"},
+    {**chat, "type": ChatType(chat["type"])} for chat in _TEST_DATA["chats"]
 ]
 
 _CHAT_PARTICIPANTS_INDEXES: list[tuple[int, int]] = [
-    (0, 0),
-    (0, 2),
-    (1, 0),
-    (1, 2),
-    (1, 3),
-    (1, 4),
-    (2, 0),
-    (2, 1),
-    (2, 2),
-    (2, 3),
-    (2, 4),
-    (2, 5),
+    tuple(pair) for pair in _TEST_DATA["chat_participants_indexes"]
 ]
 
 _MESSAGES_INDEXES: list[tuple[int, int, str]] = [
-    (
-        0,
-        2,
-        "Здравствуйте, Иван Иванович! Подскажите, пожалуйста, по лабораторной работе.",
-    ),
-    (0, 0, "Добрый день, Алексей! Слушаю вас."),
-    (0, 2, "Не могу разобраться с настройкой станка ЧПУ, можно после пар подойти?"),
-    (0, 0, "Да, конечно, жду вас в 15:00."),
-    (1, 0, "Добрый день! Напоминаю про сдачу отчёта до пятницы."),
-    (1, 3, "Здравствуйте! А в каком формате сдавать?"),
-    (1, 4, "Присоединяюсь к вопросу."),
-    (1, 0, "В формате PDF, как обычно."),
-    (2, 1, "Коллеги, завтра собрание кафедры в 10:00."),
-    (2, 5, "Спасибо за информацию!"),
-    (2, 2, "Будет ли онлайн-трансляция?"),
-    (2, 1, "Да, ссылку отправлю позже."),
+    tuple(entry) for entry in _TEST_DATA["messages_indexes"]
 ]
 
 
@@ -164,8 +94,7 @@ async def _seed() -> None:
 
         await session.commit()
 
-    print(f"Seeded {len(users)} users, {len(chats)} chats and their messages.")
-    print(f'All seeded users have password "{_SEED_PASSWORD}".')
+    print("Success!")
 
 
 def main() -> None:
