@@ -42,7 +42,7 @@ class ChatParticipantService(BaseService):
         try:
             res = await self._session.execute(stmt)
         except IntegrityError as e:
-            if "uq_chat_participants" in str(e.orig):
+            if "uq_user_chat" in str(e.orig):
                 raise ObjectAlreadyExists("User already exists in this chat")
             if "fk_chat_participants_user_id" in str(e.orig):
                 raise ObjectNotFound(f"User with id {data.get('user_id')} not found")
