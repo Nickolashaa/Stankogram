@@ -6,7 +6,7 @@ from ....services.chats.participants.schemas import ChatParticipantResponse
 from ....services.chats.schemas import ChatResponse
 from ...context import AppInfo, AuthorizedAppInfo
 from ..auth import IUser, User
-from ..base import IBaseType
+from ..base import IBaseMeta, IBaseType
 from .enums import EChatType
 from .interfaces import IChat
 
@@ -59,3 +59,8 @@ class ChatParticipant(IBaseType, IUser, IChat):
             created_at=instance.created_at,
             updated_at=instance.updated_at,
         )
+
+
+@strawberry.type
+class ChatsMeta(IBaseMeta):
+    chats: list[Chat]
