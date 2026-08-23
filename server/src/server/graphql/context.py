@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Annotated
+from typing import Annotated, Self
 
 from fastapi import Cookie, Depends, Response
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,11 +22,28 @@ from .data_loaders.chats import build_chats_loader
 @dataclass(slots=True)
 class Context(BaseContext):
     response: Response
-    refresh_token: str | None
     session: AsyncSession
-    current_user: UserResponse | None
     services: Services
     data_loaders: DataLoaders
+
+
+@dataclass(slots=True)
+class AuthorizedContext(Context):
+    refresh_token: str
+    current_user: UserResponse
+
+    @classmethod
+    def from_context(
+        cls, context: Context, refresh_token: str, current_user: UserResponse
+    ) -> Self:
+        return cls(
+            response=context.response,
+            session=context.session,
+            services=context.services,
+            data_loaders=context.data_loaders,
+            refresh_token=refresh_token,
+            current_user=current_user,
+        )
 
 
 async def context_getter(
@@ -39,12 +56,10 @@ async def context_getter(
     chat_participant_service: ChatParticipantService = Depends(
         get_chat_participant_service
     ),
-) -> Context:
-    return Context(
+) -> Context | AuthorizedContext:
+    context = Context(
         response=response,
-        refresh_token=refresh_token,
         session=session,
-        current_user=current_user,
         services=Services(
             auth_service=auth_service,
             chat_service=chat_service,
@@ -55,6 +70,12 @@ async def context_getter(
             chat_loader=build_chats_loader(chat_service),
         ),
     )
+    if current_user is None:
+        return context
+    return AuthorizedContext.from_context(
+        context=context, refresh_token=refresh_token, current_user=current_user
+    )
 
 
 AppInfo = Info[Context]
+AuthorizedAppInfo = Info[AuthorizedContext]
