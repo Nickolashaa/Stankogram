@@ -7,10 +7,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ....database.models.chats import ChatParticipant
 from ....enums.chats import ChatType
 from ...base import BasePagination, BaseService
-from ...exceptions import InvalidInput, ObjectNotFound
+from ...exceptions import InvalidInput, ObjectAlreadyExists, ObjectNotFound
 from ..service import ChatService
 from .schemas import ChatParticipantResponse
-from .types import ChatParticipantCreateParams, ChatParticipantGetListFilters
+from .types import (
+    ChatParticipantCreateParams,
+    ChatParticipantGetListFilters,
+)
 
 
 class ChatParticipantService(BaseService):
@@ -38,8 +41,12 @@ class ChatParticipantService(BaseService):
 
         try:
             res = await self._session.execute(stmt)
-        except IntegrityError:
-            raise ObjectNotFound(f"User with id {data.get('user_id')} not found")
+        except IntegrityError as e:
+            if "uq_chat_participants" in str(e.orig):
+                raise ObjectAlreadyExists("User already exists in this chat")
+            if "fk_chat_participants_user_id" in str(e.orig):
+                raise ObjectNotFound(f"User with id {data.get('user_id')} not found")
+            raise
 
         return ChatParticipantResponse.model_validate(res.scalar_one())
 
