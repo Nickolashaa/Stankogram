@@ -31,6 +31,7 @@ class ChatMutation:
         await info.context.services.chat_participant_service.create(
             chat_id=instance.id,
             user_id=info.context.current_user.id,
+            is_admin=True,
         )
 
         if participant_ids is not None and len(participant_ids) > 0:
