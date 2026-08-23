@@ -25,23 +25,21 @@ class Context(BaseContext):
     session: AsyncSession
     services: Services
     data_loaders: DataLoaders
+    refresh_token: str | None
 
 
 @dataclass(slots=True)
 class AuthorizedContext(Context):
-    refresh_token: str
     current_user: UserResponse
 
     @classmethod
-    def from_context(
-        cls, context: Context, refresh_token: str, current_user: UserResponse
-    ) -> Self:
+    def from_context(cls, context: Context, current_user: UserResponse) -> Self:
         return cls(
             response=context.response,
             session=context.session,
             services=context.services,
             data_loaders=context.data_loaders,
-            refresh_token=refresh_token,
+            refresh_token=context.refresh_token,
             current_user=current_user,
         )
 
@@ -69,12 +67,11 @@ async def context_getter(
             user_loader=build_users_loader(auth_service),
             chat_loader=build_chats_loader(chat_service),
         ),
+        refresh_token=refresh_token,
     )
     if current_user is None:
         return context
-    return AuthorizedContext.from_context(
-        context=context, refresh_token=refresh_token, current_user=current_user
-    )
+    return AuthorizedContext.from_context(context=context, current_user=current_user)
 
 
 AppInfo = Info[Context]

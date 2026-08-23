@@ -4,10 +4,9 @@ import strawberry
 
 from ....services.chats.participants.schemas import ChatParticipantResponse
 from ....services.chats.schemas import ChatResponse
-from ...context import AppInfo
+from ...context import AppInfo, AuthorizedAppInfo
 from ..auth import IUser, User
 from ..base import IBaseType
-from ..errors import UnauthorizedError
 from .enums import EChatType
 from .interfaces import IChat
 
@@ -18,12 +17,9 @@ class Chat(IBaseType):
     public_title: strawberry.Private[str | None]
 
     @strawberry.field
-    async def title(self, info: AppInfo) -> str | UnauthorizedError:
+    async def title(self, info: AuthorizedAppInfo) -> str:
         if self.type == EChatType.PUBLIC:
             return self.public_title or "Неизвестное название чата"
-
-        if info.context.current_user is None:
-            return UnauthorizedError(message="User not authorized")
 
         links = await info.context.services.chat_participant_service.get_list(
             chat_id=self.id, exclude_user_ids=[info.context.current_user.id]

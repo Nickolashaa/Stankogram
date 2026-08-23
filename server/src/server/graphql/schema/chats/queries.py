@@ -1,6 +1,6 @@
 import strawberry
 
-from ...context import AppInfo
+from ...context import AuthorizedAppInfo
 from ...permissions.auth import IsAdmin, IsAuthenticated
 from ...types.base import BasePaginationIn, default_pagination
 from ...types.chats import (
@@ -17,7 +17,7 @@ class ChatQuery:
     @strawberry.field(permission_classes=[IsAdmin])
     async def chats_participants(
         self,
-        info: AppInfo,
+        info: AuthorizedAppInfo,
         pagination: BasePaginationIn | None = None,
         filters: ChatParticipantFiltersIn | None = None,
     ) -> list[ChatParticipant]:
@@ -34,13 +34,10 @@ class ChatQuery:
     @strawberry.field(permission_classes=[IsAuthenticated])
     async def me_chats(
         self,
-        info: AppInfo,
+        info: AuthorizedAppInfo,
         pagination: BasePaginationIn | None = None,
         filters: ChatFiltersIn | None = None,
     ) -> list[Chat] | UnauthorizedError:
-        if info.context.current_user is None:
-            return UnauthorizedError(message="User not authorized")
-
         links = await info.context.services.chat_participant_service.get_list(
             user_id=info.context.current_user.id,
         )
@@ -59,7 +56,7 @@ class ChatQuery:
     @strawberry.field(permission_classes=[IsAdmin])
     async def chats(
         self,
-        info: AppInfo,
+        info: AuthorizedAppInfo,
         pagination: BasePaginationIn | None = None,
         filters: ChatFiltersIn | None = None,
     ) -> list[Chat]:
