@@ -4,8 +4,8 @@ from typing import NotRequired, Required, Sequence, TypedDict
 class ChatParticipantCreateParams(TypedDict):
     chat_id: Required[int]
     user_id: Required[int]
-    is_admin: Required[bool]
-    is_muted: Required[bool]
+    is_admin: NotRequired[bool]
+    is_muted: NotRequired[bool]
 
 
 class ChatParticipantGetListFilters(TypedDict):
