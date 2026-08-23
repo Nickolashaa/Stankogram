@@ -6,31 +6,12 @@ from ...types.base import BasePaginationIn, default_pagination
 from ...types.chats import (
     Chat,
     ChatFiltersIn,
-    ChatParticipant,
-    ChatParticipantFiltersIn,
 )
 from ...types.errors import UnauthorizedError
 
 
 @strawberry.type
 class ChatQuery:
-    @strawberry.field(permission_classes=[IsAdmin])
-    async def chats_participants(
-        self,
-        info: AuthorizedAppInfo,
-        pagination: BasePaginationIn | None = None,
-        filters: ChatParticipantFiltersIn | None = None,
-    ) -> list[ChatParticipant]:
-        return [
-            ChatParticipant.from_schema(instance)
-            for instance in await info.context.services.chat_participant_service.get_list(  # noqa: E501
-                pagination=(
-                    pagination if pagination is not None else default_pagination
-                ).to_service_params(),
-                **filters.to_service_params() if filters is not None else {},
-            )
-        ]
-
     @strawberry.field(permission_classes=[IsAuthenticated])
     async def me_chats(
         self,
