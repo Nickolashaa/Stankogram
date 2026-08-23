@@ -78,6 +78,12 @@ class ChatParticipantService(BaseService):
         if (exclude_user_ids := filters.get("exclude_user_ids")) is not None:
             stmt = stmt.where(ChatParticipant.user_id.not_in(exclude_user_ids))
 
+        if (is_admin := filters.get("is_admin")) is not None:
+            stmt = stmt.where(ChatParticipant.is_admin == is_admin)
+
+        if (is_muted := filters.get("is_muted")) is not None:
+            stmt = stmt.where(ChatParticipant.is_muted == is_muted)
+
         return stmt
 
     async def get_list(
