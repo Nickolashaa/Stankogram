@@ -1,7 +1,7 @@
 import strawberry
 
 from ....services.chats.participants.types import ChatParticipantGetListFilters
-from ....services.chats.types import ChatFiltersParams
+from ....services.chats.types import ChatCreateParams, ChatFiltersParams
 from .enums import EChatType
 
 
@@ -33,3 +33,15 @@ class ChatParticipantFiltersIn:
             params["chat_id"] = self.chat_id.value
 
         return params
+
+
+@strawberry.input
+class ChatIn:
+    type: EChatType
+    title: str | None
+
+    def to_service_params(self) -> ChatCreateParams:
+        return ChatCreateParams(
+            type=self.type,
+            title=self.title,
+        )
