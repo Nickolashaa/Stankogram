@@ -78,6 +78,9 @@ class ChatParticipantService(BaseService):
         if (exclude_user_ids := filters.get("exclude_user_ids")) is not None:
             stmt = stmt.where(ChatParticipant.user_id.not_in(exclude_user_ids))
 
+        if (user_ids := filters.get("user_ids")) is not None:
+            stmt = stmt.where(ChatParticipant.user_id.in_(user_ids))
+
         if (is_admin := filters.get("is_admin")) is not None:
             stmt = stmt.where(ChatParticipant.is_admin == is_admin)
 
@@ -141,3 +144,24 @@ class ChatParticipantService(BaseService):
         )
         update_res = await self._session.execute(update_stmt)
         return ChatParticipantResponse.model_validate(update_res.scalar_one())
+
+    async def is_private_chat_exists(
+        self,
+        first_user_id: int,
+        second_user_id: int,
+    ) -> bool:
+        links = await self.get_list(user_ids=[first_user_id, second_user_id])
+
+        chat_ids_by_user: dict[int, set[int]] = {}
+        for link in links:
+            chat_ids_by_user.setdefault(link.user_id, set()).add(link.chat_id)
+
+        shared_chat_ids = chat_ids_by_user.get(
+            first_user_id, set()
+        ) & chat_ids_by_user.get(second_user_id, set())
+        if not shared_chat_ids:
+            return False
+
+        chats = await self._chat_service.get_list(ids=list(shared_chat_ids))
+
+        return any(chat.type == ChatType.PRIVATE for chat in chats)

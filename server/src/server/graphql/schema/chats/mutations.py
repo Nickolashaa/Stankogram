@@ -4,7 +4,13 @@ from ....services.exceptions import InvalidInput, ObjectAlreadyExists, ObjectNot
 from ...context import AuthorizedAppInfo
 from ...permissions.auth import IsAuthenticated
 from ...permissions.chats import IsChatAdmin
-from ...types.chats import Chat, ChatIn, ChatParticipant, ChatParticipantIn
+from ...types.chats import (
+    Chat,
+    ChatParticipant,
+    ChatParticipantIn,
+    PrivateChatIn,
+    PublicChatIn,
+)
 from ...types.errors import (
     InvalidInputError,
     ObjectAlreadyExistsError,
@@ -15,48 +21,74 @@ from ...types.errors import (
 @strawberry.type
 class ChatMutation:
     @strawberry.mutation(permission_classes=[IsAuthenticated])
-    async def create_chat(
+    async def create_private_chat(
         self,
         info: AuthorizedAppInfo,
-        input: ChatIn,
-        participant_ids: list[int] | None,
+        input: PrivateChatIn,
     ) -> Chat | InvalidInputError | ObjectNotFoundError | ObjectAlreadyExistsError:
-        # Добавить проверку на то, что у этих пользователей уже есть приватный чат
-        # Наверное стоит вообще разделить на 2 мутации, а может и не надо
+        try:
+            already_exists = await info.context.services.chat_participant_service.is_private_chat_exists(  # noqa: E501
+                first_user_id=info.context.current_user.id,
+                second_user_id=input.participant_id,
+            )
+            if already_exists:
+                raise ObjectAlreadyExists("Private chat with this user already exists")
+
+            instance = await info.context.services.chat_service.create(
+                **input.to_service_params()
+            )
+            await info.context.services.chat_participant_service.create(
+                chat_id=instance.id,
+                user_id=info.context.current_user.id,
+            )
+            await info.context.services.chat_participant_service.create(
+                chat_id=instance.id,
+                user_id=input.participant_id,
+            )
+            await info.context.session.commit()
+            return Chat.from_schema(instance)
+        except InvalidInput as e:
+            await info.context.session.rollback()
+            return InvalidInputError.from_service_exception(e)
+        except ObjectNotFound as e:
+            await info.context.session.rollback()
+            return ObjectNotFoundError.from_service_exception(e)
+        except ObjectAlreadyExists as e:
+            await info.context.session.rollback()
+            return ObjectAlreadyExistsError.from_service_exception(e)
+
+    @strawberry.mutation(permission_classes=[IsAuthenticated])
+    async def create_public_chat(
+        self,
+        info: AuthorizedAppInfo,
+        input: PublicChatIn,
+    ) -> Chat | InvalidInputError | ObjectNotFoundError | ObjectAlreadyExistsError:
         try:
             instance = await info.context.services.chat_service.create(
                 **input.to_service_params()
             )
-        except InvalidInput as e:
-            await info.context.session.rollback()
-            return InvalidInputError.from_service_exception(e)
-
-        await info.context.services.chat_participant_service.create(
-            chat_id=instance.id,
-            user_id=info.context.current_user.id,
-            is_admin=True,
-        )
-
-        if participant_ids is not None and len(participant_ids) > 0:
-            for participant_id in participant_ids:
-                try:
+            await info.context.services.chat_participant_service.create(
+                chat_id=instance.id,
+                user_id=info.context.current_user.id,
+                is_admin=True,
+            )
+            if input.participant_ids is not None and len(input.participant_ids) > 0:
+                for participant_id in input.participant_ids:
                     await info.context.services.chat_participant_service.create(
                         chat_id=instance.id,
                         user_id=participant_id,
                     )
-                except InvalidInput as e:
-                    await info.context.session.rollback()
-                    return InvalidInputError.from_service_exception(e)
-                except ObjectNotFound as e:
-                    await info.context.session.rollback()
-                    return ObjectNotFoundError.from_service_exception(e)
-                except ObjectAlreadyExists as e:
-                    await info.context.session.rollback()
-                    return ObjectAlreadyExistsError.from_service_exception(e)
-
-        await info.context.session.commit()
-
-        return Chat.from_schema(instance)
+            await info.context.session.commit()
+            return Chat.from_schema(instance)
+        except InvalidInput as e:
+            await info.context.session.rollback()
+            return InvalidInputError.from_service_exception(e)
+        except ObjectNotFound as e:
+            await info.context.session.rollback()
+            return ObjectNotFoundError.from_service_exception(e)
+        except ObjectAlreadyExists as e:
+            await info.context.session.rollback()
+            return ObjectAlreadyExistsError.from_service_exception(e)
 
     @strawberry.mutation(permission_classes=[IsAuthenticated, IsChatAdmin])
     async def add_participant_to_chat(

@@ -1,5 +1,6 @@
 import strawberry
 
+from ....enums.chats import ChatType
 from ....services.chats.participants.types import (
     ChatParticipantCreateParams,
     ChatParticipantGetListFilters,
@@ -39,14 +40,25 @@ class ChatParticipantFiltersIn:
 
 
 @strawberry.input
-class ChatIn:
-    type: EChatType
-    title: str | None
+class PublicChatIn:
+    title: str
+    participant_ids: list[int] | None
 
     def to_service_params(self) -> ChatCreateParams:
         return ChatCreateParams(
-            type=self.type,
+            type=ChatType.PUBLIC,
             title=self.title,
+        )
+
+
+@strawberry.input
+class PrivateChatIn:
+    participant_id: int
+
+    def to_service_params(self) -> ChatCreateParams:
+        return ChatCreateParams(
+            type=ChatType.PRIVATE,
+            title=None,
         )
 
 

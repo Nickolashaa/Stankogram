@@ -1,5 +1,11 @@
 from .enums import EChatType
-from .inputs import ChatFiltersIn, ChatIn, ChatParticipantFiltersIn, ChatParticipantIn
+from .inputs import (
+    ChatFiltersIn,
+    ChatParticipantFiltersIn,
+    ChatParticipantIn,
+    PrivateChatIn,
+    PublicChatIn,
+)
 from .interfaces import IChat
 from .types import Chat, ChatParticipant, ChatsMeta
 
@@ -10,7 +16,8 @@ __all__ = (
     "IChat",
     "ChatFiltersIn",
     "ChatParticipantFiltersIn",
-    "ChatIn",
+    "PublicChatIn",
     "ChatsMeta",
     "ChatParticipantIn",
+    "PrivateChatIn",
 )
