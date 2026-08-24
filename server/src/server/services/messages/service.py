@@ -29,7 +29,7 @@ class MessageService(BaseService):
             insert(Message)
             .values(
                 chat_id=values.get("chat_id"),
-                user_id=values.get("sender_id"),
+                user_id=values.get("user_id"),
                 type=values.get("type"),
                 encrypted_text=self._fernet.encrypt(
                     values.get("text").encode()
@@ -42,9 +42,9 @@ class MessageService(BaseService):
         except IntegrityError as e:
             if "fk_messages_chat_id" in str(e.orig):
                 raise ObjectNotFound(f"Chat with id {values.get('chat_id')} not found")
-            if "fk_messages_sender_id" in str(e.orig):
+            if "fk_messages_user_id" in str(e.orig):
                 raise ObjectNotFound(
-                    f"User with id {values.get('sender_id')} not found"
+                    f"User with id {values.get('user_id')} not found"
                 )
             raise
 

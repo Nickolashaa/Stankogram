@@ -9,7 +9,7 @@ from ..base import BaseResponse
 
 class MessageResponse(BaseResponse):
     chat_id: int
-    sender_id: int
+    user_id: int
     type: MessageType
     text: str
 
@@ -18,7 +18,7 @@ class MessageResponse(BaseResponse):
         return cls(
             id=instance.id,
             chat_id=instance.chat_id,
-            sender_id=instance.sender_id,
+            user_id=instance.user_id,
             type=instance.type,
             text=fernet.decrypt(instance.encrypted_text.encode()).decode(),
             created_at=instance.created_at,

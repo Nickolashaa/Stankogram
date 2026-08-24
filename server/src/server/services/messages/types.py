@@ -10,6 +10,6 @@ class MessageGetListFilters(TypedDict):
 
 class MessageCreateParams(TypedDict):
     chat_id: Required[int]
-    sender_id: Required[int]
+    user_id: Required[int]
     type: Required[MessageType]
     text: Required[str]
