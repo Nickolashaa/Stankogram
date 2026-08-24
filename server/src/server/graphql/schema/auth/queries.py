@@ -2,8 +2,7 @@ from typing import Union
 
 import strawberry
 
-from ....services.exceptions import ObjectNotFound
-from ...context import AppInfo
+from ...context import AuthorizedAppInfo
 from ...permissions.auth import IsAuthenticated
 from ...types.auth import User, UserFiltersIn, UsersMeta
 from ...types.base import BasePaginationIn, default_pagination
@@ -14,7 +13,7 @@ from ...types.errors import ObjectNotFoundError
 class AuthQuery:
     @strawberry.field(permission_classes=[IsAuthenticated])
     async def me(
-        info: AppInfo,
+        info: AuthorizedAppInfo,
     ) -> Union[User, ObjectNotFoundError]:
         current_user = info.context.current_user
         if current_user is None:
@@ -22,19 +21,8 @@ class AuthQuery:
         return User.from_schema(current_user)
 
     @strawberry.field(permission_classes=[IsAuthenticated])
-    async def user(
-        info: AppInfo,
-        id: int,
-    ) -> Union[User, ObjectNotFoundError]:
-        try:
-            instance = await info.context.services.auth_service.get(id)
-        except ObjectNotFound as e:
-            return ObjectNotFoundError.from_service_exception(e)
-        return User.from_schema(instance)
-
-    @strawberry.field(permission_classes=[IsAuthenticated])
     async def users(
-        info: AppInfo,
+        info: AuthorizedAppInfo,
         pagination: BasePaginationIn | None = None,
         filters: UserFiltersIn | None = None,
     ) -> UsersMeta:

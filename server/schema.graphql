@@ -3,8 +3,54 @@ input BasePaginationIn {
   offset: Int
 }
 
+type Chat implements IBaseType {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  type: EChatType!
+  title: String!
+  recipients: [User!]!
+}
+
+input ChatFiltersIn {
+  type: EChatType
+}
+
+union ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError = Chat | InvalidInputError | ObjectNotFoundError | ObjectAlreadyExistsError
+
+type ChatParticipant implements IBaseType & IUser & IChat {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  user: User!
+  chat: Chat!
+}
+
+input ChatParticipantIn {
+  chatId: Int!
+  userId: Int!
+  isAdmin: Boolean!
+  isMuted: Boolean!
+}
+
+union ChatParticipantObjectNotFoundError = ChatParticipant | ObjectNotFoundError
+
+union ChatParticipantObjectNotFoundErrorObjectAlreadyExistsErrorInvalidInputError = ChatParticipant | ObjectNotFoundError | ObjectAlreadyExistsError | InvalidInputError
+
+type ChatsMeta implements IBaseMeta {
+  count: Int!
+  chats: [Chat!]!
+}
+
+union ChatsMetaUnauthorizedError = ChatsMeta | UnauthorizedError
+
 """Date with time (isoformat)"""
 scalar DateTime
+
+enum EChatType {
+  PRIVATE
+  PUBLIC
+}
 
 enum EUserRole {
   STUDENT
@@ -25,6 +71,18 @@ interface IBaseType {
   updatedAt: DateTime!
 }
 
+interface IChat {
+  chat: Chat!
+}
+
+interface IUser {
+  user: User!
+}
+
+type InvalidInputError implements IAppError {
+  message: String!
+}
+
 type JWTs {
   accessToken: String!
   refreshToken: String!
@@ -43,6 +101,11 @@ type Mutation {
   userDelete(id: Int!): Void
   userResetPasswordRequest(email: String!): ObjectNotFoundError
   userResetPasswordConfirm(id: Int!, code: String!): ObjectNotFoundError
+  createPrivateChat(input: PrivateChatIn!): ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError!
+  createPublicChat(input: PublicChatIn!): ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError!
+  addParticipantToChat(input: ChatParticipantIn!): ChatParticipantObjectNotFoundErrorObjectAlreadyExistsErrorInvalidInputError!
+  removeParticipantFromChat(chatId: Int!, userId: Int!): Void
+  updateChatParticipantPermissions(input: ChatParticipantIn!): ChatParticipantObjectNotFoundError!
 }
 
 type ObjectAlreadyExistsError implements IAppError {
@@ -53,10 +116,20 @@ type ObjectNotFoundError implements IAppError {
   message: String!
 }
 
+input PrivateChatIn {
+  participantId: Int!
+}
+
+input PublicChatIn {
+  title: String!
+  participantIds: [Int!]
+}
+
 type Query {
   me: UserObjectNotFoundError!
-  user(id: Int!): UserObjectNotFoundError!
   users(pagination: BasePaginationIn = null, filters: UserFiltersIn = null): UsersMeta!
+  meChats(pagination: BasePaginationIn = null, filters: ChatFiltersIn = null): ChatsMetaUnauthorizedError!
+  chats(pagination: BasePaginationIn = null, filters: ChatFiltersIn = null): ChatsMeta!
   health: Int!
 }
 
@@ -74,6 +147,7 @@ type User implements IBaseType {
   email: String!
   role: EUserRole!
   isAdmin: Boolean!
+  fullName: String!
 }
 
 input UserCredentialsIn {

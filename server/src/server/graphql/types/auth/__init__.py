@@ -1,5 +1,6 @@
 from .enums import EUserRole
 from .inputs import UserCredentialsIn, UserFiltersIn, UserIn
+from .interfaces import IUser
 from .types import JWTs, User, UsersMeta
 
 __all__ = (
@@ -10,4 +11,5 @@ __all__ = (
     "JWTs",
     "UserFiltersIn",
     "UsersMeta",
+    "IUser",
 )

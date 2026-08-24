@@ -16,6 +16,7 @@ class User(IBaseType):
     email: str
     role: EUserRole
     is_admin: bool
+    full_name: str
 
     @classmethod
     def from_schema(
@@ -30,6 +31,7 @@ class User(IBaseType):
             email=instance.email,
             role=instance.role,
             is_admin=instance.is_admin,
+            full_name=instance.full_name,
             created_at=instance.created_at,
             updated_at=instance.updated_at,
         )

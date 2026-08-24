@@ -7,7 +7,7 @@ import strawberry
 from ....config import JWT_REFRESH_EXP_DAYS
 from ....services.auth.schemas import JWTPayload
 from ....services.exceptions import ObjectAlreadyExists, ObjectNotFound
-from ...context import AppInfo
+from ...context import AppInfo, AuthorizedAppInfo
 from ...permissions.auth import IsAdmin
 from ...types.auth import JWTs, User, UserCredentialsIn, UserIn
 from ...types.errors import (
@@ -109,7 +109,7 @@ class AuthMutation:
     @strawberry.mutation(permission_classes=[IsAdmin])
     async def user_create(
         self,
-        info: AppInfo,
+        info: AuthorizedAppInfo,
         input: UserIn,
     ) -> User | ObjectAlreadyExistsError:
         try:
@@ -125,7 +125,7 @@ class AuthMutation:
     @strawberry.mutation(permission_classes=[IsAdmin])
     async def user_update(
         self,
-        info: AppInfo,
+        info: AuthorizedAppInfo,
         id: int,
         input: UserIn,
     ) -> User | ObjectAlreadyExistsError | ObjectNotFoundError:
@@ -145,7 +145,7 @@ class AuthMutation:
     @strawberry.mutation(permission_classes=[IsAdmin])
     async def user_delete(
         self,
-        info: AppInfo,
+        info: AuthorizedAppInfo,
         id: int,
     ) -> None:
         await info.context.services.auth_service.delete(id)

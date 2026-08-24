@@ -2,11 +2,14 @@ import strawberry
 
 from .auth.mutations import AuthMutation
 from .auth.queries import AuthQuery
+from .chats.mutations import ChatMutation
+from .chats.queries import ChatQuery
 
 
 @strawberry.type
 class Query(
     AuthQuery,
+    ChatQuery,
 ):
     @strawberry.field
     async def health() -> int:
@@ -16,6 +19,7 @@ class Query(
 @strawberry.type
 class Mutation(
     AuthMutation,
+    ChatMutation,
 ):
     pass
 

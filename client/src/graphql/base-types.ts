@@ -18,6 +18,59 @@ export type BasePaginationIn = {
   offset?: InputMaybe<Scalars["Int"]["input"]>
 }
 
+export type Chat = IBaseType & {
+  __typename?: "Chat"
+  createdAt: Scalars["DateTime"]["output"]
+  id: Scalars["Int"]["output"]
+  recipients: Array<User>
+  title: Scalars["String"]["output"]
+  type: EChatType
+  updatedAt: Scalars["DateTime"]["output"]
+}
+
+export type ChatFiltersIn = {
+  type?: InputMaybe<EChatType>
+}
+
+export type ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError =
+  Chat | InvalidInputError | ObjectAlreadyExistsError | ObjectNotFoundError
+
+export type ChatParticipant = IBaseType &
+  IChat &
+  IUser & {
+    __typename?: "ChatParticipant"
+    chat: Chat
+    createdAt: Scalars["DateTime"]["output"]
+    id: Scalars["Int"]["output"]
+    updatedAt: Scalars["DateTime"]["output"]
+    user: User
+  }
+
+export type ChatParticipantIn = {
+  chatId: Scalars["Int"]["input"]
+  isAdmin: Scalars["Boolean"]["input"]
+  isMuted: Scalars["Boolean"]["input"]
+  userId: Scalars["Int"]["input"]
+}
+
+export type ChatParticipantObjectNotFoundError = ChatParticipant | ObjectNotFoundError
+
+export type ChatParticipantObjectNotFoundErrorObjectAlreadyExistsErrorInvalidInputError =
+  ChatParticipant | InvalidInputError | ObjectAlreadyExistsError | ObjectNotFoundError
+
+export type ChatsMeta = IBaseMeta & {
+  __typename?: "ChatsMeta"
+  chats: Array<Chat>
+  count: Scalars["Int"]["output"]
+}
+
+export type ChatsMetaUnauthorizedError = ChatsMeta | UnauthorizedError
+
+export enum EChatType {
+  Private = "PRIVATE",
+  Public = "PUBLIC",
+}
+
 export enum EUserRole {
   Student = "STUDENT",
   Teacher = "TEACHER",
@@ -37,6 +90,19 @@ export type IBaseType = {
   updatedAt: Scalars["DateTime"]["output"]
 }
 
+export type IChat = {
+  chat: Chat
+}
+
+export type IUser = {
+  user: User
+}
+
+export type InvalidInputError = IAppError & {
+  __typename?: "InvalidInputError"
+  message: Scalars["String"]["output"]
+}
+
 export type JwTs = {
   __typename?: "JWTs"
   accessToken: Scalars["String"]["output"]
@@ -50,9 +116,14 @@ export type JwTsUnauthorizedErrorObjectNotFoundError =
 
 export type Mutation = {
   __typename?: "Mutation"
+  addParticipantToChat: ChatParticipantObjectNotFoundErrorObjectAlreadyExistsErrorInvalidInputError
+  createPrivateChat: ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError
+  createPublicChat: ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError
   login: JwTsObjectNotFoundError
   logout?: Maybe<Scalars["Void"]["output"]>
   refresh: JwTsUnauthorizedErrorObjectNotFoundError
+  removeParticipantFromChat?: Maybe<Scalars["Void"]["output"]>
+  updateChatParticipantPermissions: ChatParticipantObjectNotFoundError
   userCreate: UserObjectAlreadyExistsError
   userDelete?: Maybe<Scalars["Void"]["output"]>
   userResetPasswordConfirm?: Maybe<ObjectNotFoundError>
@@ -60,8 +131,29 @@ export type Mutation = {
   userUpdate: UserObjectAlreadyExistsErrorObjectNotFoundError
 }
 
+export type MutationAddParticipantToChatArgs = {
+  input: ChatParticipantIn
+}
+
+export type MutationCreatePrivateChatArgs = {
+  input: PrivateChatIn
+}
+
+export type MutationCreatePublicChatArgs = {
+  input: PublicChatIn
+}
+
 export type MutationLoginArgs = {
   input: UserCredentialsIn
+}
+
+export type MutationRemoveParticipantFromChatArgs = {
+  chatId: Scalars["Int"]["input"]
+  userId: Scalars["Int"]["input"]
+}
+
+export type MutationUpdateChatParticipantPermissionsArgs = {
+  input: ChatParticipantIn
 }
 
 export type MutationUserCreateArgs = {
@@ -96,16 +188,32 @@ export type ObjectNotFoundError = IAppError & {
   message: Scalars["String"]["output"]
 }
 
+export type PrivateChatIn = {
+  participantId: Scalars["Int"]["input"]
+}
+
+export type PublicChatIn = {
+  participantIds?: InputMaybe<Array<Scalars["Int"]["input"]>>
+  title: Scalars["String"]["input"]
+}
+
 export type Query = {
   __typename?: "Query"
+  chats: ChatsMeta
   health: Scalars["Int"]["output"]
   me: UserObjectNotFoundError
-  user: UserObjectNotFoundError
+  meChats: ChatsMetaUnauthorizedError
   users: UsersMeta
 }
 
-export type QueryUserArgs = {
-  id: Scalars["Int"]["input"]
+export type QueryChatsArgs = {
+  filters?: InputMaybe<ChatFiltersIn>
+  pagination?: InputMaybe<BasePaginationIn>
+}
+
+export type QueryMeChatsArgs = {
+  filters?: InputMaybe<ChatFiltersIn>
+  pagination?: InputMaybe<BasePaginationIn>
 }
 
 export type QueryUsersArgs = {
@@ -122,6 +230,7 @@ export type User = IBaseType & {
   __typename?: "User"
   createdAt: Scalars["DateTime"]["output"]
   email: Scalars["String"]["output"]
+  fullName: Scalars["String"]["output"]
   id: Scalars["Int"]["output"]
   isAdmin: Scalars["Boolean"]["output"]
   name: Scalars["String"]["output"]

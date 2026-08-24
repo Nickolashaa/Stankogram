@@ -20,7 +20,6 @@ from ...config import (
 )
 from ...database.models.auth import CancelledToken, PasswordResetCode, User
 from ...utils.smtp import send_email
-from ...utils.stmt_modificators import _get_count_stmt
 from ..base import BasePagination, BaseService
 from ..exceptions import ObjectAlreadyExists, ObjectNotFound, Unauthorized
 from .schemas import JWTPayload, JWTsSchema, UserResponse
@@ -195,7 +194,7 @@ class AuthService(BaseService):
 
         stmt = self._apply_filters(stmt=stmt, **filters)
 
-        stmt = _get_count_stmt(stmt)
+        stmt = self._get_count_stmt(stmt)
 
         res = await self._session.execute(stmt)
 
