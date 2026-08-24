@@ -60,8 +60,8 @@ class MessageService(BaseService):
         if (chat_id := filters.get("chat_id")) is not None:
             stmt = stmt.where(Message.chat_id == chat_id)
 
-        if (ids := filters.get("ids")) is not None:
-            stmt = stmt.where(Message.id.in_(ids))
+        if (chat_ids := filters.get("chat_ids")) is not None:
+            stmt = stmt.where(Message.chat_id.in_(chat_ids))
 
         return stmt
 

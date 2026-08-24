@@ -1,11 +1,11 @@
-from typing import NotRequired, Required, Sequence, TypedDict
+from typing import NotRequired, Required, TypedDict
 
 from ...enums.messages import MessageType
 
 
 class MessageGetListFilters(TypedDict):
-    ids: NotRequired[Sequence[int]]
     chat_id: NotRequired[int]
+    chat_ids: NotRequired[list[int]]
 
 
 class MessageCreateParams(TypedDict):
