@@ -7,6 +7,7 @@ from ....services.chats.schemas import ChatResponse
 from ...context import AppInfo, AuthorizedAppInfo
 from ..auth import IUser, User
 from ..base import IBaseMeta, IBaseType
+from ..messages import Message
 from .enums import EChatType
 from .interfaces import IChat
 
@@ -36,6 +37,10 @@ class Chat(IBaseType):
         return await info.context.data_loaders.user_loader.load_many(
             [link.user_id for link in links]
         )
+
+    @strawberry.field
+    async def messages(self, info: AppInfo) -> list[Message]:
+        return await info.context.data_loaders.messages_by_chat_id_loader.load(self.id)
 
     @classmethod
     def from_schema(cls, instance: ChatResponse) -> Self:
