@@ -43,9 +43,7 @@ class MessageService(BaseService):
             if "fk_messages_chat_id" in str(e.orig):
                 raise ObjectNotFound(f"Chat with id {values.get('chat_id')} not found")
             if "fk_messages_user_id" in str(e.orig):
-                raise ObjectNotFound(
-                    f"User with id {values.get('user_id')} not found"
-                )
+                raise ObjectNotFound(f"User with id {values.get('user_id')} not found")
             raise
 
         return MessageResponse.from_ORM(fernet=self._fernet, instance=res.scalar_one())
