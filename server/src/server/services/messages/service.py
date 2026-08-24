@@ -63,6 +63,9 @@ class MessageService(BaseService):
         if (chat_ids := filters.get("chat_ids")) is not None:
             stmt = stmt.where(Message.chat_id.in_(chat_ids))
 
+        if (type := filters.get("type")) is not None:
+            stmt = stmt.where(Message.type == type)
+
         return stmt
 
     async def get_list(

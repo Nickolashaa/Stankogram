@@ -4,12 +4,14 @@ from .auth.mutations import AuthMutation
 from .auth.queries import AuthQuery
 from .chats.mutations import ChatMutation
 from .chats.queries import ChatQuery
+from .messages.queries import MessageQuery
 
 
 @strawberry.type
 class Query(
     AuthQuery,
     ChatQuery,
+    MessageQuery,
 ):
     @strawberry.field
     async def health() -> int:

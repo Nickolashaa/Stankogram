@@ -34,10 +34,15 @@ class IsChatParticipant(BasePermission):
     message = "User is not chat participant"
 
     async def has_permission(
-        self, source: Chat, info: AuthorizedAppInfo, **kwargs: Any
+        self, source: Chat | Any, info: AuthorizedAppInfo, **kwargs: Any
     ) -> bool:
+        try:
+            chat_id: int = kwargs["filters"].chat_id
+        except KeyError:
+            chat_id: int = source.id
+
         links = await info.context.services.chat_participant_service.get_list(
-            chat_id=source.id,
+            chat_id=chat_id,
             user_id=info.context.current_user.id,
         )
         return len(links) > 0

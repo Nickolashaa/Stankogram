@@ -40,10 +40,6 @@ class Chat(IBaseType):
         )
 
     @strawberry.field(permission_classes=[IsChatParticipant])
-    async def messages(self, info: AppInfo) -> list[Message]:
-        return await info.context.data_loaders.messages_by_chat_id_loader.load(self.id)
-
-    @strawberry.field(permission_classes=[IsChatParticipant])
     async def last_message(self, info: AppInfo) -> Message | None:
         return await info.context.data_loaders.last_message_by_chat_id_loader.load(
             self.id

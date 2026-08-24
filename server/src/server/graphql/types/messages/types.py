@@ -4,7 +4,7 @@ import strawberry
 
 from ....services.messages.schemas import MessageResponse
 from ..auth import IUser
-from ..base import IBaseType
+from ..base import IBaseMeta, IBaseType
 from ..chats import IChat
 from .enums import EMessageType
 
@@ -25,3 +25,8 @@ class Message(IBaseType, IUser, IChat):
             created_at=instance.created_at,
             updated_at=instance.updated_at,
         )
+
+
+@strawberry.type
+class MessagesMeta(IBaseMeta):
+    messages: list[Message]
