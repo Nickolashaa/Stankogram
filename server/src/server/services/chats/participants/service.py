@@ -1,6 +1,6 @@
 from typing import Unpack
 
-from sqlalchemy import Select, delete, insert, select
+from sqlalchemy import Select, delete, insert, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -117,3 +117,27 @@ class ChatParticipantService(BaseService):
         res = await self._session.execute(stmt)
 
         return res.scalar_one()
+
+    async def update(
+        self,
+        **data: Unpack[ChatParticipantCreateParams],
+    ) -> ChatParticipantResponse:
+        select_stmt = select(ChatParticipant).where(
+            ChatParticipant.user_id == data.get("user_id"),
+            ChatParticipant.chat_id == data.get("chat_id"),
+        )
+        select_res = await self._session.execute(select_stmt)
+        instance = select_res.scalar_one_or_none()
+        if instance is None:
+            raise ObjectNotFound(
+                f"User {data.get('user_id')} not recipient chat {data.get('chat_id')}"
+            )
+
+        update_stmt = (
+            update(ChatParticipant)
+            .where(ChatParticipant.id == instance.id)
+            .values(**data)
+            .returning(ChatParticipant)
+        )
+        update_res = await self._session.execute(update_stmt)
+        return ChatParticipantResponse.model_validate(update_res.scalar_one())
