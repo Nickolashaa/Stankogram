@@ -17,6 +17,7 @@ from .context import AuthorizedContext, Context
 from .data_loaders import DataLoaders
 from .data_loaders.auth import build_users_loader
 from .data_loaders.chats import build_chats_loader
+from .data_loaders.messages import build_messages_by_chat_id_loader
 
 
 async def context_getter(
@@ -43,6 +44,9 @@ async def context_getter(
         data_loaders=DataLoaders(
             user_loader=build_users_loader(auth_service),
             chat_loader=build_chats_loader(chat_service),
+            messages_by_chat_id_loader=build_messages_by_chat_id_loader(
+                message_service
+            ),
         ),
         refresh_token=refresh_token,
     )
