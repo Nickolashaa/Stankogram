@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...database.models.messages import Message
-from ..base import BaseService
+from ..base import BasePagination, BaseService
 from ..exceptions import ObjectNotFound
 from .schemas import MessageResponse
 from .types import MessageCreateParams, MessageGetListFilters
@@ -67,15 +67,14 @@ class MessageService(BaseService):
 
     async def get_list(
         self,
-        limit: int | None,
-        offset: int | None,
+        pagination: BasePagination | None = None,
         **filters: Unpack[MessageGetListFilters],
     ) -> list[MessageResponse]:
         stmt = select(Message).order_by(Message.created_at.desc())
 
         stmt = self._apply_filters(stmt=stmt, **filters)
 
-        stmt = stmt.limit(limit).offset(offset)
+        stmt = self._apply_pagination(stmt=stmt, pagination=pagination)
 
         res = await self._session.execute(stmt)
 
