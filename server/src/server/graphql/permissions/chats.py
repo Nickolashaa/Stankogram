@@ -1,8 +1,13 @@
-from typing import Any
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
 
 from strawberry.permission import BasePermission
 
 from ..context import AuthorizedAppInfo
+
+if TYPE_CHECKING:
+    from ..types.chats import Chat
 
 
 class IsChatAdmin(BasePermission):
@@ -23,3 +28,16 @@ class IsChatAdmin(BasePermission):
             return False
 
         return links[0].is_admin
+
+
+class IsChatParticipant(BasePermission):
+    message = "User is not chat participant"
+
+    async def has_permission(
+        self, source: Chat, info: AuthorizedAppInfo, **kwargs: Any
+    ) -> bool:
+        links = await info.context.services.chat_participant_service.get_list(
+            chat_id=source.id,
+            user_id=info.context.current_user.id,
+        )
+        return len(links) > 0

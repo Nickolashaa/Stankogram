@@ -5,6 +5,7 @@ import strawberry
 from ....services.chats.participants.schemas import ChatParticipantResponse
 from ....services.chats.schemas import ChatResponse
 from ...context import AppInfo, AuthorizedAppInfo
+from ...permissions.chats import IsChatParticipant
 from ..auth import IUser, User
 from ..base import IBaseMeta, IBaseType
 from ..messages import Message
@@ -38,7 +39,7 @@ class Chat(IBaseType):
             [link.user_id for link in links]
         )
 
-    @strawberry.field
+    @strawberry.field(permission_classes=[IsChatParticipant])
     async def messages(self, info: AppInfo) -> list[Message]:
         return await info.context.data_loaders.messages_by_chat_id_loader.load(self.id)
 
