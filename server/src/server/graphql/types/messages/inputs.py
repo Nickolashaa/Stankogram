@@ -16,3 +16,10 @@ class MessageFiltersIn:
             params["type"] = self.type.value
 
         return params
+
+
+@strawberry.input
+class MessageIn:
+    chat_id: int
+    type: EMessageType
+    text: str

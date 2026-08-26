@@ -1,5 +1,5 @@
 from .enums import EMessageType
-from .inputs import MessageFiltersIn
+from .inputs import MessageFiltersIn, MessageIn
 from .types import Message, MessagesMeta
 
 __all__ = (
@@ -7,4 +7,5 @@ __all__ = (
     "EMessageType",
     "MessagesMeta",
     "MessageFiltersIn",
+    "MessageIn",
 )
