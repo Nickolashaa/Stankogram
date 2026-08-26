@@ -3,6 +3,7 @@ import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
 import { roleLabels } from "@/lib/roles"
 import { formatDateTime, fullName } from "@/lib/format"
 import Button from "@/components/button.vue"
+import Badge from "@/components/badge.vue"
 
 defineProps<{
   users: UserFieldsFragment[]
@@ -40,7 +41,9 @@ defineEmits<{
           <td class="px-5 py-3 text-second">{{ user.id }}</td>
           <td class="px-5 py-3 text-main">{{ fullName(user) }}</td>
           <td class="px-5 py-3 text-main">{{ user.email }}</td>
-          <td class="px-5 py-3 text-main">{{ roleLabels[user.role] }}</td>
+          <td class="px-5 py-3 text-main">
+            <Badge variant="role">{{ roleLabels[user.role] }}</Badge>
+          </td>
           <td class="px-5 py-3 text-main">{{ user.isAdmin ? "Да" : "Нет" }}</td>
           <td class="px-5 py-3 text-second">{{ formatDateTime(user.createdAt) }}</td>
           <td class="px-5 py-3 text-second">{{ formatDateTime(user.updatedAt) }}</td>

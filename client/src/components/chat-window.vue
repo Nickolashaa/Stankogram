@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue"
+import { computed, onMounted, ref } from "vue"
 import { storeToRefs } from "pinia"
 import { useInfiniteScroll } from "@vueuse/core"
 import { useMessageStore } from "@/stores/messages"
 import { useAuthStore } from "@/stores/auth"
+import { useChatStore, type ChatParticipantItem } from "@/stores/chats"
 import { notify } from "@/lib/notify"
 import { fullName, formatTime } from "@/lib/format"
+import { participantBadges, userBadges } from "@/lib/badges"
+import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
 import Input from "@/components/input.vue"
 import Button from "@/components/button.vue"
+import Badge from "@/components/badge.vue"
 
 const PAGE_SIZE = 30
 
@@ -20,6 +24,21 @@ const { messages, totalCount } = storeToRefs(messageStore)
 
 const authStore = useAuthStore()
 const { user: currentUser } = storeToRefs(authStore)
+
+const chatStore = useChatStore()
+const { chats } = storeToRefs(chatStore)
+
+const participantsByUserId = computed(() => {
+  const chat = chats.value.find((item) => item.id === props.chatId)
+  const map = new Map<number, ChatParticipantItem>()
+  chat?.participants.forEach((participant) => map.set(participant.user.id, participant))
+  return map
+})
+
+function badgesForSender(user: UserFieldsFragment) {
+  const participant = participantsByUserId.value.get(user.id)
+  return participant ? participantBadges(user, participant) : userBadges(user)
+}
 
 const scrollContainer = ref<HTMLElement | null>(null)
 const text = ref("")
@@ -80,9 +99,16 @@ async function handleSubmit() {
         >
           <div
             v-if="message.user.id !== currentUser?.id"
-            class="mb-0.5 text-xs font-medium opacity-70"
+            class="mb-1 flex flex-wrap items-center gap-1.5 text-xs font-medium opacity-70"
           >
-            {{ fullName(message.user) }}
+            <span>{{ fullName(message.user) }}</span>
+            <Badge
+              v-for="badge in badgesForSender(message.user)"
+              :key="badge.label"
+              :variant="badge.variant"
+            >
+              {{ badge.label }}
+            </Badge>
           </div>
           <div class="whitespace-pre-wrap break-words">{{ message.text }}</div>
         </div>

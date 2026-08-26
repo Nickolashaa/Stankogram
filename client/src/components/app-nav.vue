@@ -14,11 +14,10 @@ const navItems = computed(() => {
   const items: {
     to: string
     label: string
-    icon: "chats" | "users" | "profile" | "support" | "admin"
+    icon: "chats" | "users" | "support" | "admin"
   }[] = [
     { to: "/chats", label: "Чаты", icon: "chats" },
     { to: "/users", label: "Пользователи", icon: "users" },
-    { to: "/profile", label: "Профиль", icon: "profile" },
     { to: "/support", label: "Поддержка", icon: "support" },
   ]
 

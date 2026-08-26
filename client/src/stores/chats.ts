@@ -10,8 +10,15 @@ import { EChatType, type ChatFiltersIn } from "@/graphql/base-types"
 
 const RESYNC_PAGE_SIZE = 30
 
+export type ChatParticipantItem = {
+  id: number
+  isAdmin: boolean
+  isMuted: boolean
+  user: UserFieldsFragment
+}
+
 export type ChatSummary = ChatFieldsFragment & {
-  recipients: UserFieldsFragment[]
+  participants: ChatParticipantItem[]
   lastMessage: (MessageFieldsFragment & { user: UserFieldsFragment }) | null
 }
 
@@ -64,7 +71,7 @@ export const useChatStore = defineStore("chats", () => {
       const existingMeChats = existing.data.meChats
       if (existingMeChats.__typename === "ChatsMeta") {
         const found = existingMeChats.chats.find((chat: ChatSummary) =>
-          chat.recipients.some((recipient) => recipient.id === participantId),
+          chat.participants.some((participant) => participant.user.id === participantId),
         )
         if (found) {
           return found.id

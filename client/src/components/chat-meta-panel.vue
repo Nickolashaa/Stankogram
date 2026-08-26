@@ -2,7 +2,8 @@
 import type { ChatSummary } from "@/stores/chats"
 import { EChatType } from "@/graphql/base-types"
 import { fullName } from "@/lib/format"
-import { roleLabels } from "@/lib/roles"
+import { participantBadges } from "@/lib/badges"
+import Badge from "@/components/badge.vue"
 
 defineProps<{
   chat: ChatSummary
@@ -23,13 +24,25 @@ const chatTypeLabels: Record<EChatType, string> = {
 
     <div class="flex flex-col gap-3 px-6 py-5">
       <span class="text-xs font-medium uppercase tracking-wide text-second">
-        Участники ({{ chat.recipients.length }})
+        Участники ({{ chat.participants.length }})
       </span>
 
       <div class="flex flex-col gap-3">
-        <div v-for="recipient in chat.recipients" :key="recipient.id" class="flex flex-col gap-0.5">
-          <span class="text-[15px] font-medium text-main">{{ fullName(recipient) }}</span>
-          <span class="text-sm text-second">{{ roleLabels[recipient.role] }}</span>
+        <div
+          v-for="participant in chat.participants"
+          :key="participant.id"
+          class="flex flex-col gap-1.5"
+        >
+          <span class="text-[15px] font-medium text-main">{{ fullName(participant.user) }}</span>
+          <div class="flex flex-wrap gap-1.5">
+            <Badge
+              v-for="badge in participantBadges(participant.user, participant)"
+              :key="badge.label"
+              :variant="badge.variant"
+            >
+              {{ badge.label }}
+            </Badge>
+          </div>
         </div>
       </div>
     </div>

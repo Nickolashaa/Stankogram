@@ -6,12 +6,13 @@ import { useInfiniteScroll } from "@vueuse/core"
 import { useUserStore } from "@/stores/users"
 import { useAuthStore } from "@/stores/auth"
 import { useChatStore } from "@/stores/chats"
-import { roleLabels } from "@/lib/roles"
 import { fullName } from "@/lib/format"
+import { userBadges } from "@/lib/badges"
 import { notify } from "@/lib/notify"
 import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
 import Input from "@/components/input.vue"
 import Button from "@/components/button.vue"
+import Badge from "@/components/badge.vue"
 
 const PAGE_SIZE = 50
 
@@ -88,12 +89,16 @@ async function startChat(user: UserFieldsFragment) {
         :key="user.id"
         class="flex items-center justify-between gap-4 rounded-card bg-card px-5 py-4 shadow-card"
       >
-        <div class="flex flex-col gap-1">
+        <div class="flex flex-col gap-1.5">
           <span class="text-[15px] font-medium text-main">{{ fullName(user) }}</span>
           <span class="text-sm text-second">{{ user.email }}</span>
+          <div class="flex flex-wrap gap-1.5">
+            <Badge v-for="badge in userBadges(user)" :key="badge.label" :variant="badge.variant">
+              {{ badge.label }}
+            </Badge>
+          </div>
         </div>
         <div class="flex items-center gap-3">
-          <span class="text-sm text-second">{{ roleLabels[user.role] }}</span>
           <Button
             icon="chats"
             :short-mode="false"
