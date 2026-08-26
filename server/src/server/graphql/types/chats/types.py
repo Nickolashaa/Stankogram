@@ -5,8 +5,10 @@ import strawberry
 from ....services.chats.participants.schemas import ChatParticipantResponse
 from ....services.chats.schemas import ChatResponse
 from ...context import AppInfo, AuthorizedAppInfo
+from ...permissions.chats import IsChatParticipant
 from ..auth import IUser, User
 from ..base import IBaseMeta, IBaseType
+from ..messages import Message
 from .enums import EChatType
 from .interfaces import IChat
 
@@ -35,6 +37,12 @@ class Chat(IBaseType):
         )
         return await info.context.data_loaders.user_loader.load_many(
             [link.user_id for link in links]
+        )
+
+    @strawberry.field(permission_classes=[IsChatParticipant])
+    async def last_message(self, info: AppInfo) -> Message | None:
+        return await info.context.data_loaders.last_message_by_chat_id_loader.load(
+            self.id
         )
 
     @classmethod

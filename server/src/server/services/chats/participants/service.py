@@ -145,6 +145,20 @@ class ChatParticipantService(BaseService):
         update_res = await self._session.execute(update_stmt)
         return ChatParticipantResponse.model_validate(update_res.scalar_one())
 
+    async def get_or_none(
+        self,
+        chat_id: int,
+        user_id: int,
+    ) -> ChatParticipantResponse | None:
+        stmt = select(ChatParticipant).where(
+            ChatParticipant.chat_id == chat_id, ChatParticipant.user_id == user_id
+        )
+        res = await self._session.execute(stmt)
+        instance = res.scalar_one_or_none()
+        if instance is None:
+            return None
+        return ChatParticipantResponse.model_validate(instance)
+
     async def is_private_chat_exists(
         self,
         first_user_id: int,

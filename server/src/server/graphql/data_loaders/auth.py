@@ -7,7 +7,7 @@ type USER_LOADER = DataLoader[int, User]
 
 
 def build_users_loader(auth_service: AuthService) -> USER_LOADER:
-    async def load_users(keys: list[int]) -> list[User]:
+    async def load_fn(keys: list[int]) -> list[User]:
         user_id_to_user = {
             user.id: user for user in await auth_service.get_list(ids=keys)
         }
@@ -17,4 +17,4 @@ def build_users_loader(auth_service: AuthService) -> USER_LOADER:
             for instance in [user_id_to_user[key] for key in keys]
         ]
 
-    return DataLoader(load_fn=load_users)
+    return DataLoader(load_fn=load_fn)

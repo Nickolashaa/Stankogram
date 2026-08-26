@@ -3,7 +3,9 @@ import json
 from pathlib import Path
 
 import bcrypt
+from cryptography.fernet import Fernet
 
+from ..config import ENCRYPTION_KEY
 from ..database.connection import session_maker
 from ..database.models.auth import User
 from ..database.models.chats import Chat, ChatParticipant
@@ -25,8 +27,8 @@ _CHATS_DATA: list[dict] = [
     {**chat, "type": ChatType(chat["type"])} for chat in _TEST_DATA["chats"]
 ]
 
-_CHAT_PARTICIPANTS_INDEXES: list[tuple[int, int]] = [
-    tuple(pair) for pair in _TEST_DATA["chat_participants_indexes"]
+_CHAT_PARTICIPANTS_INDEXES: list[tuple[int, int, bool]] = [
+    tuple(entry) for entry in _TEST_DATA["chat_participants_indexes"]
 ]
 
 _MESSAGES_INDEXES: list[tuple[int, int, str]] = [
@@ -58,8 +60,12 @@ async def _seed_chat_participants(
     session, chats: list[Chat], users: list[User]
 ) -> list[ChatParticipant]:
     participants = [
-        ChatParticipant(chat_id=chats[chat_idx].id, user_id=users[user_idx].id)
-        for chat_idx, user_idx in _CHAT_PARTICIPANTS_INDEXES
+        ChatParticipant(
+            chat_id=chats[chat_idx].id,
+            user_id=users[user_idx].id,
+            is_admin=is_admin,
+        )
+        for chat_idx, user_idx, is_admin in _CHAT_PARTICIPANTS_INDEXES
     ]
     session.add_all(participants)
     await session.flush()
@@ -70,11 +76,13 @@ async def _seed_chat_participants(
 async def _seed_messages(
     session, chats: list[Chat], users: list[User]
 ) -> list[Message]:
+    fernet = Fernet(ENCRYPTION_KEY)
+
     messages = [
         Message(
             chat_id=chats[chat_idx].id,
             user_id=users[user_idx].id,
-            encrypted_text=text,
+            encrypted_text=fernet.encrypt(text.encode()).decode(),
             type=MessageType.TEXT,
         )
         for chat_idx, user_idx, text in _MESSAGES_INDEXES

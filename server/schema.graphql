@@ -10,6 +10,7 @@ type Chat implements IBaseType {
   type: EChatType!
   title: String!
   recipients: [User!]!
+  lastMessage: Message
 }
 
 input ChatFiltersIn {
@@ -52,6 +53,10 @@ enum EChatType {
   PUBLIC
 }
 
+enum EMessageType {
+  TEXT
+}
+
 enum EUserRole {
   STUDENT
   TEACHER
@@ -92,6 +97,34 @@ union JWTsObjectNotFoundError = JWTs | ObjectNotFoundError
 
 union JWTsUnauthorizedErrorObjectNotFoundError = JWTs | UnauthorizedError | ObjectNotFoundError
 
+type Message implements IBaseType & IUser & IChat {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  user: User!
+  chat: Chat!
+  text: String!
+  type: EMessageType!
+}
+
+input MessageFiltersIn {
+  chatId: Int!
+  type: EMessageType
+}
+
+input MessageIn {
+  chatId: Int!
+  type: EMessageType!
+  text: String!
+}
+
+union MessageObjectNotFoundError = Message | ObjectNotFoundError
+
+type MessagesMeta implements IBaseMeta {
+  count: Int!
+  messages: [Message!]!
+}
+
 type Mutation {
   login(input: UserCredentialsIn!): JWTsObjectNotFoundError!
   refresh: JWTsUnauthorizedErrorObjectNotFoundError!
@@ -106,6 +139,7 @@ type Mutation {
   addParticipantToChat(input: ChatParticipantIn!): ChatParticipantObjectNotFoundErrorObjectAlreadyExistsErrorInvalidInputError!
   removeParticipantFromChat(chatId: Int!, userId: Int!): Void
   updateChatParticipantPermissions(input: ChatParticipantIn!): ChatParticipantObjectNotFoundError!
+  createMessage(input: MessageIn!): MessageObjectNotFoundError!
 }
 
 type ObjectAlreadyExistsError implements IAppError {
@@ -130,7 +164,12 @@ type Query {
   users(pagination: BasePaginationIn = null, filters: UserFiltersIn = null): UsersMeta!
   meChats(pagination: BasePaginationIn = null, filters: ChatFiltersIn = null): ChatsMetaUnauthorizedError!
   chats(pagination: BasePaginationIn = null, filters: ChatFiltersIn = null): ChatsMeta!
+  messages(filters: MessageFiltersIn!, pagination: BasePaginationIn = null): MessagesMeta!
   health: Int!
+}
+
+type Subscription {
+  events: Message!
 }
 
 type UnauthorizedError implements IAppError {
