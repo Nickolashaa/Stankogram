@@ -1,0 +1,11 @@
+subscription Events {
+  events {
+    ...MessageFields
+    user {
+      ...UserFields
+    }
+    chat {
+      id
+    }
+  }
+}

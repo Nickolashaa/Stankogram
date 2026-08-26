@@ -1,0 +1,14 @@
+mutation CreateMessage($input: MessageIn!) {
+  createMessage(input: $input) {
+    __typename
+    ... on Message {
+      ...MessageFields
+      user {
+        ...UserFields
+      }
+    }
+    ... on ObjectNotFoundError {
+      message
+    }
+  }
+}

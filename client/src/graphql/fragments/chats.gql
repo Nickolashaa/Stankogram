@@ -1,0 +1,6 @@
+fragment ChatFields on Chat {
+  id
+  createdAt
+  type
+  title
+}

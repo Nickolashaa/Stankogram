@@ -1,0 +1,26 @@
+mutation CreatePrivateChat($input: PrivateChatIn!) {
+  createPrivateChat(input: $input) {
+    __typename
+    ... on Chat {
+      ...ChatFields
+      recipients {
+        ...UserFields
+      }
+      lastMessage {
+        ...MessageFields
+        user {
+          ...UserFields
+        }
+      }
+    }
+    ... on InvalidInputError {
+      message
+    }
+    ... on ObjectNotFoundError {
+      message
+    }
+    ... on ObjectAlreadyExistsError {
+      message
+    }
+  }
+}
