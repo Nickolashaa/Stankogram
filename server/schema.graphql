@@ -9,7 +9,7 @@ type Chat implements IBaseType {
   updatedAt: DateTime!
   type: EChatType!
   title: String!
-  recipients: [User!]!
+  participants: [ChatParticipant!]!
   lastMessage: Message
 }
 
@@ -25,6 +25,8 @@ type ChatParticipant implements IBaseType & IUser & IChat {
   updatedAt: DateTime!
   user: User!
   chat: Chat!
+  isAdmin: Boolean!
+  isMuted: Boolean!
 }
 
 input ChatParticipantIn {
