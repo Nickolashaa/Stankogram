@@ -4,6 +4,7 @@ from ....services.exceptions import ObjectNotFound
 from ...context import AuthorizedAppInfo
 from ...permissions.auth import IsAuthenticated
 from ...permissions.messages import CanCreateMessage
+from ...pubsub import pub_sub
 from ...types.errors import ObjectNotFoundError
 from ...types.messages import Message, MessageIn
 
@@ -24,7 +25,17 @@ class MessageMutation:
                 text=input.text,
             )
             await info.context.session.commit()
-            return Message.from_schema(instance)
+
+            message = Message.from_schema(instance)
+            participants = (
+                await info.context.services.chat_participant_service.get_list(
+                    chat_id=input.chat_id
+                )
+            )
+            for participant in participants:
+                pub_sub.publish(participant.user_id, message)
+
+            return message
         except ObjectNotFound as e:
             await info.context.session.rollback()
             return ObjectNotFoundError.from_service_exception(e)

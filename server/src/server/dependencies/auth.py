@@ -15,9 +15,9 @@ def get_auth_service(
     return AuthService(session)
 
 
-async def get_current_user(
-    authorization: Annotated[str | None, Header()] = None,
-    service: AuthService = Depends(get_auth_service),
+async def get_user_from_authorization(
+    authorization: str | None,
+    service: AuthService,
 ) -> UserResponse | None:
     if authorization is None:
         return None
@@ -28,3 +28,10 @@ async def get_current_user(
         return await service.get_from_token(token)
     except Unauthorized, ObjectNotFound:
         return None
+
+
+async def get_current_user(
+    authorization: Annotated[str | None, Header()] = None,
+    service: AuthService = Depends(get_auth_service),
+) -> UserResponse | None:
+    return await get_user_from_authorization(authorization, service)
