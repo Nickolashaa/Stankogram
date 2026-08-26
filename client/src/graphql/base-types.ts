@@ -23,7 +23,7 @@ export type Chat = IBaseType & {
   createdAt: Scalars["DateTime"]["output"]
   id: Scalars["Int"]["output"]
   lastMessage?: Maybe<Message>
-  recipients: Array<User>
+  participants: Array<ChatParticipant>
   title: Scalars["String"]["output"]
   type: EChatType
   updatedAt: Scalars["DateTime"]["output"]
@@ -43,6 +43,8 @@ export type ChatParticipant = IBaseType &
     chat: Chat
     createdAt: Scalars["DateTime"]["output"]
     id: Scalars["Int"]["output"]
+    isAdmin: Scalars["Boolean"]["output"]
+    isMuted: Scalars["Boolean"]["output"]
     updatedAt: Scalars["DateTime"]["output"]
     user: User
   }

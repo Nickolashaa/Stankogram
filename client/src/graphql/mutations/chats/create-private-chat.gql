@@ -3,8 +3,13 @@ mutation CreatePrivateChat($input: PrivateChatIn!) {
     __typename
     ... on Chat {
       ...ChatFields
-      recipients {
-        ...UserFields
+      participants {
+        id
+        isAdmin
+        isMuted
+        user {
+          ...UserFields
+        }
       }
       lastMessage {
         ...MessageFields

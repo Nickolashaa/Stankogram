@@ -5,8 +5,13 @@ query MeChats($pagination: BasePaginationIn, $filters: ChatFiltersIn) {
       count
       chats {
         ...ChatFields
-        recipients {
-          ...UserFields
+        participants {
+          id
+          isAdmin
+          isMuted
+          user {
+            ...UserFields
+          }
         }
         lastMessage {
           ...MessageFields

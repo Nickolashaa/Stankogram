@@ -34,16 +34,21 @@ export type CreatePrivateChatMutation = {
         createdAt: string
         type: Types.EChatType
         title: string
-        recipients: Array<{
+        participants: Array<{
           id: number
-          createdAt: string
-          updatedAt: string
-          name: string
-          surname: string
-          patronymic: string | null
-          email: string
-          role: Types.EUserRole
           isAdmin: boolean
+          isMuted: boolean
+          user: {
+            id: number
+            createdAt: string
+            updatedAt: string
+            name: string
+            surname: string
+            patronymic: string | null
+            email: string
+            role: Types.EUserRole
+            isAdmin: boolean
+          }
         }>
         lastMessage: {
           id: number
@@ -74,8 +79,13 @@ export const CreatePrivateChatDocument = gql`
       __typename
       ... on Chat {
         ...ChatFields
-        recipients {
-          ...UserFields
+        participants {
+          id
+          isAdmin
+          isMuted
+          user {
+            ...UserFields
+          }
         }
         lastMessage {
           ...MessageFields
