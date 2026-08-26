@@ -21,13 +21,13 @@ class IsChatAdmin(BasePermission):
         except KeyError:
             chat_id: int = kwargs["chat_id"]
 
-        links = await info.context.services.chat_participant_service.get_list(
+        link = await info.context.services.chat_participant_service.get_or_none(
             chat_id=chat_id, user_id=info.context.current_user.id
         )
-        if not links:
+        if link is None:
             return False
 
-        return links[0].is_admin
+        return link.is_admin
 
 
 class IsChatParticipant(BasePermission):
@@ -41,8 +41,27 @@ class IsChatParticipant(BasePermission):
         except KeyError:
             chat_id: int = source.id
 
-        links = await info.context.services.chat_participant_service.get_list(
+        link = await info.context.services.chat_participant_service.get_or_none(
             chat_id=chat_id,
             user_id=info.context.current_user.id,
         )
-        return len(links) > 0
+        return link is not None
+
+
+class CanMessageToChat(BasePermission):
+    message = "User can`t message to this chat"
+
+    async def has_permission(
+        self, source: Any, info: AuthorizedAppInfo, **kwargs: Any
+    ) -> bool:
+        chat_id: int = kwargs["input"].chat_id
+
+        link = await info.context.services.chat_participant_service.get_or_none(
+            chat_id=chat_id,
+            user_id=info.context.current_user.id,
+        )
+
+        if link is None:
+            return False
+
+        return not link.is_muted
