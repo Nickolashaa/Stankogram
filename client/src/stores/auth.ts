@@ -1,5 +1,6 @@
 import { defineStore } from "pinia"
-import { ref, watch } from "vue"
+import { ref } from "vue"
+import { useStorage } from "@vueuse/core"
 import { apolloClient } from "@/api"
 import { LoginDocument } from "@/graphql/mutations/auth/login.generated"
 import { RefreshDocument } from "@/graphql/mutations/auth/refresh.generated"
@@ -13,15 +14,7 @@ const ACCESS_TOKEN_KEY = "accessToken"
 
 export const useAuthStore = defineStore("auth", () => {
   const user = ref<UserFieldsFragment>()
-  const accessToken = ref<string | undefined>(localStorage.getItem(ACCESS_TOKEN_KEY) ?? undefined)
-
-  watch(accessToken, (value) => {
-    if (value === undefined) {
-      localStorage.removeItem(ACCESS_TOKEN_KEY)
-    } else {
-      localStorage.setItem(ACCESS_TOKEN_KEY, value)
-    }
-  })
+  const accessToken = useStorage<string | undefined>(ACCESS_TOKEN_KEY, undefined)
 
   async function fetchUser() {
     const { data } = await apolloClient.query({

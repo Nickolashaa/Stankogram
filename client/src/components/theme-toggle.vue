@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia"
-import { computed, onBeforeUnmount, ref } from "vue"
+import { computed, ref } from "vue"
+import { onClickOutside } from "@vueuse/core"
 import { type ColorScheme, COLOR_SCHEMES, useThemeStore } from "@/stores/theme"
 
 const themeStore = useThemeStore()
-const { theme, scheme } = storeToRefs(themeStore)
+const { isDark, scheme } = storeToRefs(themeStore)
 
 const root = ref<HTMLElement | null>(null)
 const menuOpen = ref(false)
@@ -19,7 +20,7 @@ function selectScheme(id: ColorScheme) {
 }
 
 function swatchColor(item: (typeof COLOR_SCHEMES)[number]) {
-  return theme.value === "dark" ? item.accent.dark : item.accent.light
+  return isDark.value ? item.accent.dark : item.accent.light
 }
 
 const currentAccent = computed(() => {
@@ -27,14 +28,9 @@ const currentAccent = computed(() => {
   return swatchColor(active)
 })
 
-function handleOutsideClick(event: MouseEvent) {
-  if (menuOpen.value && root.value && !root.value.contains(event.target as Node)) {
-    menuOpen.value = false
-  }
-}
-
-document.addEventListener("click", handleOutsideClick)
-onBeforeUnmount(() => document.removeEventListener("click", handleOutsideClick))
+onClickOutside(root, () => {
+  menuOpen.value = false
+})
 </script>
 
 <template>
@@ -69,12 +65,12 @@ onBeforeUnmount(() => document.removeEventListener("click", handleOutsideClick))
 
     <button
       type="button"
-      :aria-label="theme === 'dark' ? 'Включить светлую тему' : 'Включить тёмную тему'"
+      :aria-label="isDark ? 'Включить светлую тему' : 'Включить тёмную тему'"
       class="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-second/15 bg-card text-second shadow-card transition-colors duration-150 hover:text-accent"
       @click="themeStore.toggle"
     >
       <svg
-        v-if="theme === 'dark'"
+        v-if="isDark"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
         fill="none"

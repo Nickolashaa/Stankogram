@@ -1,10 +1,8 @@
 import { defineStore } from "pinia"
-import { ref, watch } from "vue"
+import { watch } from "vue"
+import { useDark, useStorage } from "@vueuse/core"
 
-const THEME_KEY = "theme"
 const SCHEME_KEY = "colorScheme"
-
-type Theme = "light" | "dark"
 
 export const COLOR_SCHEMES = [
   { id: "forest", label: "Лес", accent: { light: "#4f8a76", dark: "#6bb69b" } },
@@ -16,53 +14,25 @@ export const COLOR_SCHEMES = [
 
 export type ColorScheme = (typeof COLOR_SCHEMES)[number]["id"]
 
-function getInitialTheme(): Theme {
-  const stored = localStorage.getItem(THEME_KEY)
-  if (stored === "light" || stored === "dark") {
-    return stored
-  }
-
-  return "light"
-}
-
-function getInitialScheme(): ColorScheme {
-  const stored = localStorage.getItem(SCHEME_KEY)
-  if (COLOR_SCHEMES.some((item) => item.id === stored)) {
-    return stored as ColorScheme
-  }
-
-  return "ocean"
-}
-
 export const useThemeStore = defineStore("theme", () => {
-  const theme = ref<Theme>(getInitialTheme())
-  const scheme = ref<ColorScheme>(getInitialScheme())
-
-  watch(
-    theme,
-    (value) => {
-      document.documentElement.classList.toggle("dark", value === "dark")
-      localStorage.setItem(THEME_KEY, value)
-    },
-    { immediate: true },
-  )
+  const isDark = useDark({ storageKey: "theme", initialValue: "light", disableTransition: false })
+  const scheme = useStorage<ColorScheme>(SCHEME_KEY, "ocean")
 
   watch(
     scheme,
     (value) => {
       document.documentElement.dataset.scheme = value
-      localStorage.setItem(SCHEME_KEY, value)
     },
     { immediate: true },
   )
 
   function toggle() {
-    theme.value = theme.value === "dark" ? "light" : "dark"
+    isDark.value = !isDark.value
   }
 
   function setScheme(next: ColorScheme) {
     scheme.value = next
   }
 
-  return { theme, scheme, toggle, setScheme }
+  return { isDark, scheme, toggle, setScheme }
 })
