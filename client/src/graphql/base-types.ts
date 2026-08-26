@@ -22,6 +22,7 @@ export type Chat = IBaseType & {
   __typename?: "Chat"
   createdAt: Scalars["DateTime"]["output"]
   id: Scalars["Int"]["output"]
+  lastMessage?: Maybe<Message>
   recipients: Array<User>
   title: Scalars["String"]["output"]
   type: EChatType
@@ -71,6 +72,10 @@ export enum EChatType {
   Public = "PUBLIC",
 }
 
+export enum EMessageType {
+  Text = "TEXT",
+}
+
 export enum EUserRole {
   Student = "STUDENT",
   Teacher = "TEACHER",
@@ -114,9 +119,42 @@ export type JwTsObjectNotFoundError = JwTs | ObjectNotFoundError
 export type JwTsUnauthorizedErrorObjectNotFoundError =
   JwTs | ObjectNotFoundError | UnauthorizedError
 
+export type Message = IBaseType &
+  IChat &
+  IUser & {
+    __typename?: "Message"
+    chat: Chat
+    createdAt: Scalars["DateTime"]["output"]
+    id: Scalars["Int"]["output"]
+    text: Scalars["String"]["output"]
+    type: EMessageType
+    updatedAt: Scalars["DateTime"]["output"]
+    user: User
+  }
+
+export type MessageFiltersIn = {
+  chatId: Scalars["Int"]["input"]
+  type?: InputMaybe<EMessageType>
+}
+
+export type MessageIn = {
+  chatId: Scalars["Int"]["input"]
+  text: Scalars["String"]["input"]
+  type: EMessageType
+}
+
+export type MessageObjectNotFoundError = Message | ObjectNotFoundError
+
+export type MessagesMeta = IBaseMeta & {
+  __typename?: "MessagesMeta"
+  count: Scalars["Int"]["output"]
+  messages: Array<Message>
+}
+
 export type Mutation = {
   __typename?: "Mutation"
   addParticipantToChat: ChatParticipantObjectNotFoundErrorObjectAlreadyExistsErrorInvalidInputError
+  createMessage: MessageObjectNotFoundError
   createPrivateChat: ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError
   createPublicChat: ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError
   login: JwTsObjectNotFoundError
@@ -133,6 +171,10 @@ export type Mutation = {
 
 export type MutationAddParticipantToChatArgs = {
   input: ChatParticipantIn
+}
+
+export type MutationCreateMessageArgs = {
+  input: MessageIn
 }
 
 export type MutationCreatePrivateChatArgs = {
@@ -203,6 +245,7 @@ export type Query = {
   health: Scalars["Int"]["output"]
   me: UserObjectNotFoundError
   meChats: ChatsMetaUnauthorizedError
+  messages: MessagesMeta
   users: UsersMeta
 }
 
@@ -216,9 +259,19 @@ export type QueryMeChatsArgs = {
   pagination?: InputMaybe<BasePaginationIn>
 }
 
+export type QueryMessagesArgs = {
+  filters: MessageFiltersIn
+  pagination?: InputMaybe<BasePaginationIn>
+}
+
 export type QueryUsersArgs = {
   filters?: InputMaybe<UserFiltersIn>
   pagination?: InputMaybe<BasePaginationIn>
+}
+
+export type Subscription = {
+  __typename?: "Subscription"
+  events: Message
 }
 
 export type UnauthorizedError = IAppError & {
