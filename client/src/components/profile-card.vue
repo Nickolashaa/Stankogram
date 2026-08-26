@@ -2,6 +2,7 @@
 import { storeToRefs } from "pinia"
 import { useAuthStore } from "@/stores/auth"
 import { roleLabels } from "@/lib/roles"
+import { fullName } from "@/lib/format"
 
 const authStore = useAuthStore()
 const { user } = storeToRefs(authStore)
@@ -20,9 +21,7 @@ const { user } = storeToRefs(authStore)
       </div>
       <div class="flex flex-col gap-1">
         <span class="text-xs font-medium uppercase tracking-wide text-second">ФИО</span>
-        <span class="text-lg text-main">
-          {{ [user.surname, user.name, user.patronymic].filter(Boolean).join(" ") }}
-        </span>
+        <span class="text-lg text-main">{{ fullName(user) }}</span>
       </div>
       <div class="flex flex-col gap-1">
         <span class="text-xs font-medium uppercase tracking-wide text-second">Email</span>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
 import { roleLabels } from "@/lib/roles"
+import { formatDateTime, fullName } from "@/lib/format"
 import Button from "@/components/button.vue"
 
 defineProps<{
@@ -11,13 +12,6 @@ defineEmits<{
   edit: [user: UserFieldsFragment]
   delete: [user: UserFieldsFragment]
 }>()
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleString("ru-RU", {
-    dateStyle: "short",
-    timeStyle: "short",
-  })
-}
 </script>
 
 <template>
@@ -44,14 +38,12 @@ function formatDate(value: string) {
           class="border-b border-second/10 last:border-0 hover:bg-accent/5"
         >
           <td class="px-5 py-3 text-second">{{ user.id }}</td>
-          <td class="px-5 py-3 text-main">
-            {{ [user.surname, user.name, user.patronymic].filter(Boolean).join(" ") }}
-          </td>
+          <td class="px-5 py-3 text-main">{{ fullName(user) }}</td>
           <td class="px-5 py-3 text-main">{{ user.email }}</td>
           <td class="px-5 py-3 text-main">{{ roleLabels[user.role] }}</td>
           <td class="px-5 py-3 text-main">{{ user.isAdmin ? "Да" : "Нет" }}</td>
-          <td class="px-5 py-3 text-second">{{ formatDate(user.createdAt) }}</td>
-          <td class="px-5 py-3 text-second">{{ formatDate(user.updatedAt) }}</td>
+          <td class="px-5 py-3 text-second">{{ formatDateTime(user.createdAt) }}</td>
+          <td class="px-5 py-3 text-second">{{ formatDateTime(user.updatedAt) }}</td>
           <td class="px-5 py-3">
             <div class="flex justify-end gap-2">
               <Button
