@@ -1,0 +1,31 @@
+mutation CreatePublicChat($input: PublicChatIn!) {
+  createPublicChat(input: $input) {
+    __typename
+    ... on Chat {
+      ...ChatFields
+      participants {
+        id
+        isAdmin
+        isMuted
+        user {
+          ...UserFields
+        }
+      }
+      lastMessage {
+        ...MessageFields
+        user {
+          ...UserFields
+        }
+      }
+    }
+    ... on InvalidInputError {
+      message
+    }
+    ... on ObjectNotFoundError {
+      message
+    }
+    ... on ObjectAlreadyExistsError {
+      message
+    }
+  }
+}

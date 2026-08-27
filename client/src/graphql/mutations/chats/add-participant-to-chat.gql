@@ -1,0 +1,22 @@
+mutation AddParticipantToChat($input: ChatParticipantIn!) {
+  addParticipantToChat(input: $input) {
+    __typename
+    ... on ChatParticipant {
+      id
+      isAdmin
+      isMuted
+      user {
+        ...UserFields
+      }
+    }
+    ... on ObjectNotFoundError {
+      message
+    }
+    ... on ObjectAlreadyExistsError {
+      message
+    }
+    ... on InvalidInputError {
+      message
+    }
+  }
+}
