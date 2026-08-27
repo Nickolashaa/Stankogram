@@ -1,9 +1,11 @@
+from datetime import UTC, datetime
+
 import strawberry
 
 from ....services.exceptions import InvalidInput, ObjectAlreadyExists, ObjectNotFound
 from ...context import AuthorizedAppInfo
 from ...permissions.auth import IsAuthenticated
-from ...permissions.chats import IsChatAdmin
+from ...permissions.chats import IsChatAdmin, IsChatParticipant
 from ...types.chats import (
     Chat,
     ChatParticipant,
@@ -161,6 +163,24 @@ class ChatMutation:
         try:
             instance = await info.context.services.chat_participant_service.update(
                 **input.to_create_service_params()
+            )
+            await info.context.session.commit()
+            return ChatParticipant.from_schema(instance)
+        except ObjectNotFound as e:
+            await info.context.session.rollback()
+            return ObjectNotFoundError.from_service_exception(e)
+
+    @strawberry.mutation(permission_classes=[IsAuthenticated, IsChatParticipant])
+    async def mark_chat_read(
+        self,
+        info: AuthorizedAppInfo,
+        chat_id: int,
+    ) -> ChatParticipant | ObjectNotFoundError:
+        try:
+            instance = await info.context.services.chat_participant_service.update(
+                chat_id=chat_id,
+                user_id=info.context.current_user.id,
+                last_read_at=datetime.now(UTC),
             )
             await info.context.session.commit()
             return ChatParticipant.from_schema(instance)

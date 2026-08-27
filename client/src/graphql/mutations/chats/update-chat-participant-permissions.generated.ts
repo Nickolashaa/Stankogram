@@ -30,6 +30,7 @@ export type UpdateChatParticipantPermissionsMutation = {
         id: number
         isAdmin: boolean
         isMuted: boolean
+        lastReadAt: string | null
         user: {
           id: number
           createdAt: string
@@ -53,6 +54,7 @@ export const UpdateChatParticipantPermissionsDocument = gql`
         id
         isAdmin
         isMuted
+        lastReadAt
         user {
           ...UserFields
         }

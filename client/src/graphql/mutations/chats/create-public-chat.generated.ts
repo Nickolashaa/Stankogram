@@ -39,6 +39,7 @@ export type CreatePublicChatMutation = {
           id: number
           isAdmin: boolean
           isMuted: boolean
+          lastReadAt: string | null
           user: {
             id: number
             createdAt: string
@@ -84,6 +85,7 @@ export const CreatePublicChatDocument = gql`
           id
           isAdmin
           isMuted
+          lastReadAt
           user {
             ...UserFields
           }

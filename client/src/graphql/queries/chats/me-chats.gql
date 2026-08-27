@@ -9,6 +9,7 @@ query MeChats($pagination: BasePaginationIn, $filters: ChatFiltersIn) {
           id
           isAdmin
           isMuted
+          lastReadAt
           user {
             ...UserFields
           }

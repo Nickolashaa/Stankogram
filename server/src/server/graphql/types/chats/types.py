@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Self
 
 import strawberry
@@ -17,6 +18,7 @@ from .interfaces import IChat
 class ChatParticipant(IBaseType, IUser, IChat):
     is_admin: bool
     is_muted: bool
+    last_read_at: datetime | None
 
     @classmethod
     def from_schema(cls, instance: ChatParticipantResponse) -> Self:
@@ -26,6 +28,7 @@ class ChatParticipant(IBaseType, IUser, IChat):
             chat_id=instance.chat_id,
             is_admin=instance.is_admin,
             is_muted=instance.is_muted,
+            last_read_at=instance.last_read_at,
             created_at=instance.created_at,
             updated_at=instance.updated_at,
         )

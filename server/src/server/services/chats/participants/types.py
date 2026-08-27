@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import NotRequired, Required, Sequence, TypedDict
 
 
@@ -6,6 +7,7 @@ class ChatParticipantCreateParams(TypedDict):
     user_id: Required[int]
     is_admin: NotRequired[bool]
     is_muted: NotRequired[bool]
+    last_read_at: NotRequired[datetime]
 
 
 class ChatParticipantGetListFilters(TypedDict):

@@ -10,21 +10,14 @@ import { UserFieldsFragmentDoc } from "../../fragments/auth.generated"
 import * as VueApolloComposable from "@vue/apollo-composable"
 import * as VueCompositionApi from "vue"
 export type ReactiveFunction<TParam> = () => TParam
-export type ChatParticipantIn = {
-  chatId: number
-  isAdmin: boolean
-  isMuted: boolean
-  userId: number
-}
-
 export type EUserRole = "STUDENT" | "TEACHER"
 
-export type AddParticipantToChatMutationVariables = Exact<{
-  input: Types.ChatParticipantIn
+export type MarkChatReadMutationVariables = Exact<{
+  chatId: number
 }>
 
-export type AddParticipantToChatMutation = {
-  addParticipantToChat:
+export type MarkChatReadMutation = {
+  markChatRead:
     | {
         __typename: "ChatParticipant"
         id: number
@@ -43,14 +36,12 @@ export type AddParticipantToChatMutation = {
           isAdmin: boolean
         }
       }
-    | { __typename: "InvalidInputError"; message: string }
-    | { __typename: "ObjectAlreadyExistsError"; message: string }
     | { __typename: "ObjectNotFoundError"; message: string }
 }
 
-export const AddParticipantToChatDocument = gql`
-  mutation AddParticipantToChat($input: ChatParticipantIn!) {
-    addParticipantToChat(input: $input) {
+export const MarkChatReadDocument = gql`
+  mutation MarkChatRead($chatId: Int!) {
+    markChatRead(chatId: $chatId) {
       __typename
       ... on ChatParticipant {
         id
@@ -64,54 +55,41 @@ export const AddParticipantToChatDocument = gql`
       ... on ObjectNotFoundError {
         message
       }
-      ... on ObjectAlreadyExistsError {
-        message
-      }
-      ... on InvalidInputError {
-        message
-      }
     }
   }
   ${UserFieldsFragmentDoc}
 `
 
 /**
- * __useAddParticipantToChatMutation__
+ * __useMarkChatReadMutation__
  *
- * To run a mutation, you first call `useAddParticipantToChatMutation` within a Vue component and pass it any options that fit your needs.
- * When your component renders, `useAddParticipantToChatMutation` returns an object that includes:
+ * To run a mutation, you first call `useMarkChatReadMutation` within a Vue component and pass it any options that fit your needs.
+ * When your component renders, `useMarkChatReadMutation` returns an object that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - Several other properties: https://v4.apollo.vuejs.org/api/use-mutation.html#return
  *
  * @param options that will be passed into the mutation, supported options are listed on: https://v4.apollo.vuejs.org/guide-composable/mutation.html#options;
  *
  * @example
- * const { mutate, loading, error, onDone } = useAddParticipantToChatMutation({
+ * const { mutate, loading, error, onDone } = useMarkChatReadMutation({
  *   variables: {
- *     input: // value for 'input'
+ *     chatId: // value for 'chatId'
  *   },
  * });
  */
-export function useAddParticipantToChatMutation(
+export function useMarkChatReadMutation(
   options:
-    | VueApolloComposable.UseMutationOptions<
-        AddParticipantToChatMutation,
-        AddParticipantToChatMutationVariables
-      >
+    | VueApolloComposable.UseMutationOptions<MarkChatReadMutation, MarkChatReadMutationVariables>
     | ReactiveFunction<
-        VueApolloComposable.UseMutationOptions<
-          AddParticipantToChatMutation,
-          AddParticipantToChatMutationVariables
-        >
+        VueApolloComposable.UseMutationOptions<MarkChatReadMutation, MarkChatReadMutationVariables>
       > = {},
 ) {
-  return VueApolloComposable.useMutation<
-    AddParticipantToChatMutation,
-    AddParticipantToChatMutationVariables
-  >(AddParticipantToChatDocument, options)
+  return VueApolloComposable.useMutation<MarkChatReadMutation, MarkChatReadMutationVariables>(
+    MarkChatReadDocument,
+    options,
+  )
 }
-export type AddParticipantToChatMutationCompositionFunctionResult =
-  VueApolloComposable.UseMutationReturn<
-    AddParticipantToChatMutation,
-    AddParticipantToChatMutationVariables
-  >
+export type MarkChatReadMutationCompositionFunctionResult = VueApolloComposable.UseMutationReturn<
+  MarkChatReadMutation,
+  MarkChatReadMutationVariables
+>

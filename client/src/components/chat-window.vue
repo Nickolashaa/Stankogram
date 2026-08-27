@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue"
+import { computed, onMounted, ref, watch } from "vue"
 import { storeToRefs } from "pinia"
 import { useInfiniteScroll } from "@vueuse/core"
 import { useMessageStore } from "@/stores/messages"
@@ -70,6 +70,15 @@ onMounted(async () => {
   await messageStore.fetchMessages(PAGE_SIZE, 0)
   infiniteScroll.reset()
 })
+
+watch(
+  () => messages.value[0]?.id,
+  (newestMessageId) => {
+    if (newestMessageId !== undefined) {
+      chatStore.markChatRead(props.chatId)
+    }
+  },
+)
 
 async function handleSubmit() {
   const value = text.value.trim()
