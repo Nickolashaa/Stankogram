@@ -8,6 +8,7 @@ from ...types.chats import (
     Chat,
     ChatParticipant,
     ChatParticipantIn,
+    ChatUpdateIn,
     PrivateChatIn,
     PublicChatIn,
 )
@@ -89,6 +90,26 @@ class ChatMutation:
         except ObjectAlreadyExists as e:
             await info.context.session.rollback()
             return ObjectAlreadyExistsError.from_service_exception(e)
+
+    @strawberry.mutation(permission_classes=[IsAuthenticated, IsChatAdmin])
+    async def update_chat(
+        self,
+        info: AuthorizedAppInfo,
+        chat_id: int,
+        input: ChatUpdateIn,
+    ) -> Chat | InvalidInputError | ObjectNotFoundError:
+        try:
+            instance = await info.context.services.chat_service.update(
+                id=chat_id, **input.to_service_params()
+            )
+            await info.context.session.commit()
+            return Chat.from_schema(instance)
+        except InvalidInput as e:
+            await info.context.session.rollback()
+            return InvalidInputError.from_service_exception(e)
+        except ObjectNotFound as e:
+            await info.context.session.rollback()
+            return ObjectNotFoundError.from_service_exception(e)
 
     @strawberry.mutation(permission_classes=[IsAuthenticated, IsChatAdmin])
     async def add_participant_to_chat(

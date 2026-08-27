@@ -3,6 +3,7 @@ from .inputs import (
     ChatFiltersIn,
     ChatParticipantFiltersIn,
     ChatParticipantIn,
+    ChatUpdateIn,
     PrivateChatIn,
     PublicChatIn,
 )
@@ -19,5 +20,6 @@ __all__ = (
     "PublicChatIn",
     "ChatsMeta",
     "ChatParticipantIn",
+    "ChatUpdateIn",
     "PrivateChatIn",
 )

@@ -1,6 +1,6 @@
 from typing import Unpack
 
-from sqlalchemy import Select, insert, select
+from sqlalchemy import Select, insert, select, update
 from sqlalchemy.exc import IntegrityError
 
 from ...database.models.chats import Chat
@@ -8,7 +8,7 @@ from ...enums.chats import ChatType
 from ..base import BasePagination, BaseService
 from ..exceptions import InvalidInput, ObjectNotFound
 from .schemas import ChatResponse
-from .types import ChatCreateParams, ChatGetListFilters
+from .types import ChatCreateParams, ChatGetListFilters, ChatUpdateParams
 
 
 class ChatService(BaseService):
@@ -35,6 +35,21 @@ class ChatService(BaseService):
             res = await self._session.execute(stmt)
         except IntegrityError:
             raise ObjectNotFound(f"Chat with id {id} not found")
+
+        return ChatResponse.model_validate(res.scalar_one())
+
+    async def update(
+        self,
+        id: int,
+        **data: Unpack[ChatUpdateParams],
+    ) -> ChatResponse:
+        chat = await self.get(id)
+        if chat.type == ChatType.PRIVATE:
+            raise InvalidInput("Private chat cannot have title")
+
+        stmt = update(Chat).where(Chat.id == id).values(**data).returning(Chat)
+
+        res = await self._session.execute(stmt)
 
         return ChatResponse.model_validate(res.scalar_one())
 
