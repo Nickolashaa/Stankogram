@@ -4,20 +4,28 @@ import { storeToRefs } from "pinia"
 import { useInfiniteScroll } from "@vueuse/core"
 import { useMessageStore } from "@/stores/messages"
 import { useAuthStore } from "@/stores/auth"
-import { useChatStore, type ChatParticipantItem } from "@/stores/chats"
+import { useChatStore, type ChatParticipantItem, type ChatSummary } from "@/stores/chats"
+import { EChatType } from "@/graphql/base-types"
 import { notify } from "@/lib/notify"
-import { shortName, formatTime } from "@/lib/format"
+import { shortName, formatTime, chatInitials } from "@/lib/format"
 import { participantBadges, userBadges } from "@/lib/badges"
 import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
 import Input from "@/components/input.vue"
 import Button from "@/components/button.vue"
 import Badge from "@/components/badge.vue"
 import NavIcon from "@/components/nav-icon.vue"
+import Avatar from "@/components/avatar.vue"
 
 const PAGE_SIZE = 30
 
 const props = defineProps<{
   chatId: number
+  chat?: ChatSummary | null
+}>()
+
+const emit = defineEmits<{
+  back: []
+  "open-info": []
 }>()
 
 const messageStore = useMessageStore()
@@ -99,8 +107,40 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="flex h-full flex-1 flex-col">
-    <div ref="scrollContainer" class="flex flex-1 flex-col-reverse gap-3 overflow-y-auto px-6 py-4">
+  <div class="flex h-full w-full flex-1 flex-col">
+    <div class="flex shrink-0 items-center gap-3 border-b border-second/15 px-4 py-3 lg:px-6">
+      <button
+        type="button"
+        class="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-second transition-colors duration-150 hover:bg-accent/5 hover:text-main lg:hidden"
+        aria-label="Назад к чатам"
+        @click="emit('back')"
+      >
+        <NavIcon name="arrow-right" :size="18" class="rotate-180" />
+      </button>
+
+      <button
+        type="button"
+        class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
+        @click="emit('open-info')"
+      >
+        <Avatar :label="chatInitials(chat?.title ?? '')" />
+        <span class="flex min-w-0 flex-col">
+          <span class="truncate text-[15px] font-semibold text-main">{{ chat?.title }}</span>
+          <span class="truncate text-xs text-second">
+            {{
+              chat?.type === EChatType.Public
+                ? `${chat.participants.length} участников`
+                : "Личный чат"
+            }}
+          </span>
+        </span>
+      </button>
+    </div>
+
+    <div
+      ref="scrollContainer"
+      class="flex flex-1 flex-col-reverse gap-3 overflow-y-auto px-4 py-3 lg:px-6 lg:py-4"
+    >
       <div
         v-for="message in messages"
         :key="message.id"
@@ -139,14 +179,14 @@ async function handleSubmit() {
 
     <div
       v-if="isMuted"
-      class="flex shrink-0 items-center justify-center gap-2 border-t border-second/15 px-6 py-4 text-sm text-second"
+      class="flex shrink-0 items-center justify-center gap-2 border-t border-second/15 px-4 py-3 text-sm text-second lg:px-6 lg:py-4"
     >
       <NavIcon name="mute" :size="16" />
       Вы не можете отправлять сообщения в этом чате
     </div>
     <form
       v-else
-      class="flex shrink-0 items-center gap-3 border-t border-second/15 px-6 py-4"
+      class="flex shrink-0 items-center gap-3 border-t border-second/15 px-4 py-3 lg:px-6 lg:py-4"
       @submit.prevent="handleSubmit"
     >
       <Input v-model="text" placeholder="Написать сообщение..." class="flex-1" />

@@ -8,7 +8,9 @@ const navItems: { to: string; label: string; icon: "users" | "chats" }[] = [
 </script>
 
 <template>
-  <nav class="flex w-56 shrink-0 flex-col gap-1 border-r border-second/10 bg-card px-3 py-8">
+  <nav
+    class="flex shrink-0 gap-1 overflow-x-auto border-b border-second/10 bg-card px-3 py-3 lg:w-56 lg:flex-col lg:overflow-visible lg:border-r lg:border-b-0 lg:py-8"
+  >
     <RouterLink
       v-for="item in navItems"
       :key="item.to"
@@ -18,7 +20,7 @@ const navItems: { to: string; label: string; icon: "users" | "chats" }[] = [
     >
       <a
         :href="href"
-        class="flex cursor-pointer items-center gap-3 rounded-input px-3 py-2.5 text-[15px] font-medium transition-colors duration-150"
+        class="flex shrink-0 cursor-pointer items-center gap-3 rounded-input px-3 py-2.5 text-[15px] font-medium transition-colors duration-150"
         :class="isActive ? 'text-main' : 'text-second hover:bg-accent/5 hover:text-main'"
         @click="navigate"
       >

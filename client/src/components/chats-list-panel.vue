@@ -14,6 +14,7 @@ const PAGE_SIZE = 30
 
 defineProps<{
   activeChatId: number | null
+  mobileHidden?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -64,7 +65,10 @@ function lastMessagePreview(chat: (typeof chats.value)[number]) {
 </script>
 
 <template>
-  <div class="flex h-full w-80 shrink-0 flex-col border-r border-second/15 bg-card">
+  <div
+    class="h-full w-full shrink-0 flex-col border-second/15 bg-card lg:flex lg:w-80 lg:border-r"
+    :class="mobileHidden ? 'hidden' : 'flex'"
+  >
     <div
       class="flex shrink-0 items-center justify-between gap-2 border-b border-second/15 px-5 py-5"
     >
@@ -77,7 +81,7 @@ function lastMessagePreview(chat: (typeof chats.value)[number]) {
       />
     </div>
 
-    <div ref="scrollContainer" class="flex-1 overflow-y-auto px-2 py-2">
+    <div ref="scrollContainer" class="flex-1 overflow-y-auto px-2 pt-2 pb-20 lg:pb-2">
       <button
         v-for="chat in chats"
         :key="chat.id"

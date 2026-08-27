@@ -74,7 +74,7 @@ async function startChat(user: UserFieldsFragment) {
 </script>
 
 <template>
-  <div class="flex animate-appear flex-col gap-6 p-10">
+  <div class="flex animate-appear flex-col gap-6 p-6 sm:p-10">
     <h1 class="m-0 text-2xl font-semibold text-main">Пользователи</h1>
 
     <Input v-model="searchQuery" placeholder="Имя, фамилия, email..." />
@@ -87,11 +87,11 @@ async function startChat(user: UserFieldsFragment) {
       <div
         v-for="user in otherUsers"
         :key="user.id"
-        class="flex items-center justify-between gap-4 rounded-card bg-card px-5 py-4 shadow-card"
+        class="flex flex-col gap-4 rounded-card bg-card px-5 py-4 shadow-card sm:flex-row sm:items-center sm:justify-between"
       >
-        <div class="flex flex-col gap-1.5">
-          <span class="text-[15px] font-medium text-main">{{ fullName(user) }}</span>
-          <span class="text-sm text-second">{{ user.email }}</span>
+        <div class="flex min-w-0 flex-col gap-1.5">
+          <span class="truncate text-[15px] font-medium text-main">{{ fullName(user) }}</span>
+          <span class="truncate text-sm text-second">{{ user.email }}</span>
           <div class="flex flex-wrap gap-1.5">
             <Badge
               v-for="badge in userBadges(user)"
@@ -105,6 +105,7 @@ async function startChat(user: UserFieldsFragment) {
           <Button
             icon="chats"
             :short-mode="false"
+            class="w-full sm:w-auto"
             :disabled="startingChatWithUserId === user.id"
             @click="startChat(user)"
           >

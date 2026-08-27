@@ -32,7 +32,7 @@ onMounted(async () => {
 <template>
   <main>
     <div
-      class="flex w-full max-w-[380px] animate-appear flex-col gap-6 rounded-card bg-card px-10 py-12 shadow-card text-center"
+      class="mx-4 flex w-full max-w-[380px] animate-appear flex-col gap-6 rounded-card bg-card px-6 py-10 text-center shadow-card sm:px-10 sm:py-12"
     >
       <AppBrand />
 

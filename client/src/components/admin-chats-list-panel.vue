@@ -9,6 +9,7 @@ const PAGE_SIZE = 30
 
 defineProps<{
   activeChatId: number | null
+  mobileHidden?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -42,7 +43,10 @@ const infiniteScroll = useInfiniteScroll(
 </script>
 
 <template>
-  <div class="flex h-full w-80 shrink-0 flex-col overflow-hidden rounded-card bg-card shadow-card">
+  <div
+    class="h-full w-full shrink-0 flex-col overflow-hidden rounded-card bg-card shadow-card lg:flex lg:w-80"
+    :class="mobileHidden ? 'hidden' : 'flex'"
+  >
     <div class="shrink-0 border-b border-second/15 px-5 py-5">
       <h2 class="m-0 text-lg font-semibold text-main">Групповые чаты</h2>
       <span class="text-sm text-second">Всего: {{ adminTotalCount }}</span>

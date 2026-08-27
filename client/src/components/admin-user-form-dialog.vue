@@ -64,7 +64,7 @@ function handleSubmit() {
     @click.self="handleClose"
   >
     <form
-      class="flex w-full max-w-md flex-col gap-4 rounded-card bg-card p-8 shadow-card"
+      class="flex max-h-[85vh] w-full max-w-md flex-col gap-4 overflow-y-auto rounded-card bg-card p-5 shadow-card sm:p-8"
       @submit.prevent="handleSubmit"
     >
       <h2 class="m-0 text-xl font-semibold text-main">{{ title }}</h2>

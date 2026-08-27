@@ -102,7 +102,7 @@ async function handleSubmit() {
     @click.self="handleClose"
   >
     <form
-      class="flex max-h-[85vh] w-full max-w-md flex-col gap-5 rounded-card bg-card p-8 shadow-card"
+      class="flex max-h-[85vh] w-full max-w-md flex-col gap-5 overflow-y-auto rounded-card bg-card p-5 shadow-card sm:p-8"
       @submit.prevent="handleSubmit"
     >
       <div class="flex items-center justify-between gap-4">

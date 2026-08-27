@@ -62,10 +62,14 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
     class="fixed inset-0 z-50 flex animate-appear items-center justify-center bg-black/40 px-4"
     @click.self="handleClose"
   >
-    <div class="flex h-[92vh] w-full max-w-6xl overflow-hidden rounded-card bg-card shadow-card">
-      <div class="flex w-96 shrink-0 flex-col border-r border-second/15">
+    <div
+      class="flex h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-card bg-card shadow-card lg:flex-row"
+    >
+      <div
+        class="flex min-h-0 w-full flex-1 flex-col border-second/15 lg:w-96 lg:flex-none lg:border-r"
+      >
         <div
-          class="flex shrink-0 items-center justify-between gap-4 border-b border-second/15 px-6 py-5"
+          class="flex shrink-0 items-center justify-between gap-4 border-b border-second/15 px-4 py-5 lg:px-6"
         >
           <div class="flex flex-col gap-0.5">
             <h2 class="m-0 text-lg font-semibold text-main">Цветовая тема</h2>
@@ -81,7 +85,7 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
           </button>
         </div>
 
-        <div class="flex shrink-0 gap-1 rounded-input bg-second/10 mx-6 my-4 p-1">
+        <div class="mx-4 my-4 flex shrink-0 gap-1 rounded-input bg-second/10 p-1 lg:mx-6">
           <button
             type="button"
             class="flex-1 cursor-pointer rounded-input px-3 py-1.5 text-sm font-medium transition-colors duration-150"
@@ -100,7 +104,7 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
           </button>
         </div>
 
-        <div class="flex flex-1 flex-col gap-1.5 overflow-y-auto px-6 pb-4">
+        <div class="flex flex-1 flex-col gap-1.5 overflow-y-auto px-4 pb-4 lg:px-6">
           <button
             v-for="item in COLOR_SCHEMES"
             :key="item.id"
@@ -132,7 +136,7 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
           </button>
         </div>
 
-        <div class="flex shrink-0 gap-2 border-t border-second/15 px-6 py-5">
+        <div class="flex shrink-0 gap-2 border-t border-second/15 px-4 py-5 lg:px-6">
           <Button
             variant="ghost"
             icon="cancel"
@@ -148,7 +152,7 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
         </div>
       </div>
 
-      <div class="flex flex-1 flex-col bg-second/5 p-6">
+      <div class="hidden flex-1 flex-col bg-second/5 p-6 lg:flex">
         <span class="mb-3 shrink-0 text-xs font-medium tracking-wide text-second uppercase">
           Пример чата
         </span>

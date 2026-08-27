@@ -185,14 +185,14 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
 
 <template>
   <div
-    class="flex h-full flex-col overflow-y-auto bg-card"
+    class="flex h-full w-full flex-col overflow-y-auto bg-card"
     :class="
       variant === 'page'
         ? 'flex-1 rounded-card shadow-card'
-        : 'w-80 shrink-0 border-l border-second/15'
+        : 'lg:w-80 lg:shrink-0 lg:border-l lg:border-second/15'
     "
   >
-    <div class="flex items-center gap-3 border-b border-second/15 px-6 py-6">
+    <div class="flex items-center gap-3 border-b border-second/15 px-4 py-5 lg:px-6 lg:py-6">
       <Avatar :label="chatInitials(chat.title)" size="lg" />
 
       <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -240,7 +240,7 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
       </div>
     </div>
 
-    <div class="flex flex-col gap-3 px-6 py-5">
+    <div class="flex flex-col gap-3 px-4 py-5 lg:px-6">
       <div class="flex items-center justify-between gap-2">
         <span class="text-xs font-medium uppercase tracking-wide text-second">
           Участники ({{ chat.participants.length }})
