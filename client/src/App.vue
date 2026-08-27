@@ -3,7 +3,6 @@ import { watch } from "vue"
 import { storeToRefs } from "pinia"
 import { Toaster } from "vue-sonner"
 import "vue-sonner/style.css"
-import ThemeToggle from "@/components/theme-toggle.vue"
 import { useAuthStore } from "@/stores/auth"
 import { router, PUBLIC_PATHS } from "@/router"
 
@@ -19,7 +18,6 @@ watch(accessToken, (value) => {
 
 <template>
   <RouterView />
-  <ThemeToggle />
   <Toaster position="top-center" />
 </template>
 <style scoped></style>

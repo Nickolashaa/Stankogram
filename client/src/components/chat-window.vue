@@ -6,7 +6,7 @@ import { useMessageStore } from "@/stores/messages"
 import { useAuthStore } from "@/stores/auth"
 import { useChatStore, type ChatParticipantItem } from "@/stores/chats"
 import { notify } from "@/lib/notify"
-import { fullName, formatTime } from "@/lib/format"
+import { shortName, formatTime } from "@/lib/format"
 import { participantBadges, userBadges } from "@/lib/badges"
 import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
 import Input from "@/components/input.vue"
@@ -110,7 +110,7 @@ async function handleSubmit() {
             v-if="message.user.id !== currentUser?.id"
             class="mb-1 flex flex-wrap items-center gap-1.5 text-xs font-medium opacity-70"
           >
-            <span>{{ fullName(message.user) }}</span>
+            <span>{{ shortName(message.user) }}</span>
             <Badge
               v-for="badge in badgesForSender(message.user)"
               :key="badge.label"

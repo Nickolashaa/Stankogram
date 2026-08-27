@@ -18,6 +18,7 @@ export type IconName =
   | "unmute"
   | "crown"
   | "code"
+  | "palette"
 
 const props = withDefaults(
   defineProps<{
@@ -134,6 +135,16 @@ const props = withDefaults(
     <template v-else-if="name === 'code'">
       <polyline points="16 18 22 12 16 6" />
       <polyline points="8 6 2 12 8 18" />
+    </template>
+
+    <template v-else-if="name === 'palette'">
+      <path
+        d="M12 22a10 10 0 1 1 0-20c5 0 9 3.58 9 8 0 2.5-2 4-4 4-1 0-1.5-.5-2.5-.5S13 14 12 14a2 2 0 0 1 0-4c.83 0 1.5-.67 1.5-1.5S12.83 7 12 7a5 5 0 0 0-5 5 5 5 0 0 0 5 5"
+      />
+      <circle cx="6.5" cy="11.5" r="1" fill="currentColor" />
+      <circle cx="9.5" cy="7.5" r="1" fill="currentColor" />
+      <circle cx="14.5" cy="7.5" r="1" fill="currentColor" />
+      <circle cx="17.5" cy="11.5" r="1" fill="currentColor" />
     </template>
   </svg>
 </template>

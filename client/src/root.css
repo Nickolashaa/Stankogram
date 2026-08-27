@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #eff2f0;
-  --color-main: #1e2422;
-  --color-second: #6b7a74;
-  --color-accent: #4f8a76;
+  --color-bg: #f3f6f2;
+  --color-main: #1b241f;
+  --color-second: #66766b;
+  --color-accent: #1f8f63;
   --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
-  --color-card: color-mix(in srgb, var(--color-bg) 96%, var(--color-main) 4%);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
 
   --font-sans: "Montserrat", sans-serif;
 
@@ -18,67 +18,395 @@
   --animate-appear: appear 0.4s ease-out;
 }
 
-:root.dark {
-  --color-bg: #121613;
-  --color-main: #e3e9e5;
-  --color-second: #8a9a92;
-  --color-accent: #6bb69b;
+/*
+  Selectors below deliberately avoid the `:root` qualifier (unlike a plain
+  Tailwind dark-mode setup) so the same theme rules can be scoped either to
+  <html> for the whole app, or to any nested container for an isolated
+  live preview (see theme-picker-panel.vue) without touching global state.
+
+  --color-card and --color-accent-hover are derived from --color-bg/--color-accent
+  via color-mix(). A derived custom property only recomputes for elements that
+  redeclare it themselves — descendants otherwise inherit the already-resolved
+  value from whichever ancestor declared it, ignoring their own overrides of
+  the inputs. So every block below repeats the same two formulas rather than
+  relying on the base @theme declaration further up the tree.
+*/
+
+.dark {
+  --color-bg: #0f1713;
+  --color-main: #e6f0ea;
+  --color-second: #8fa89a;
+  --color-accent: #4cc794;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
 }
 
-:root[data-scheme="ocean"] {
-  --color-bg: #eef2f6;
-  --color-main: #1a2430;
-  --color-second: #64748b;
-  --color-accent: #3d7dd8;
+/*
+  "emerald" is also the base @theme default, but it still needs its own
+  [data-scheme="emerald"] rules below — the base @theme block only matches
+  :root/:host, so a nested preview container carrying data-scheme="emerald"
+  would otherwise match no local rule at all and silently inherit whatever
+  the real ancestor theme happens to be.
+*/
+
+[data-scheme="emerald"] {
+  --color-bg: #f3f6f2;
+  --color-main: #1b241f;
+  --color-second: #66766b;
+  --color-accent: #1f8f63;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
 }
 
-:root[data-scheme="ocean"].dark {
-  --color-bg: #10161f;
-  --color-main: #e2e8f0;
-  --color-second: #8592a6;
-  --color-accent: #5b9bf0;
+[data-scheme="emerald"].dark {
+  --color-bg: #0f1713;
+  --color-main: #e6f0ea;
+  --color-second: #8fa89a;
+  --color-accent: #4cc794;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
 }
 
-:root[data-scheme="violet"] {
-  --color-bg: #f1eff6;
-  --color-main: #241f2e;
-  --color-second: #79728a;
-  --color-accent: #7c5cd6;
+[data-scheme="midnight"] {
+  --color-bg: #f2f2fa;
+  --color-main: #1c1e33;
+  --color-second: #6b6e93;
+  --color-accent: #4448c9;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
 }
 
-:root[data-scheme="violet"].dark {
-  --color-bg: #17131f;
-  --color-main: #e7e2f0;
-  --color-second: #948da8;
-  --color-accent: #9b7ef0;
+[data-scheme="midnight"].dark {
+  --color-bg: #0d0e1a;
+  --color-main: #e7e8f6;
+  --color-second: #9a9dc7;
+  --color-accent: #7478f2;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
 }
 
-:root[data-scheme="sunset"] {
-  --color-bg: #f6f1ec;
-  --color-main: #2c2018;
-  --color-second: #8a7a6b;
-  --color-accent: #d97a3f;
+[data-scheme="terracotta"] {
+  --color-bg: #faf4ee;
+  --color-main: #2c2015;
+  --color-second: #8a7460;
+  --color-accent: #b8551f;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
 }
 
-:root[data-scheme="sunset"].dark {
-  --color-bg: #1c1510;
-  --color-main: #f0e6da;
-  --color-second: #a8927e;
-  --color-accent: #f0954f;
+[data-scheme="terracotta"].dark {
+  --color-bg: #1c140d;
+  --color-main: #f2e6da;
+  --color-second: #b89b82;
+  --color-accent: #ea8148;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
 }
 
-:root[data-scheme="rose"] {
-  --color-bg: #f6eef1;
-  --color-main: #2c1a20;
-  --color-second: #8a6b74;
-  --color-accent: #d9456f;
+[data-scheme="coral"] {
+  --color-bg: #f1faf8;
+  --color-main: #122622;
+  --color-second: #5c7c76;
+  --color-accent: #d85f45;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
 }
 
-:root[data-scheme="rose"].dark {
-  --color-bg: #1c1015;
-  --color-main: #f0dde2;
-  --color-second: #a87e8a;
-  --color-accent: #f06690;
+[data-scheme="coral"].dark {
+  --color-bg: #0d1917;
+  --color-main: #e6f5f1;
+  --color-second: #85a49d;
+  --color-accent: #ff8a6b;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="lavender"] {
+  --color-bg: #f7f3fb;
+  --color-main: #241b30;
+  --color-second: #7c6f8f;
+  --color-accent: #7f4fc4;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="lavender"].dark {
+  --color-bg: #150f1d;
+  --color-main: #ece5f5;
+  --color-second: #a598b8;
+  --color-accent: #ac86e6;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="graphite"] {
+  --color-bg: #f4f4f5;
+  --color-main: #17181a;
+  --color-second: #6b7280;
+  --color-accent: #2454d6;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="graphite"].dark {
+  --color-bg: #0a0a0b;
+  --color-main: #f4f4f5;
+  --color-second: #9ca3af;
+  --color-accent: #5c8cf0;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="amber"] {
+  --color-bg: #fbf6ec;
+  --color-main: #2a2014;
+  --color-second: #8c7a5c;
+  --color-accent: #ad7311;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="amber"].dark {
+  --color-bg: #191307;
+  --color-main: #f3ead8;
+  --color-second: #b8a17d;
+  --color-accent: #f0b23f;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="rose"] {
+  --color-bg: #fbf1f4;
+  --color-main: #2c1620;
+  --color-second: #8a6675;
+  --color-accent: #b82b5d;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="rose"].dark {
+  --color-bg: #1a0e13;
+  --color-main: #f3e0e6;
+  --color-second: #b28793;
+  --color-accent: #ea6b96;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="teal"] {
+  --color-bg: #eef7f7;
+  --color-main: #102423;
+  --color-second: #5c7d7c;
+  --color-accent: #12766e;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="teal"].dark {
+  --color-bg: #0a1716;
+  --color-main: #ddf1ef;
+  --color-second: #82a19f;
+  --color-accent: #35bdb0;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="turquoise"] {
+  --color-bg: #e9fbf7;
+  --color-main: #072420;
+  --color-second: #4d7d70;
+  --color-accent: #049688;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="turquoise"].dark {
+  --color-bg: #061815;
+  --color-main: #d3f7ee;
+  --color-second: #74aa9c;
+  --color-accent: #16d9bd;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="slate"] {
+  --color-bg: #f2f4f7;
+  --color-main: #1b232e;
+  --color-second: #64707e;
+  --color-accent: #45607e;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="slate"].dark {
+  --color-bg: #10151b;
+  --color-main: #e6ebf1;
+  --color-second: #8b98a8;
+  --color-accent: #6e93b8;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="plum"] {
+  --color-bg: #f8f2f8;
+  --color-main: #2a1a2c;
+  --color-second: #816d84;
+  --color-accent: #8a3a82;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="plum"].dark {
+  --color-bg: #180f1a;
+  --color-main: #f0e3f0;
+  --color-second: #a992ac;
+  --color-accent: #c164ba;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="wine"] {
+  --color-bg: #f9f1f1;
+  --color-main: #2b1416;
+  --color-second: #8a6669;
+  --color-accent: #7a1f2b;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="wine"].dark {
+  --color-bg: #1a0d0e;
+  --color-main: #f3e2e3;
+  --color-second: #b28a8d;
+  --color-accent: #c94655;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="crimson"] {
+  --color-bg: #fdf1f0;
+  --color-main: #2c1210;
+  --color-second: #8a6863;
+  --color-accent: #c62828;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="crimson"].dark {
+  --color-bg: #1c0f0d;
+  --color-main: #f5e3e1;
+  --color-second: #b8908a;
+  --color-accent: #ef5350;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="olive"] {
+  --color-bg: #f6f6ec;
+  --color-main: #23240f;
+  --color-second: #757451;
+  --color-accent: #6b7024;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="olive"].dark {
+  --color-bg: #16160a;
+  --color-main: #eeeedb;
+  --color-second: #a5a380;
+  --color-accent: #a3ab3f;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="mustard"] {
+  --color-bg: #fbf7e8;
+  --color-main: #2c2409;
+  --color-second: #8a7c4c;
+  --color-accent: #9c7615;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="mustard"].dark {
+  --color-bg: #1a1608;
+  --color-main: #f5eed7;
+  --color-second: #b8a878;
+  --color-accent: #e8b73f;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="mint"] {
+  --color-bg: #eefaf3;
+  --color-main: #12261c;
+  --color-second: #5e8272;
+  --color-accent: #2fa876;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="mint"].dark {
+  --color-bg: #0a1712;
+  --color-main: #dcf3e7;
+  --color-second: #85a89a;
+  --color-accent: #4fd39c;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="peach"] {
+  --color-bg: #fdf3ee;
+  --color-main: #2c1912;
+  --color-second: #8a6f60;
+  --color-accent: #d9714a;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="peach"].dark {
+  --color-bg: #1c110b;
+  --color-main: #f5e4da;
+  --color-second: #b89988;
+  --color-accent: #f18e63;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="copper"] {
+  --color-bg: #fbf3ec;
+  --color-main: #2a1a10;
+  --color-second: #8a715e;
+  --color-accent: #a85a28;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="copper"].dark {
+  --color-bg: #19110a;
+  --color-main: #f2e3d6;
+  --color-second: #b89a82;
+  --color-accent: #d68445;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="sand"] {
+  --color-bg: #f8f5ee;
+  --color-main: #26221a;
+  --color-second: #857c6c;
+  --color-accent: #7a6340;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
+}
+
+[data-scheme="sand"].dark {
+  --color-bg: #17140f;
+  --color-main: #efe9dd;
+  --color-second: #a89b85;
+  --color-accent: #baa27a;
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 85%, black);
+  --color-card: color-mix(in srgb, var(--color-bg) 90%, var(--color-main) 10%);
 }
 
 @keyframes appear {
@@ -97,6 +425,7 @@ body {
   background-color: var(--color-bg);
   font-family: var(--font-sans);
   font-style: normal;
+  font-weight: 480;
   font-size: 100%;
   transition:
     background-color 0.2s ease,

@@ -4,7 +4,7 @@ import { storeToRefs } from "pinia"
 import { useRouter } from "vue-router"
 import { useInfiniteScroll } from "@vueuse/core"
 import { useChatStore } from "@/stores/chats"
-import { fullName, formatTime } from "@/lib/format"
+import { shortName, formatTime } from "@/lib/format"
 import Button from "@/components/button.vue"
 import CreateGroupChatDialog from "@/components/create-group-chat-dialog.vue"
 
@@ -51,7 +51,7 @@ function lastMessagePreview(chat: (typeof chats.value)[number]) {
   if (!message) {
     return "Сообщений пока нет"
   }
-  return `${fullName(message.user)}: ${message.text}`
+  return `${shortName(message.user)}: ${message.text}`
 }
 </script>
 
