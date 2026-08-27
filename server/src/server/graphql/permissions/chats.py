@@ -42,7 +42,10 @@ class IsChatParticipant(BasePermission):
         try:
             chat_id: int = kwargs["filters"].chat_id
         except KeyError:
-            chat_id: int = source.id
+            explicit_chat_id = kwargs.get("chat_id")
+            chat_id: int = (
+                explicit_chat_id if explicit_chat_id is not None else source.id
+            )
 
         link = await info.context.services.chat_participant_service.get_or_none(
             chat_id=chat_id,
