@@ -3,7 +3,8 @@ import { onMounted, ref } from "vue"
 import { storeToRefs } from "pinia"
 import { useRouter } from "vue-router"
 import { useInfiniteScroll } from "@vueuse/core"
-import { useChatStore } from "@/stores/chats"
+import { useChatStore, hasUnreadMessages } from "@/stores/chats"
+import { useAuthStore } from "@/stores/auth"
 import { shortName, formatTime, chatInitials } from "@/lib/format"
 import Button from "@/components/button.vue"
 import Avatar from "@/components/avatar.vue"
@@ -21,7 +22,13 @@ const emit = defineEmits<{
 
 const router = useRouter()
 const chatStore = useChatStore()
+const authStore = useAuthStore()
 const { chats, totalCount } = storeToRefs(chatStore)
+const { user: currentUser } = storeToRefs(authStore)
+
+function isUnread(chat: (typeof chats.value)[number]) {
+  return currentUser.value !== undefined && hasUnreadMessages(chat, currentUser.value.id)
+}
 
 const createGroupOpen = ref(false)
 
@@ -83,12 +90,25 @@ function lastMessagePreview(chat: (typeof chats.value)[number]) {
 
         <div class="flex min-w-0 flex-1 flex-col gap-0.5">
           <div class="flex items-center justify-between gap-2">
-            <span class="truncate text-[15px] font-medium text-main">{{ chat.title }}</span>
+            <span
+              class="truncate text-[15px] text-main"
+              :class="isUnread(chat) ? 'font-semibold' : 'font-medium'"
+            >
+              {{ chat.title }}
+            </span>
             <span v-if="chat.lastMessage" class="shrink-0 text-xs text-second">
               {{ formatTime(chat.lastMessage.createdAt) }}
             </span>
           </div>
-          <span class="truncate text-sm text-second">{{ lastMessagePreview(chat) }}</span>
+          <div class="flex items-center justify-between gap-2">
+            <span
+              class="truncate text-sm"
+              :class="isUnread(chat) ? 'font-medium text-main' : 'text-second'"
+            >
+              {{ lastMessagePreview(chat) }}
+            </span>
+            <span v-if="isUnread(chat)" class="h-2 w-2 shrink-0 rounded-full bg-accent" />
+          </div>
         </div>
       </button>
 

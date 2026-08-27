@@ -7,6 +7,7 @@ import { UpdateChatDocument } from "@/graphql/mutations/chats/update-chat.genera
 import { AddParticipantToChatDocument } from "@/graphql/mutations/chats/add-participant-to-chat.generated"
 import { RemoveParticipantFromChatDocument } from "@/graphql/mutations/chats/remove-participant-from-chat.generated"
 import { UpdateChatParticipantPermissionsDocument } from "@/graphql/mutations/chats/update-chat-participant-permissions.generated"
+import { MarkChatReadDocument } from "@/graphql/mutations/chats/mark-chat-read.generated"
 import { MeChatsDocument } from "@/graphql/queries/chats/me-chats.generated"
 import { ChatsDocument } from "@/graphql/queries/chats/chats.generated"
 import type { ChatFieldsFragment } from "@/graphql/fragments/chats.generated"
@@ -20,12 +21,27 @@ export type ChatParticipantItem = {
   id: number
   isAdmin: boolean
   isMuted: boolean
+  lastReadAt: string | null
   user: UserFieldsFragment
 }
 
 export type ChatSummary = ChatFieldsFragment & {
   participants: ChatParticipantItem[]
   lastMessage: (MessageFieldsFragment & { user: UserFieldsFragment }) | null
+}
+
+export function hasUnreadMessages(chat: ChatSummary, currentUserId: number): boolean {
+  if (chat.lastMessage === null) {
+    return false
+  }
+  const participant = chat.participants.find((item) => item.user.id === currentUserId)
+  if (participant === undefined) {
+    return false
+  }
+  if (participant.lastReadAt === null) {
+    return true
+  }
+  return new Date(chat.lastMessage.createdAt) > new Date(participant.lastReadAt)
 }
 
 export const useChatStore = defineStore("chats", () => {
@@ -234,6 +250,21 @@ export const useChatStore = defineStore("chats", () => {
     patchParticipant(chatId, result)
   }
 
+  async function markChatRead(chatId: number) {
+    const { data } = await apolloClient.mutate({
+      mutation: MarkChatReadDocument,
+      variables: { chatId },
+    })
+
+    const result = data?.markChatRead
+
+    if (result?.__typename !== "ChatParticipant") {
+      return
+    }
+
+    patchParticipant(chatId, result)
+  }
+
   function handleIncomingMessage(
     message: MessageFieldsFragment & { user: UserFieldsFragment; chat: { id: number } },
   ) {
@@ -268,6 +299,7 @@ export const useChatStore = defineStore("chats", () => {
     addParticipant,
     removeParticipant,
     setParticipantPermissions,
+    markChatRead,
     handleIncomingMessage,
   }
 })
