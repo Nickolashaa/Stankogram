@@ -9,13 +9,15 @@ type Chat implements IBaseType {
   updatedAt: DateTime!
   type: EChatType!
   title: String!
-  recipients: [User!]!
+  participants: [ChatParticipant!]!
   lastMessage: Message
 }
 
 input ChatFiltersIn {
   type: EChatType
 }
+
+union ChatInvalidInputErrorObjectNotFoundError = Chat | InvalidInputError | ObjectNotFoundError
 
 union ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError = Chat | InvalidInputError | ObjectNotFoundError | ObjectAlreadyExistsError
 
@@ -25,6 +27,8 @@ type ChatParticipant implements IBaseType & IUser & IChat {
   updatedAt: DateTime!
   user: User!
   chat: Chat!
+  isAdmin: Boolean!
+  isMuted: Boolean!
 }
 
 input ChatParticipantIn {
@@ -37,6 +41,10 @@ input ChatParticipantIn {
 union ChatParticipantObjectNotFoundError = ChatParticipant | ObjectNotFoundError
 
 union ChatParticipantObjectNotFoundErrorObjectAlreadyExistsErrorInvalidInputError = ChatParticipant | ObjectNotFoundError | ObjectAlreadyExistsError | InvalidInputError
+
+input ChatUpdateIn {
+  title: String!
+}
 
 type ChatsMeta implements IBaseMeta {
   count: Int!
@@ -136,6 +144,7 @@ type Mutation {
   userResetPasswordConfirm(id: Int!, code: String!): ObjectNotFoundError
   createPrivateChat(input: PrivateChatIn!): ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError!
   createPublicChat(input: PublicChatIn!): ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError!
+  updateChat(chatId: Int!, input: ChatUpdateIn!): ChatInvalidInputErrorObjectNotFoundError!
   addParticipantToChat(input: ChatParticipantIn!): ChatParticipantObjectNotFoundErrorObjectAlreadyExistsErrorInvalidInputError!
   removeParticipantFromChat(chatId: Int!, userId: Int!): Void
   updateChatParticipantPermissions(input: ChatParticipantIn!): ChatParticipantObjectNotFoundError!

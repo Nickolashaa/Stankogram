@@ -1,0 +1,14 @@
+mutation UpdateChat($chatId: Int!, $input: ChatUpdateIn!) {
+  updateChat(chatId: $chatId, input: $input) {
+    __typename
+    ... on Chat {
+      ...ChatFields
+    }
+    ... on InvalidInputError {
+      message
+    }
+    ... on ObjectNotFoundError {
+      message
+    }
+  }
+}

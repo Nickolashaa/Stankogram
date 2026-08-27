@@ -1,0 +1,28 @@
+query MeChats($pagination: BasePaginationIn, $filters: ChatFiltersIn) {
+  meChats(pagination: $pagination, filters: $filters) {
+    __typename
+    ... on ChatsMeta {
+      count
+      chats {
+        ...ChatFields
+        participants {
+          id
+          isAdmin
+          isMuted
+          user {
+            ...UserFields
+          }
+        }
+        lastMessage {
+          ...MessageFields
+          user {
+            ...UserFields
+          }
+        }
+      }
+    }
+    ... on UnauthorizedError {
+      message
+    }
+  }
+}

@@ -7,10 +7,10 @@ export const router = createRouter({
       path: "/",
       component: () => import("./views/main.vue"),
       children: [
-        { path: "", redirect: "/chats" },
-        { path: "chats", component: () => import("./views/chats.vue") },
+        { path: "", redirect: "/home" },
+        { path: "home", component: () => import("./views/home.vue") },
+        { path: "chats/:chatId?", component: () => import("./views/chats.vue") },
         { path: "users", component: () => import("./views/users.vue") },
-        { path: "profile", component: () => import("./views/profile.vue") },
         { path: "support", component: () => import("./views/support.vue") },
         {
           path: "admin",
@@ -19,6 +19,7 @@ export const router = createRouter({
           children: [
             { path: "", redirect: "/admin/users" },
             { path: "users", component: () => import("./views/admin-users.vue") },
+            { path: "chats/:chatId?", component: () => import("./views/admin-chats.vue") },
           ],
         },
       ],

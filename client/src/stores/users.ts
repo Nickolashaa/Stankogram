@@ -12,14 +12,19 @@ export const useUserStore = defineStore("users", () => {
   const users = ref<UserFieldsFragment[]>([])
   const totalCount = ref(0)
 
-  async function fetchUsers(filters: UserFiltersIn, limit: number, offset: number) {
+  async function fetchUsers(
+    filters: UserFiltersIn,
+    limit: number,
+    offset: number,
+    options: { append?: boolean } = {},
+  ) {
     const { data } = await apolloClient.query({
       query: UsersDocument,
       variables: { filters, pagination: { limit, offset } },
       fetchPolicy: "network-only",
     })
 
-    users.value = data.users.users
+    users.value = options.append ? [...users.value, ...data.users.users] : data.users.users
     totalCount.value = data.users.count
   }
 

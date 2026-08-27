@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue"
 import { storeToRefs } from "pinia"
+import { useInfiniteScroll } from "@vueuse/core"
 import { useUserStore } from "@/stores/users"
+import { fullName } from "@/lib/format"
 import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
 import type { EUserRole, UserIn } from "@/graphql/base-types"
 import Button from "@/components/button.vue"
@@ -19,7 +21,6 @@ const searchQuery = ref("")
 const roleFilter = ref<"" | EUserRole>("")
 const isAdminFilter = ref<"" | "true" | "false">("")
 
-const page = ref(1)
 const loading = ref(false)
 
 const filterQuery = computed(() => ({
@@ -28,23 +29,32 @@ const filterQuery = computed(() => ({
   isAdmin: isAdminFilter.value === "" ? undefined : isAdminFilter.value === "true",
 }))
 
-const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / PAGE_SIZE)))
-
 async function fetchUsers() {
   loading.value = true
   try {
-    await userStore.fetchUsers(filterQuery.value, PAGE_SIZE, (page.value - 1) * PAGE_SIZE)
+    await userStore.fetchUsers(filterQuery.value, PAGE_SIZE, 0)
   } finally {
     loading.value = false
   }
 }
 
-watch(filterQuery, () => {
-  page.value = 1
-  fetchUsers()
-})
+const infiniteScroll = useInfiniteScroll(
+  window,
+  async () => {
+    await userStore.fetchUsers(filterQuery.value, PAGE_SIZE, users.value.length, {
+      append: true,
+    })
+  },
+  {
+    distance: 200,
+    canLoadMore: () => !loading.value && users.value.length < totalCount.value,
+  },
+)
 
-watch(page, fetchUsers)
+watch(filterQuery, () => {
+  fetchUsers()
+  infiniteScroll.reset()
+})
 
 onMounted(fetchUsers)
 
@@ -88,11 +98,11 @@ async function handleSubmit(data: UserIn) {
 
   dialogOpen.value = false
   await fetchUsers()
+  infiniteScroll.reset()
 }
 
 async function handleDelete(user: UserFieldsFragment) {
-  const fullName = [user.surname, user.name].filter(Boolean).join(" ")
-  if (!window.confirm(`Удалить пользователя ${fullName}?`)) {
+  if (!window.confirm(`Удалить пользователя ${fullName(user)}?`)) {
     return
   }
 
@@ -105,6 +115,7 @@ async function handleDelete(user: UserFieldsFragment) {
 
   notify.success("Пользователь удалён")
   await fetchUsers()
+  infiniteScroll.reset()
 }
 </script>
 
@@ -127,25 +138,7 @@ async function handleDelete(user: UserFieldsFragment) {
 
     <div class="flex items-center justify-between text-sm text-second">
       <span>Всего: {{ totalCount }}</span>
-      <div class="flex items-center gap-3">
-        <button
-          type="button"
-          class="cursor-pointer text-second transition-colors duration-150 hover:text-main disabled:cursor-not-allowed disabled:opacity-40"
-          :disabled="page <= 1"
-          @click="page -= 1"
-        >
-          Назад
-        </button>
-        <span>{{ page }} / {{ totalPages }}</span>
-        <button
-          type="button"
-          class="cursor-pointer text-second transition-colors duration-150 hover:text-main disabled:cursor-not-allowed disabled:opacity-40"
-          :disabled="page >= totalPages"
-          @click="page += 1"
-        >
-          Далее
-        </button>
-      </div>
+      <span v-if="infiniteScroll.isLoading.value">Загрузка...</span>
     </div>
 
     <AdminUserFormDialog

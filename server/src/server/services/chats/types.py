@@ -14,3 +14,7 @@ class ChatGetListFilters(ChatFiltersParams):
 class ChatCreateParams(TypedDict):
     type: Required[ChatType]
     title: Required[str | None]
+
+
+class ChatUpdateParams(TypedDict):
+    title: Required[str]

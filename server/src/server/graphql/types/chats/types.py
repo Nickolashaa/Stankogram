@@ -6,11 +6,29 @@ from ....services.chats.participants.schemas import ChatParticipantResponse
 from ....services.chats.schemas import ChatResponse
 from ...context import AppInfo, AuthorizedAppInfo
 from ...permissions.chats import IsChatParticipant
-from ..auth import IUser, User
+from ..auth import IUser
 from ..base import IBaseMeta, IBaseType
 from ..messages import Message
 from .enums import EChatType
 from .interfaces import IChat
+
+
+@strawberry.type
+class ChatParticipant(IBaseType, IUser, IChat):
+    is_admin: bool
+    is_muted: bool
+
+    @classmethod
+    def from_schema(cls, instance: ChatParticipantResponse) -> Self:
+        return cls(
+            id=instance.id,
+            user_id=instance.user_id,
+            chat_id=instance.chat_id,
+            is_admin=instance.is_admin,
+            is_muted=instance.is_muted,
+            created_at=instance.created_at,
+            updated_at=instance.updated_at,
+        )
 
 
 @strawberry.type
@@ -31,13 +49,11 @@ class Chat(IBaseType):
         return participant.full_name
 
     @strawberry.field
-    async def recipients(self, info: AppInfo) -> list[User]:
+    async def participants(self, info: AppInfo) -> list[ChatParticipant]:
         links = await info.context.services.chat_participant_service.get_list(
             chat_id=self.id
         )
-        return await info.context.data_loaders.user_loader.load_many(
-            [link.user_id for link in links]
-        )
+        return [ChatParticipant.from_schema(link) for link in links]
 
     @strawberry.field(permission_classes=[IsChatParticipant])
     async def last_message(self, info: AppInfo) -> Message | None:
@@ -51,19 +67,6 @@ class Chat(IBaseType):
             id=instance.id,
             type=instance.type,
             public_title=instance.title,
-            created_at=instance.created_at,
-            updated_at=instance.updated_at,
-        )
-
-
-@strawberry.type
-class ChatParticipant(IBaseType, IUser, IChat):
-    @classmethod
-    def from_schema(cls, instance: ChatParticipantResponse) -> Self:
-        return cls(
-            id=instance.id,
-            user_id=instance.user_id,
-            chat_id=instance.chat_id,
             created_at=instance.created_at,
             updated_at=instance.updated_at,
         )

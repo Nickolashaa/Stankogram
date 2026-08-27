@@ -5,7 +5,11 @@ from ....services.chats.participants.types import (
     ChatParticipantCreateParams,
     ChatParticipantGetListFilters,
 )
-from ....services.chats.types import ChatCreateParams, ChatFiltersParams
+from ....services.chats.types import (
+    ChatCreateParams,
+    ChatFiltersParams,
+    ChatUpdateParams,
+)
 from .enums import EChatType
 
 
@@ -60,6 +64,14 @@ class PrivateChatIn:
             type=ChatType.PRIVATE,
             title=None,
         )
+
+
+@strawberry.input
+class ChatUpdateIn:
+    title: str
+
+    def to_service_params(self) -> ChatUpdateParams:
+        return ChatUpdateParams(title=self.title)
 
 
 @strawberry.input

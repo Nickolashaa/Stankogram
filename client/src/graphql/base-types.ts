@@ -23,7 +23,7 @@ export type Chat = IBaseType & {
   createdAt: Scalars["DateTime"]["output"]
   id: Scalars["Int"]["output"]
   lastMessage?: Maybe<Message>
-  recipients: Array<User>
+  participants: Array<ChatParticipant>
   title: Scalars["String"]["output"]
   type: EChatType
   updatedAt: Scalars["DateTime"]["output"]
@@ -32,6 +32,9 @@ export type Chat = IBaseType & {
 export type ChatFiltersIn = {
   type?: InputMaybe<EChatType>
 }
+
+export type ChatInvalidInputErrorObjectNotFoundError =
+  Chat | InvalidInputError | ObjectNotFoundError
 
 export type ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError =
   Chat | InvalidInputError | ObjectAlreadyExistsError | ObjectNotFoundError
@@ -43,6 +46,8 @@ export type ChatParticipant = IBaseType &
     chat: Chat
     createdAt: Scalars["DateTime"]["output"]
     id: Scalars["Int"]["output"]
+    isAdmin: Scalars["Boolean"]["output"]
+    isMuted: Scalars["Boolean"]["output"]
     updatedAt: Scalars["DateTime"]["output"]
     user: User
   }
@@ -58,6 +63,10 @@ export type ChatParticipantObjectNotFoundError = ChatParticipant | ObjectNotFoun
 
 export type ChatParticipantObjectNotFoundErrorObjectAlreadyExistsErrorInvalidInputError =
   ChatParticipant | InvalidInputError | ObjectAlreadyExistsError | ObjectNotFoundError
+
+export type ChatUpdateIn = {
+  title: Scalars["String"]["input"]
+}
 
 export type ChatsMeta = IBaseMeta & {
   __typename?: "ChatsMeta"
@@ -161,6 +170,7 @@ export type Mutation = {
   logout?: Maybe<Scalars["Void"]["output"]>
   refresh: JwTsUnauthorizedErrorObjectNotFoundError
   removeParticipantFromChat?: Maybe<Scalars["Void"]["output"]>
+  updateChat: ChatInvalidInputErrorObjectNotFoundError
   updateChatParticipantPermissions: ChatParticipantObjectNotFoundError
   userCreate: UserObjectAlreadyExistsError
   userDelete?: Maybe<Scalars["Void"]["output"]>
@@ -192,6 +202,11 @@ export type MutationLoginArgs = {
 export type MutationRemoveParticipantFromChatArgs = {
   chatId: Scalars["Int"]["input"]
   userId: Scalars["Int"]["input"]
+}
+
+export type MutationUpdateChatArgs = {
+  chatId: Scalars["Int"]["input"]
+  input: ChatUpdateIn
 }
 
 export type MutationUpdateChatParticipantPermissionsArgs = {

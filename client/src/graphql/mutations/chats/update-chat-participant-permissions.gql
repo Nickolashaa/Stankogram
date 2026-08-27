@@ -1,0 +1,16 @@
+mutation UpdateChatParticipantPermissions($input: ChatParticipantIn!) {
+  updateChatParticipantPermissions(input: $input) {
+    __typename
+    ... on ChatParticipant {
+      id
+      isAdmin
+      isMuted
+      user {
+        ...UserFields
+      }
+    }
+    ... on ObjectNotFoundError {
+      message
+    }
+  }
+}

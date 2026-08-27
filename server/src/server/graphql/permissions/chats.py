@@ -16,6 +16,9 @@ class IsChatAdmin(BasePermission):
     async def has_permission(
         self, source: Any, info: AuthorizedAppInfo, **kwargs: Any
     ) -> bool:
+        if info.context.current_user.is_admin:
+            return True
+
         try:
             chat_id: int = kwargs["input"].chat_id
         except KeyError:

@@ -1,0 +1,11 @@
+query Messages($filters: MessageFiltersIn!, $pagination: BasePaginationIn) {
+  messages(filters: $filters, pagination: $pagination) {
+    count
+    messages {
+      ...MessageFields
+      user {
+        ...UserFields
+      }
+    }
+  }
+}
