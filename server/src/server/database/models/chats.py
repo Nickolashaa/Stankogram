@@ -1,4 +1,6 @@
-from sqlalchemy import ForeignKey, UniqueConstraint
+from datetime import datetime
+
+from sqlalchemy import DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import expression
 
@@ -21,5 +23,6 @@ class ChatParticipant(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id, ondelete="CASCADE"))
     is_admin: Mapped[bool] = mapped_column(server_default=expression.false())
     is_muted: Mapped[bool] = mapped_column(server_default=expression.false())
+    last_read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     __table_args__ = (UniqueConstraint("user_id", "chat_id", name="uq_user_chat"),)
