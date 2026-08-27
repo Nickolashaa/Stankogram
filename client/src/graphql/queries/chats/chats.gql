@@ -1,0 +1,16 @@
+query Chats($pagination: BasePaginationIn, $filters: ChatFiltersIn) {
+  chats(pagination: $pagination, filters: $filters) {
+    count
+    chats {
+      ...ChatFields
+      participants {
+        id
+        isAdmin
+        isMuted
+        user {
+          ...UserFields
+        }
+      }
+    }
+  }
+}
