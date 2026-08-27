@@ -5,6 +5,7 @@ mutation AddParticipantToChat($input: ChatParticipantIn!) {
       id
       isAdmin
       isMuted
+      lastReadAt
       user {
         ...UserFields
       }

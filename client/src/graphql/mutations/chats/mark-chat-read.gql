@@ -1,5 +1,5 @@
-mutation UpdateChatParticipantPermissions($input: ChatParticipantIn!) {
-  updateChatParticipantPermissions(input: $input) {
+mutation MarkChatRead($chatId: Int!) {
+  markChatRead(chatId: $chatId) {
     __typename
     ... on ChatParticipant {
       id

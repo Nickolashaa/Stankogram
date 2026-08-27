@@ -48,6 +48,7 @@ export type ChatParticipant = IBaseType &
     id: Scalars["Int"]["output"]
     isAdmin: Scalars["Boolean"]["output"]
     isMuted: Scalars["Boolean"]["output"]
+    lastReadAt?: Maybe<Scalars["DateTime"]["output"]>
     updatedAt: Scalars["DateTime"]["output"]
     user: User
   }
@@ -168,6 +169,7 @@ export type Mutation = {
   createPublicChat: ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError
   login: JwTsObjectNotFoundError
   logout?: Maybe<Scalars["Void"]["output"]>
+  markChatRead: ChatParticipantObjectNotFoundError
   refresh: JwTsUnauthorizedErrorObjectNotFoundError
   removeParticipantFromChat?: Maybe<Scalars["Void"]["output"]>
   updateChat: ChatInvalidInputErrorObjectNotFoundError
@@ -197,6 +199,10 @@ export type MutationCreatePublicChatArgs = {
 
 export type MutationLoginArgs = {
   input: UserCredentialsIn
+}
+
+export type MutationMarkChatReadArgs = {
+  chatId: Scalars["Int"]["input"]
 }
 
 export type MutationRemoveParticipantFromChatArgs = {

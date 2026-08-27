@@ -7,6 +7,7 @@ query Chats($pagination: BasePaginationIn, $filters: ChatFiltersIn) {
         id
         isAdmin
         isMuted
+        lastReadAt
         user {
           ...UserFields
         }
