@@ -1,9 +1,10 @@
 from typing import Unpack
 
-from sqlalchemy import Select, insert, select, update
+from sqlalchemy import Select, func, insert, select, update
 from sqlalchemy.exc import IntegrityError
 
 from ...database.models.chats import Chat
+from ...database.models.messages import Message
 from ...enums.chats import ChatType
 from ..base import BasePagination, BaseService
 from ..exceptions import InvalidInput, ObjectNotFound
@@ -71,9 +72,24 @@ class ChatService(BaseService):
         pagination: BasePagination | None = None,
         **filters: Unpack[ChatGetListFilters],
     ) -> list[ChatResponse]:
-        stmt = select(Chat)
+        last_message_at = (
+            select(
+                Message.chat_id,
+                func.max(Message.created_at).label("last_message_at"),
+            )
+            .group_by(Message.chat_id)
+            .subquery()
+        )
+
+        stmt = select(Chat).outerjoin(
+            last_message_at, last_message_at.c.chat_id == Chat.id
+        )
 
         stmt = self._apply_filters(stmt=stmt, **filters)
+
+        stmt = stmt.order_by(
+            func.coalesce(last_message_at.c.last_message_at, Chat.created_at).desc()
+        )
 
         stmt = self._apply_pagination(stmt=stmt, pagination=pagination)
 
