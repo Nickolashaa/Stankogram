@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue"
 import { storeToRefs } from "pinia"
+import { useRouter } from "vue-router"
 import { useInfiniteScroll } from "@vueuse/core"
 import { useChatStore } from "@/stores/chats"
 import { fullName, formatTime } from "@/lib/format"
+import Button from "@/components/button.vue"
+import CreateGroupChatDialog from "@/components/create-group-chat-dialog.vue"
 
 const PAGE_SIZE = 30
 
@@ -15,8 +18,16 @@ const emit = defineEmits<{
   select: [chatId: number]
 }>()
 
+const router = useRouter()
 const chatStore = useChatStore()
 const { chats, totalCount } = storeToRefs(chatStore)
+
+const createGroupOpen = ref(false)
+
+function handleGroupCreated(chatId: number) {
+  createGroupOpen.value = false
+  router.push(`/chats/${chatId}`)
+}
 
 const scrollContainer = ref<HTMLElement | null>(null)
 
@@ -46,8 +57,16 @@ function lastMessagePreview(chat: (typeof chats.value)[number]) {
 
 <template>
   <div class="flex h-full w-80 shrink-0 flex-col border-r border-second/15 bg-card">
-    <div class="shrink-0 border-b border-second/15 px-5 py-5">
+    <div
+      class="flex shrink-0 items-center justify-between gap-2 border-b border-second/15 px-5 py-5"
+    >
       <h2 class="m-0 text-lg font-semibold text-main">Чаты</h2>
+      <Button
+        icon="plus"
+        title="Новая группа"
+        aria-label="Новая группа"
+        @click="createGroupOpen = true"
+      />
     </div>
 
     <div ref="scrollContainer" class="flex-1 overflow-y-auto">
@@ -76,5 +95,11 @@ function lastMessagePreview(chat: (typeof chats.value)[number]) {
         Загрузка...
       </div>
     </div>
+
+    <CreateGroupChatDialog
+      :open="createGroupOpen"
+      @close="createGroupOpen = false"
+      @created="handleGroupCreated"
+    />
   </div>
 </template>

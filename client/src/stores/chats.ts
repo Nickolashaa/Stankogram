@@ -2,6 +2,11 @@ import { defineStore } from "pinia"
 import { ref } from "vue"
 import { apolloClient } from "@/api"
 import { CreatePrivateChatDocument } from "@/graphql/mutations/chats/create-private-chat.generated"
+import { CreatePublicChatDocument } from "@/graphql/mutations/chats/create-public-chat.generated"
+import { UpdateChatDocument } from "@/graphql/mutations/chats/update-chat.generated"
+import { AddParticipantToChatDocument } from "@/graphql/mutations/chats/add-participant-to-chat.generated"
+import { RemoveParticipantFromChatDocument } from "@/graphql/mutations/chats/remove-participant-from-chat.generated"
+import { UpdateChatParticipantPermissionsDocument } from "@/graphql/mutations/chats/update-chat-participant-permissions.generated"
 import { MeChatsDocument } from "@/graphql/queries/chats/me-chats.generated"
 import type { ChatFieldsFragment } from "@/graphql/fragments/chats.generated"
 import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
@@ -82,6 +87,110 @@ export const useChatStore = defineStore("chats", () => {
     throw new Error(result?.message ?? "Failed to start chat")
   }
 
+  function patchChat(chatId: number, patch: Partial<ChatSummary>) {
+    const index = chats.value.findIndex((chat) => chat.id === chatId)
+    const current = chats.value[index]
+    if (current === undefined) {
+      return
+    }
+    const rest = [...chats.value]
+    rest[index] = { ...current, ...patch }
+    chats.value = rest
+  }
+
+  function patchParticipant(chatId: number, participant: ChatParticipantItem) {
+    const chat = chats.value.find((item) => item.id === chatId)
+    if (chat === undefined) {
+      return
+    }
+    const index = chat.participants.findIndex((item) => item.user.id === participant.user.id)
+    const participants =
+      index === -1
+        ? [...chat.participants, participant]
+        : chat.participants.map((item, i) => (i === index ? participant : item))
+    patchChat(chatId, { participants })
+  }
+
+  async function createGroupChat(title: string, participantIds: number[]): Promise<number> {
+    const { data } = await apolloClient.mutate({
+      mutation: CreatePublicChatDocument,
+      variables: { input: { title, participantIds } },
+    })
+
+    const result = data?.createPublicChat
+
+    if (result?.__typename === "Chat") {
+      chats.value = [result, ...chats.value]
+      totalCount.value += 1
+      return result.id
+    }
+
+    throw new Error(result?.message ?? "Failed to create chat")
+  }
+
+  async function updateChatTitle(chatId: number, title: string) {
+    const { data } = await apolloClient.mutate({
+      mutation: UpdateChatDocument,
+      variables: { chatId, input: { title } },
+    })
+
+    const result = data?.updateChat
+
+    if (result?.__typename !== "Chat") {
+      throw new Error(result?.message ?? "Failed to update chat")
+    }
+
+    patchChat(chatId, { title: result.title })
+  }
+
+  async function addParticipant(chatId: number, userId: number) {
+    const { data } = await apolloClient.mutate({
+      mutation: AddParticipantToChatDocument,
+      variables: { input: { chatId, userId, isAdmin: false, isMuted: false } },
+    })
+
+    const result = data?.addParticipantToChat
+
+    if (result?.__typename !== "ChatParticipant") {
+      throw new Error(result?.message ?? "Failed to add participant")
+    }
+
+    patchParticipant(chatId, result)
+  }
+
+  async function removeParticipant(chatId: number, userId: number) {
+    await apolloClient.mutate({
+      mutation: RemoveParticipantFromChatDocument,
+      variables: { chatId, userId },
+    })
+
+    const chat = chats.value.find((item) => item.id === chatId)
+    if (chat === undefined) {
+      return
+    }
+    patchChat(chatId, { participants: chat.participants.filter((p) => p.user.id !== userId) })
+  }
+
+  async function setParticipantPermissions(
+    chatId: number,
+    userId: number,
+    isAdmin: boolean,
+    isMuted: boolean,
+  ) {
+    const { data } = await apolloClient.mutate({
+      mutation: UpdateChatParticipantPermissionsDocument,
+      variables: { input: { chatId, userId, isAdmin, isMuted } },
+    })
+
+    const result = data?.updateChatParticipantPermissions
+
+    if (result?.__typename !== "ChatParticipant") {
+      throw new Error(result?.message ?? "Failed to update participant")
+    }
+
+    patchParticipant(chatId, result)
+  }
+
   function handleIncomingMessage(
     message: MessageFieldsFragment & { user: UserFieldsFragment; chat: { id: number } },
   ) {
@@ -108,6 +217,11 @@ export const useChatStore = defineStore("chats", () => {
     totalCount,
     fetchChats,
     startPrivateChat,
+    createGroupChat,
+    updateChatTitle,
+    addParticipant,
+    removeParticipant,
+    setParticipantPermissions,
     handleIncomingMessage,
   }
 })

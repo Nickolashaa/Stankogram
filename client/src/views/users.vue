@@ -93,9 +93,12 @@ async function startChat(user: UserFieldsFragment) {
           <span class="text-[15px] font-medium text-main">{{ fullName(user) }}</span>
           <span class="text-sm text-second">{{ user.email }}</span>
           <div class="flex flex-wrap gap-1.5">
-            <Badge v-for="badge in userBadges(user)" :key="badge.label" :variant="badge.variant">
-              {{ badge.label }}
-            </Badge>
+            <Badge
+              v-for="badge in userBadges(user)"
+              :key="badge.label"
+              :variant="badge.variant"
+              :label="badge.label"
+            />
           </div>
         </div>
         <div class="flex items-center gap-3">

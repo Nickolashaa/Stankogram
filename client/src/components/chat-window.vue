@@ -12,6 +12,7 @@ import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
 import Input from "@/components/input.vue"
 import Button from "@/components/button.vue"
 import Badge from "@/components/badge.vue"
+import NavIcon from "@/components/nav-icon.vue"
 
 const PAGE_SIZE = 30
 
@@ -39,6 +40,14 @@ function badgesForSender(user: UserFieldsFragment) {
   const participant = participantsByUserId.value.get(user.id)
   return participant ? participantBadges(user, participant) : userBadges(user)
 }
+
+const isMuted = computed(() => {
+  const userId = currentUser.value?.id
+  if (userId === undefined) {
+    return false
+  }
+  return participantsByUserId.value.get(userId)?.isMuted === true
+})
 
 const scrollContainer = ref<HTMLElement | null>(null)
 const text = ref("")
@@ -106,9 +115,8 @@ async function handleSubmit() {
               v-for="badge in badgesForSender(message.user)"
               :key="badge.label"
               :variant="badge.variant"
-            >
-              {{ badge.label }}
-            </Badge>
+              :label="badge.label"
+            />
           </div>
           <div class="whitespace-pre-wrap break-words">{{ message.text }}</div>
         </div>
@@ -120,7 +128,15 @@ async function handleSubmit() {
       </div>
     </div>
 
+    <div
+      v-if="isMuted"
+      class="flex shrink-0 items-center justify-center gap-2 border-t border-second/15 px-6 py-4 text-sm text-second"
+    >
+      <NavIcon name="mute" :size="16" />
+      Вы не можете отправлять сообщения в этом чате
+    </div>
     <form
+      v-else
       class="flex shrink-0 items-center gap-3 border-t border-second/15 px-6 py-4"
       @submit.prevent="handleSubmit"
     >

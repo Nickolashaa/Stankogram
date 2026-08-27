@@ -2,6 +2,10 @@ export function fullName(user: { surname: string; name: string; patronymic?: str
   return [user.surname, user.name, user.patronymic].filter(Boolean).join(" ")
 }
 
+export function initials(user: { surname: string; name: string }) {
+  return `${user.surname[0] ?? ""}${user.name[0] ?? ""}`.toUpperCase()
+}
+
 export function formatDateTime(value: string) {
   return new Date(value).toLocaleString("ru-RU", {
     dateStyle: "short",
