@@ -13,6 +13,7 @@
     "lint:oxlint": "oxlint . --fix",
     "lint:eslint": "eslint . --fix --cache",
     "format": "prettier --write --experimental-cli src/",
+    "format:check": "prettier --check --experimental-cli src/",
     "codegen": "graphql-codegen --config codegen.ts && prettier --write --experimental-cli src/"
   },
   "dependencies": {
