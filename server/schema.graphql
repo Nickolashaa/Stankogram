@@ -29,6 +29,7 @@ type ChatParticipant implements IBaseType & IUser & IChat {
   chat: Chat!
   isAdmin: Boolean!
   isMuted: Boolean!
+  lastReadAt: DateTime
 }
 
 input ChatParticipantIn {
@@ -148,6 +149,7 @@ type Mutation {
   addParticipantToChat(input: ChatParticipantIn!): ChatParticipantObjectNotFoundErrorObjectAlreadyExistsErrorInvalidInputError!
   removeParticipantFromChat(chatId: Int!, userId: Int!): Void
   updateChatParticipantPermissions(input: ChatParticipantIn!): ChatParticipantObjectNotFoundError!
+  markChatRead(chatId: Int!): ChatParticipantObjectNotFoundError!
   createMessage(input: MessageIn!): MessageObjectNotFoundError!
 }
 
