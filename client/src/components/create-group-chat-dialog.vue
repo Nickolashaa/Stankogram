@@ -10,6 +10,7 @@ import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
 import Input from "@/components/input.vue"
 import Button from "@/components/button.vue"
 import NavIcon from "@/components/nav-icon.vue"
+import Avatar from "@/components/avatar.vue"
 
 const SEARCH_PAGE_SIZE = 20
 
@@ -163,11 +164,7 @@ async function handleSubmit() {
             class="flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left transition-colors duration-150 hover:bg-accent/5"
             @click="selectUser(user)"
           >
-            <span
-              class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-second/15 text-xs font-semibold text-second"
-            >
-              {{ initials(user) }}
-            </span>
+            <Avatar :label="initials(user)" size="sm" />
             <span class="flex flex-col gap-0.5 overflow-hidden">
               <span class="truncate text-[15px] font-medium text-main">{{ fullName(user) }}</span>
               <span class="truncate text-xs text-second">{{ user.email }}</span>

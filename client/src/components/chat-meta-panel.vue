@@ -5,12 +5,13 @@ import type { ChatSummary, ChatParticipantItem } from "@/stores/chats"
 import { useAuthStore } from "@/stores/auth"
 import { useChatStore } from "@/stores/chats"
 import { EChatType } from "@/graphql/base-types"
-import { fullName } from "@/lib/format"
+import { fullName, chatInitials, initials } from "@/lib/format"
 import { participantBadges } from "@/lib/badges"
 import { notify } from "@/lib/notify"
 import Badge from "@/components/badge.vue"
 import Button from "@/components/button.vue"
 import NavIcon from "@/components/nav-icon.vue"
+import Avatar from "@/components/avatar.vue"
 import AddParticipantsDialog from "@/components/add-participants-dialog.vue"
 
 const props = withDefaults(
@@ -191,48 +192,52 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
         : 'w-80 shrink-0 border-l border-second/15'
     "
   >
-    <div class="flex flex-col gap-1 border-b border-second/15 px-6 py-6">
-      <div class="flex items-center gap-2">
-        <template v-if="editingTitle">
-          <input
-            v-model="titleDraft"
-            autofocus
-            class="h-9 min-w-0 flex-1 rounded-input border-[1.5px] border-second/30 bg-bg px-3 text-[15px] font-semibold text-main outline-none transition-colors duration-150 focus:border-accent"
-            @keyup.enter="saveTitle"
-            @keyup.esc="cancelEditTitle"
-          />
-          <Button
-            variant="ghost"
-            icon="save"
-            class="!text-accent hover:!text-accent-hover"
-            title="Сохранить"
-            aria-label="Сохранить"
-            :disabled="savingTitle"
-            @click="saveTitle"
-          />
-          <Button
-            variant="ghost"
-            icon="cancel"
-            title="Отмена"
-            aria-label="Отмена"
-            @click="cancelEditTitle"
-          />
-        </template>
-        <template v-else>
-          <h2 class="m-0 min-w-0 flex-1 truncate text-lg font-semibold text-main">
-            {{ chat.title }}
-          </h2>
-          <Button
-            v-if="isCurrentUserAdmin"
-            variant="ghost"
-            icon="edit"
-            title="Изменить название"
-            aria-label="Изменить название"
-            @click="startEditTitle"
-          />
-        </template>
+    <div class="flex items-center gap-3 border-b border-second/15 px-6 py-6">
+      <Avatar :label="chatInitials(chat.title)" size="lg" />
+
+      <div class="flex min-w-0 flex-1 flex-col gap-1">
+        <div class="flex items-center gap-2">
+          <template v-if="editingTitle">
+            <input
+              v-model="titleDraft"
+              autofocus
+              class="h-9 min-w-0 flex-1 rounded-input border-[1.5px] border-second/30 bg-bg px-3 text-[15px] font-semibold text-main outline-none transition-colors duration-150 focus:border-accent"
+              @keyup.enter="saveTitle"
+              @keyup.esc="cancelEditTitle"
+            />
+            <Button
+              variant="ghost"
+              icon="save"
+              class="!text-accent hover:!text-accent-hover"
+              title="Сохранить"
+              aria-label="Сохранить"
+              :disabled="savingTitle"
+              @click="saveTitle"
+            />
+            <Button
+              variant="ghost"
+              icon="cancel"
+              title="Отмена"
+              aria-label="Отмена"
+              @click="cancelEditTitle"
+            />
+          </template>
+          <template v-else>
+            <h2 class="m-0 min-w-0 flex-1 truncate text-lg font-semibold text-main">
+              {{ chat.title }}
+            </h2>
+            <Button
+              v-if="isCurrentUserAdmin"
+              variant="ghost"
+              icon="edit"
+              title="Изменить название"
+              aria-label="Изменить название"
+              @click="startEditTitle"
+            />
+          </template>
+        </div>
+        <span class="text-sm text-second">{{ chatTypeLabels[chat.type] }}</span>
       </div>
-      <span class="text-sm text-second">{{ chatTypeLabels[chat.type] }}</span>
     </div>
 
     <div class="flex flex-col gap-3 px-6 py-5">
@@ -255,18 +260,23 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
         <div
           v-for="participant in chat.participants"
           :key="participant.id"
-          class="flex flex-col gap-1.5 rounded-card px-2 py-2.5 transition-colors duration-150"
+          class="flex items-center gap-3 rounded-card px-2 py-2.5 transition-colors duration-150"
           :class="isCurrentUserAdmin ? 'cursor-context-menu hover:bg-accent/5' : ''"
           @contextmenu="handleContextMenu($event, participant)"
         >
-          <span class="text-[15px] font-medium text-main">{{ fullName(participant.user) }}</span>
-          <div class="flex flex-wrap gap-1.5">
-            <Badge
-              v-for="badge in participantBadges(participant.user, participant)"
-              :key="badge.label"
-              :variant="badge.variant"
-              :label="badge.label"
-            />
+          <Avatar :label="initials(participant.user)" size="sm" />
+          <div class="flex min-w-0 flex-1 flex-col gap-1.5">
+            <span class="truncate text-[15px] font-medium text-main">
+              {{ fullName(participant.user) }}
+            </span>
+            <div class="flex flex-wrap gap-1.5">
+              <Badge
+                v-for="badge in participantBadges(participant.user, participant)"
+                :key="badge.label"
+                :variant="badge.variant"
+                :label="badge.label"
+              />
+            </div>
           </div>
         </div>
       </div>

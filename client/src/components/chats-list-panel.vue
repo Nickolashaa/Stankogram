@@ -4,8 +4,9 @@ import { storeToRefs } from "pinia"
 import { useRouter } from "vue-router"
 import { useInfiniteScroll } from "@vueuse/core"
 import { useChatStore } from "@/stores/chats"
-import { shortName, formatTime } from "@/lib/format"
+import { shortName, formatTime, chatInitials } from "@/lib/format"
 import Button from "@/components/button.vue"
+import Avatar from "@/components/avatar.vue"
 import CreateGroupChatDialog from "@/components/create-group-chat-dialog.vue"
 
 const PAGE_SIZE = 30
@@ -69,22 +70,26 @@ function lastMessagePreview(chat: (typeof chats.value)[number]) {
       />
     </div>
 
-    <div ref="scrollContainer" class="flex-1 overflow-y-auto">
+    <div ref="scrollContainer" class="flex-1 overflow-y-auto px-2 py-2">
       <button
         v-for="chat in chats"
         :key="chat.id"
         type="button"
-        class="flex w-full cursor-pointer flex-col gap-1 border-b border-second/10 px-5 py-3 text-left transition-colors duration-150 hover:bg-accent/5"
-        :class="chat.id === activeChatId ? 'bg-accent/10' : ''"
+        class="flex w-full cursor-pointer items-center gap-3 rounded-input border-l-[3px] border-transparent px-3 py-2.5 text-left transition-colors duration-150 hover:bg-accent/5"
+        :class="chat.id === activeChatId ? 'border-accent bg-accent/10' : ''"
         @click="emit('select', chat.id)"
       >
-        <div class="flex items-center justify-between gap-2">
-          <span class="truncate text-[15px] font-medium text-main">{{ chat.title }}</span>
-          <span v-if="chat.lastMessage" class="shrink-0 text-xs text-second">
-            {{ formatTime(chat.lastMessage.createdAt) }}
-          </span>
+        <Avatar :label="chatInitials(chat.title)" />
+
+        <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+          <div class="flex items-center justify-between gap-2">
+            <span class="truncate text-[15px] font-medium text-main">{{ chat.title }}</span>
+            <span v-if="chat.lastMessage" class="shrink-0 text-xs text-second">
+              {{ formatTime(chat.lastMessage.createdAt) }}
+            </span>
+          </div>
+          <span class="truncate text-sm text-second">{{ lastMessagePreview(chat) }}</span>
         </div>
-        <span class="truncate text-sm text-second">{{ lastMessagePreview(chat) }}</span>
       </button>
 
       <div v-if="chats.length === 0" class="px-5 py-8 text-center text-sm text-second">

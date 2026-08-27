@@ -1,5 +1,6 @@
 <script setup lang="ts">
 export type IconName =
+  | "home"
   | "chats"
   | "users"
   | "support"
@@ -43,8 +44,13 @@ const props = withDefaults(
     class="shrink-0"
     :style="{ width: `${props.size}px`, height: `${props.size}px` }"
   >
+    <template v-if="name === 'home'">
+      <path d="M3 11.5 12 4l9 7.5" />
+      <path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9" />
+    </template>
+
     <path
-      v-if="name === 'chats'"
+      v-else-if="name === 'chats'"
       d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
     />
 
