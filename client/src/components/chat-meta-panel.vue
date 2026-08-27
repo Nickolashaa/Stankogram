@@ -13,9 +13,17 @@ import Button from "@/components/button.vue"
 import NavIcon from "@/components/nav-icon.vue"
 import AddParticipantsDialog from "@/components/add-participants-dialog.vue"
 
-const props = defineProps<{
-  chat: ChatSummary
-}>()
+const props = withDefaults(
+  defineProps<{
+    chat: ChatSummary
+    manage?: boolean
+    variant?: "sidebar" | "page"
+  }>(),
+  {
+    manage: false,
+    variant: "sidebar",
+  },
+)
 
 const chatTypeLabels: Record<EChatType, string> = {
   [EChatType.Private]: "Личный чат",
@@ -33,7 +41,7 @@ const currentParticipant = computed(
 )
 
 const isCurrentUserAdmin = computed(
-  () => isGroupChat.value && currentParticipant.value?.isAdmin === true,
+  () => isGroupChat.value && (props.manage || currentParticipant.value?.isAdmin === true),
 )
 
 const editingTitle = ref(false)
@@ -175,7 +183,14 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
 </script>
 
 <template>
-  <div class="flex h-full w-80 shrink-0 flex-col overflow-y-auto border-l border-second/15 bg-card">
+  <div
+    class="flex h-full flex-col overflow-y-auto bg-card"
+    :class="
+      variant === 'page'
+        ? 'flex-1 rounded-card shadow-card'
+        : 'w-80 shrink-0 border-l border-second/15'
+    "
+  >
     <div class="flex flex-col gap-1 border-b border-second/15 px-6 py-6">
       <div class="flex items-center gap-2">
         <template v-if="editingTitle">

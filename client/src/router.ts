@@ -18,6 +18,7 @@ export const router = createRouter({
           children: [
             { path: "", redirect: "/admin/users" },
             { path: "users", component: () => import("./views/admin-users.vue") },
+            { path: "chats/:chatId?", component: () => import("./views/admin-chats.vue") },
           ],
         },
       ],

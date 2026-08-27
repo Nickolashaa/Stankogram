@@ -1,5 +1,8 @@
 <script setup lang="ts">
-const navItems = [{ to: "/admin/users", label: "Пользователи" }]
+const navItems = [
+  { to: "/admin/users", label: "Пользователи" },
+  { to: "/admin/chats", label: "Групповые чаты" },
+]
 </script>
 
 <template>

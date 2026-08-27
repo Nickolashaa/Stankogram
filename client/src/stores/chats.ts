@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { ref } from "vue"
+import { ref, type Ref } from "vue"
 import { apolloClient } from "@/api"
 import { CreatePrivateChatDocument } from "@/graphql/mutations/chats/create-private-chat.generated"
 import { CreatePublicChatDocument } from "@/graphql/mutations/chats/create-public-chat.generated"
@@ -8,6 +8,7 @@ import { AddParticipantToChatDocument } from "@/graphql/mutations/chats/add-part
 import { RemoveParticipantFromChatDocument } from "@/graphql/mutations/chats/remove-participant-from-chat.generated"
 import { UpdateChatParticipantPermissionsDocument } from "@/graphql/mutations/chats/update-chat-participant-permissions.generated"
 import { MeChatsDocument } from "@/graphql/queries/chats/me-chats.generated"
+import { ChatsDocument } from "@/graphql/queries/chats/chats.generated"
 import type { ChatFieldsFragment } from "@/graphql/fragments/chats.generated"
 import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
 import type { MessageFieldsFragment } from "@/graphql/fragments/messages.generated"
@@ -31,6 +32,9 @@ export const useChatStore = defineStore("chats", () => {
   const chats = ref<ChatSummary[]>([])
   const totalCount = ref(0)
 
+  const adminChats = ref<ChatSummary[]>([])
+  const adminTotalCount = ref(0)
+
   async function fetchChats(
     filters: ChatFiltersIn | undefined,
     limit: number,
@@ -49,6 +53,24 @@ export const useChatStore = defineStore("chats", () => {
 
     chats.value = options.append ? [...chats.value, ...data.meChats.chats] : data.meChats.chats
     totalCount.value = data.meChats.count
+  }
+
+  async function fetchAdminChats(
+    filters: ChatFiltersIn | undefined,
+    limit: number,
+    offset: number,
+    options: { append?: boolean } = {},
+  ) {
+    const { data } = await apolloClient.query({
+      query: ChatsDocument,
+      variables: { filters, pagination: { limit, offset } },
+      fetchPolicy: "network-only",
+    })
+
+    adminChats.value = options.append
+      ? [...adminChats.value, ...data.chats.chats]
+      : data.chats.chats
+    adminTotalCount.value = data.chats.count
   }
 
   async function startPrivateChat(participantId: number): Promise<number> {
@@ -87,19 +109,28 @@ export const useChatStore = defineStore("chats", () => {
     throw new Error(result?.message ?? "Failed to start chat")
   }
 
-  function patchChat(chatId: number, patch: Partial<ChatSummary>) {
-    const index = chats.value.findIndex((chat) => chat.id === chatId)
-    const current = chats.value[index]
+  function patchChatIn(list: Ref<ChatSummary[]>, chatId: number, patch: Partial<ChatSummary>) {
+    const index = list.value.findIndex((chat) => chat.id === chatId)
+    const current = list.value[index]
     if (current === undefined) {
       return
     }
-    const rest = [...chats.value]
+    const rest = [...list.value]
     rest[index] = { ...current, ...patch }
-    chats.value = rest
+    list.value = rest
   }
 
-  function patchParticipant(chatId: number, participant: ChatParticipantItem) {
-    const chat = chats.value.find((item) => item.id === chatId)
+  function patchChat(chatId: number, patch: Partial<ChatSummary>) {
+    patchChatIn(chats, chatId, patch)
+    patchChatIn(adminChats, chatId, patch)
+  }
+
+  function patchParticipantIn(
+    list: Ref<ChatSummary[]>,
+    chatId: number,
+    participant: ChatParticipantItem,
+  ) {
+    const chat = list.value.find((item) => item.id === chatId)
     if (chat === undefined) {
       return
     }
@@ -108,7 +139,22 @@ export const useChatStore = defineStore("chats", () => {
       index === -1
         ? [...chat.participants, participant]
         : chat.participants.map((item, i) => (i === index ? participant : item))
-    patchChat(chatId, { participants })
+    patchChatIn(list, chatId, { participants })
+  }
+
+  function patchParticipant(chatId: number, participant: ChatParticipantItem) {
+    patchParticipantIn(chats, chatId, participant)
+    patchParticipantIn(adminChats, chatId, participant)
+  }
+
+  function removeParticipantIn(list: Ref<ChatSummary[]>, chatId: number, userId: number) {
+    const chat = list.value.find((item) => item.id === chatId)
+    if (chat === undefined) {
+      return
+    }
+    patchChatIn(list, chatId, {
+      participants: chat.participants.filter((p) => p.user.id !== userId),
+    })
   }
 
   async function createGroupChat(title: string, participantIds: number[]): Promise<number> {
@@ -164,11 +210,8 @@ export const useChatStore = defineStore("chats", () => {
       variables: { chatId, userId },
     })
 
-    const chat = chats.value.find((item) => item.id === chatId)
-    if (chat === undefined) {
-      return
-    }
-    patchChat(chatId, { participants: chat.participants.filter((p) => p.user.id !== userId) })
+    removeParticipantIn(chats, chatId, userId)
+    removeParticipantIn(adminChats, chatId, userId)
   }
 
   async function setParticipantPermissions(
@@ -215,7 +258,10 @@ export const useChatStore = defineStore("chats", () => {
   return {
     chats,
     totalCount,
+    adminChats,
+    adminTotalCount,
     fetchChats,
+    fetchAdminChats,
     startPrivateChat,
     createGroupChat,
     updateChatTitle,
