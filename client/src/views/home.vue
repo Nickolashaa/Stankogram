@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, ref } from "vue"
 import { storeToRefs } from "pinia"
 import { useAuthStore } from "@/stores/auth"
 import { shortName, formatFullDate } from "@/lib/format"
@@ -39,6 +39,13 @@ const shortcuts = computed(() => {
 
   return items
 })
+
+const sunIcon = ref<InstanceType<typeof TimeOfDayIcon> | null>(null)
+const isSunLaunched = computed(() => sunIcon.value?.launched ?? false)
+
+function handleSunClick() {
+  sunIcon.value?.boost()
+}
 </script>
 
 <template>
@@ -46,10 +53,29 @@ const shortcuts = computed(() => {
     class="flex h-full min-h-[60vh] flex-col items-center justify-center gap-8 p-6 sm:gap-10 sm:p-10"
   >
     <div class="flex animate-appear flex-col items-center gap-5 text-center">
-      <div class="relative flex h-28 w-28 items-center justify-center">
-        <div class="absolute inset-0 rounded-full bg-accent/10 blur-xl"></div>
+      <div class="relative flex h-28 w-28 items-center justify-center" @click="handleSunClick">
+        <div
+          class="absolute inset-0 rounded-full bg-accent/10 blur-xl transition-opacity duration-500"
+          :class="isSunLaunched ? 'opacity-0' : 'opacity-100'"
+        ></div>
         <div class="relative h-20 w-20">
-          <TimeOfDayIcon :period="period" />
+          <TimeOfDayIcon ref="sunIcon" :period="period" />
+          <svg
+            v-if="isSunLaunched"
+            viewBox="0 0 100 100"
+            class="absolute inset-0 h-full w-full animate-sad-face-in text-accent"
+          >
+            <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" stroke-width="4" />
+            <circle cx="38" cy="42" r="4" fill="currentColor" />
+            <circle cx="62" cy="42" r="4" fill="currentColor" />
+            <path
+              d="M35 68 Q50 56 65 68"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="4"
+              stroke-linecap="round"
+            />
+          </svg>
         </div>
       </div>
 
@@ -85,3 +111,28 @@ const shortcuts = computed(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.animate-sad-face-in {
+  opacity: 0;
+  animation: sad-face-in 0.4s ease-out 0.7s forwards;
+}
+
+@keyframes sad-face-in {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-sad-face-in {
+    animation: none;
+    opacity: 1;
+  }
+}
+</style>

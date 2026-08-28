@@ -1,9 +1,79 @@
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from "vue"
 import type { DayPeriod } from "@/lib/greeting"
 
 defineProps<{
   period: DayPeriod
 }>()
+
+const BASE_SPEED = 360 / 26
+const BOOST_PER_CLICK = 220
+const MAX_SPEED = 1400
+const DECAY_MS = 900
+const LAUNCH_SPEED = 900
+
+const sunRays = ref<SVGGElement | null>(null)
+const sunSvg = ref<SVGSVGElement | null>(null)
+
+const launched = ref(false)
+
+let angle = 0
+let speed = BASE_SPEED
+let lastTime: number | null = null
+let rafId: number | null = null
+
+function tick(time: number) {
+  if (lastTime === null) {
+    lastTime = time
+  }
+  const deltaMs = time - lastTime
+  lastTime = time
+
+  angle = (angle + speed * (deltaMs / 1000)) % 360
+  speed = BASE_SPEED + (speed - BASE_SPEED) * Math.exp(-deltaMs / DECAY_MS)
+
+  if (sunRays.value) {
+    sunRays.value.style.transform = `rotate(${angle}deg)`
+  }
+
+  if (!launched.value && speed >= LAUNCH_SPEED) {
+    launch()
+  }
+
+  rafId = requestAnimationFrame(tick)
+}
+
+function launch() {
+  launched.value = true
+
+  if (sunSvg.value) {
+    sunSvg.value.style.transition = "transform 0.7s cubic-bezier(0.5, -0.3, 0.85, 0.3), opacity 0.5s ease-in 0.2s"
+    sunSvg.value.style.transform = "translateY(-220px) scale(0.4)"
+    sunSvg.value.style.opacity = "0"
+  }
+}
+
+onMounted(() => {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    return
+  }
+  rafId = requestAnimationFrame(tick)
+})
+
+onBeforeUnmount(() => {
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId)
+  }
+})
+
+function boost() {
+  if (launched.value) {
+    return
+  }
+  speed = Math.min(speed + BOOST_PER_CLICK, MAX_SPEED)
+}
+
+defineExpose({ boost, launched })
 </script>
 
 <template>
@@ -58,8 +128,15 @@ defineProps<{
     />
   </svg>
 
-  <svg v-else viewBox="0 0 100 100" class="h-full w-full text-accent">
-    <g class="sun-rays" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round">
+  <svg v-else ref="sunSvg" viewBox="0 0 100 100" class="h-full w-full text-accent">
+    <g
+      ref="sunRays"
+      class="sun-rays"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="4"
+      stroke-linecap="round"
+    >
       <line x1="50" y1="6" x2="50" y2="17" />
       <line x1="50" y1="83" x2="50" y2="94" />
       <line x1="6" y1="50" x2="17" y2="50" />
@@ -77,7 +154,6 @@ defineProps<{
 .sun-rays {
   transform-box: view-box;
   transform-origin: 50% 50%;
-  animation: spin 26s linear infinite;
 }
 
 .sunset-rays {
@@ -108,15 +184,6 @@ defineProps<{
 
 .star-4 {
   animation-delay: 1.6s;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 @keyframes float {
@@ -152,7 +219,6 @@ defineProps<{
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sun-rays,
   .sunset-rays,
   .sunset-sun,
   .star {
