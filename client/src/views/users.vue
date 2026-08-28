@@ -75,12 +75,12 @@ async function startChat(user: UserFieldsFragment) {
 
 <template>
   <div class="flex animate-appear flex-col gap-6 p-6 sm:p-10">
-    <h1 class="m-0 text-2xl font-semibold text-main">Пользователи</h1>
+    <h1 class="m-0 text-2xl font-semibold text-main">Написать</h1>
 
     <Input v-model="searchQuery" placeholder="Имя, фамилия, email..." />
 
     <div v-if="searchQuery.trim() === ''" class="px-5 py-8 text-center text-second">
-      Начните вводить имя, фамилию или email, чтобы найти пользователя
+      Найдите коллегу, чтобы начать с ним личный чат
     </div>
 
     <div v-else class="flex flex-col gap-2">

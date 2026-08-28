@@ -27,8 +27,8 @@ const navItems = computed(() => {
     icon: "home" | "chats" | "users" | "support" | "admin"
   }[] = [
     { to: "/home", label: "Главная", icon: "home" },
+    { to: "/users", label: "Написать", icon: "users" },
     { to: "/chats", label: "Чаты", icon: "chats" },
-    { to: "/users", label: "Пользователи", icon: "users" },
     { to: "/support", label: "Поддержка", icon: "support" },
   ]
 

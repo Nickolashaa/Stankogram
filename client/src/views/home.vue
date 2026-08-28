@@ -18,8 +18,8 @@ const today = formatFullDate(now)
 
 const shortcuts = computed(() => {
   const items: { to: string; label: string; description: string; icon: IconName }[] = [
+    { to: "/users", label: "Написать", description: "Найти коллегу и начать личный чат", icon: "users" },
     { to: "/chats", label: "Чаты", description: "Личные и групповые обсуждения", icon: "chats" },
-    { to: "/users", label: "Пользователи", description: "Найти коллегу и написать", icon: "users" },
     { to: "/support", label: "Поддержка", description: "Задать вопрос команде", icon: "support" },
   ]
 
