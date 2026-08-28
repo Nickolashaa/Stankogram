@@ -50,7 +50,7 @@ onResult(({ data }) => {
 </script>
 
 <template>
-  <div class="flex h-screen">
+  <div class="flex h-dvh">
     <ChatsListPanel
       :active-chat-id="activeChatId"
       :mobile-hidden="activeChatId !== null"
