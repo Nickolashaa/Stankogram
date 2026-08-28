@@ -53,7 +53,7 @@ function openThemePicker() {
 
 <template>
   <nav
-    class="sticky top-0 hidden h-screen w-64 shrink-0 flex-col justify-between overflow-y-auto border-r border-second/10 bg-card px-4 py-8 lg:flex"
+    class="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col justify-between overflow-y-auto border-r border-second/10 bg-card px-4 py-8 lg:flex"
   >
     <div class="flex flex-col gap-8">
       <div class="px-1">

@@ -420,6 +420,12 @@
   }
 }
 
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   color: var(--color-main);
   background-color: var(--color-bg);
@@ -437,5 +443,5 @@ main {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  min-height: 100dvh;
 }

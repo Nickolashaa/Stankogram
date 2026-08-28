@@ -8,7 +8,7 @@ const isChatsRoute = computed(() => route.path.startsWith("/chats"))
 </script>
 
 <template>
-  <div class="flex min-h-screen">
+  <div class="flex h-dvh">
     <AppNav />
     <div class="flex-1 overflow-y-auto" :class="isChatsRoute ? '' : 'pb-16 lg:pb-0'">
       <RouterView />
