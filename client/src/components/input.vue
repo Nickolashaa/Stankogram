@@ -1,20 +1,32 @@
 <script setup lang="ts">
+import { onMounted, ref } from "vue"
+
 const props = withDefaults(
   defineProps<{
     type?: string
     placeholder?: string
+    autofocus?: boolean
   }>(),
   {
     type: "text",
     placeholder: "",
+    autofocus: false,
   },
 )
 
 const model = defineModel<string>()
+const inputEl = ref<HTMLInputElement | null>(null)
+
+onMounted(() => {
+  if (props.autofocus) {
+    inputEl.value?.focus()
+  }
+})
 </script>
 
 <template>
   <input
+    ref="inputEl"
     :type="props.type"
     :placeholder="props.placeholder"
     v-model="model"

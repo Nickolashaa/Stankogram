@@ -12,7 +12,7 @@ const isAdmin = defineModel<"" | "true" | "false">("isAdmin", { default: "" })
   <div class="flex flex-wrap items-end gap-3">
     <div class="flex min-w-[240px] flex-1 flex-col gap-1">
       <label class="text-xs font-medium uppercase tracking-wide text-second">Поиск</label>
-      <Input v-model="search" placeholder="Имя, фамилия, email..." />
+      <Input v-model="search" placeholder="Имя, фамилия, email..." autofocus />
     </div>
     <div class="flex w-48 flex-col gap-1">
       <label class="text-xs font-medium uppercase tracking-wide text-second">Роль</label>

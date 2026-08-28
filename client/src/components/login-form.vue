@@ -25,7 +25,7 @@ async function handleSubmit() {
 
 <template>
   <form class="flex flex-col gap-4" @submit.prevent="handleSubmit">
-    <Input placeholder="Email" v-model="email" />
+    <Input placeholder="Email" v-model="email" autofocus />
     <Input placeholder="Пароль" type="password" v-model="password" />
     <Button type="submit" icon="login" :short-mode="false">Войти</Button>
   </form>

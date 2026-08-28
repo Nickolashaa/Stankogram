@@ -205,7 +205,7 @@ async function handleSubmit() {
       class="flex shrink-0 items-center gap-3 border-t border-second/15 px-4 py-3 lg:px-6 lg:py-4"
       @submit.prevent="handleSubmit"
     >
-      <Input v-model="text" placeholder="Написать сообщение..." class="flex-1" />
+      <Input v-model="text" placeholder="Написать сообщение..." class="flex-1" autofocus />
       <Button
         type="submit"
         icon="send"
