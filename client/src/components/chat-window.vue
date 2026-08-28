@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue"
+import { computed, onMounted, onUnmounted, ref, watch } from "vue"
 import { storeToRefs } from "pinia"
-import { useInfiniteScroll } from "@vueuse/core"
+import { useDebounceFn, useInfiniteScroll } from "@vueuse/core"
 import { useMessageStore } from "@/stores/messages"
 import { useAuthStore } from "@/stores/auth"
 import { useChatStore, type ChatParticipantItem, type ChatSummary } from "@/stores/chats"
+import { useDraftStore } from "@/stores/drafts"
 import { EChatType } from "@/graphql/base-types"
 import { notify } from "@/lib/notify"
 import { shortName, formatTime, chatInitials } from "@/lib/format"
@@ -57,9 +58,23 @@ const isMuted = computed(() => {
   return participantsByUserId.value.get(userId)?.isMuted === true
 })
 
+const draftStore = useDraftStore()
+
 const scrollContainer = ref<HTMLElement | null>(null)
-const text = ref("")
+const text = ref(draftStore.getDraft(props.chatId))
 const sending = ref(false)
+
+const saveDraft = useDebounceFn((value: string) => {
+  draftStore.setDraft(props.chatId, value)
+}, 300)
+
+watch(text, (value) => {
+  saveDraft(value)
+})
+
+onUnmounted(() => {
+  draftStore.setDraft(props.chatId, text.value)
+})
 
 const infiniteScroll = useInfiniteScroll(
   scrollContainer,
@@ -98,6 +113,7 @@ async function handleSubmit() {
   try {
     await messageStore.sendMessage(value)
     text.value = ""
+    draftStore.setDraft(props.chatId, "")
   } catch {
     notify.error("Не удалось отправить сообщение")
   } finally {

@@ -5,6 +5,7 @@ import { useRouter } from "vue-router"
 import { useInfiniteScroll } from "@vueuse/core"
 import { useChatStore, hasUnreadMessages } from "@/stores/chats"
 import { useAuthStore } from "@/stores/auth"
+import { useDraftStore } from "@/stores/drafts"
 import { shortName, formatTime, chatInitials } from "@/lib/format"
 import Button from "@/components/button.vue"
 import Avatar from "@/components/avatar.vue"
@@ -24,6 +25,7 @@ const emit = defineEmits<{
 const router = useRouter()
 const chatStore = useChatStore()
 const authStore = useAuthStore()
+const draftStore = useDraftStore()
 const { chats, totalCount } = storeToRefs(chatStore)
 const { user: currentUser } = storeToRefs(authStore)
 
@@ -109,7 +111,10 @@ function lastMessagePreview(chat: (typeof chats.value)[number]) {
               class="truncate text-sm"
               :class="isUnread(chat) ? 'font-medium text-main' : 'text-second'"
             >
-              {{ lastMessagePreview(chat) }}
+              <template v-if="draftStore.getDraft(chat.id)">
+                <span class="text-accent">Черновик:</span> {{ draftStore.getDraft(chat.id) }}
+              </template>
+              <template v-else>{{ lastMessagePreview(chat) }}</template>
             </span>
             <span v-if="isUnread(chat)" class="h-2 w-2 shrink-0 rounded-full bg-accent" />
           </div>
