@@ -18,7 +18,7 @@ const model = defineModel<string>()
 const inputEl = ref<HTMLInputElement | null>(null)
 
 onMounted(() => {
-  if (props.autofocus) {
+  if (props.autofocus && window.matchMedia("(pointer: fine)").matches) {
     inputEl.value?.focus()
   }
 })
