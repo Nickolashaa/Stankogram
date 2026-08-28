@@ -47,7 +47,8 @@ function launch() {
   launched.value = true
 
   if (sunSvg.value) {
-    sunSvg.value.style.transition = "transform 0.7s cubic-bezier(0.5, -0.3, 0.85, 0.3), opacity 0.5s ease-in 0.2s"
+    sunSvg.value.style.transition =
+      "transform 0.7s cubic-bezier(0.5, -0.3, 0.85, 0.3), opacity 0.5s ease-in 0.2s"
     sunSvg.value.style.transform = "translateY(-220px) scale(0.4)"
     sunSvg.value.style.opacity = "0"
   }
