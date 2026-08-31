@@ -151,6 +151,9 @@ type Mutation {
   updateChatParticipantPermissions(input: ChatParticipantIn!): ChatParticipantObjectNotFoundError!
   markChatRead(chatId: Int!): ChatParticipantObjectNotFoundError!
   createMessage(input: MessageIn!): MessageObjectNotFoundError!
+  createSystemNotification(input: SystemNotificationIn!): SystemNotification!
+  updateSystemNotification(id: Int!, input: SystemNotificationIn!): SystemNotificationObjectNotFoundError!
+  markSystemNotificationRead(id: Int!): ObjectNotFoundError
 }
 
 type ObjectAlreadyExistsError implements IAppError {
@@ -176,11 +179,35 @@ type Query {
   meChats(pagination: BasePaginationIn = null, filters: ChatFiltersIn = null): ChatsMetaUnauthorizedError!
   chats(pagination: BasePaginationIn = null, filters: ChatFiltersIn = null): ChatsMeta!
   messages(filters: MessageFiltersIn!, pagination: BasePaginationIn = null): MessagesMeta!
+  meSystemNotifications(pagination: BasePaginationIn = null, filters: SystemNotificationFiltersIn = null): SystemNotificationsMeta!
+  systemNotifications(pagination: BasePaginationIn = null): SystemNotificationsMeta!
   health: Int!
 }
 
 type Subscription {
   events: Message!
+}
+
+type SystemNotification implements IBaseType {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  text: String!
+}
+
+input SystemNotificationFiltersIn {
+  onlyUnread: Boolean
+}
+
+input SystemNotificationIn {
+  text: String!
+}
+
+union SystemNotificationObjectNotFoundError = SystemNotification | ObjectNotFoundError
+
+type SystemNotificationsMeta implements IBaseMeta {
+  count: Int!
+  systemNotifications: [SystemNotification!]!
 }
 
 type UnauthorizedError implements IAppError {
