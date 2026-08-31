@@ -1,8 +1,8 @@
 """f_sys_notifications
 
-Revision ID: 61e9c5092b4f
+Revision ID: 06cf2a00f0d1
 Revises: 25edf4e9e665
-Create Date: 2026-08-31 20:44:51.559737
+Create Date: 2026-08-31 20:49:50.004965
 
 """
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "61e9c5092b4f"
+revision: str = "06cf2a00f0d1"
 down_revision: Union[str, Sequence[str], None] = "25edf4e9e665"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -58,8 +58,8 @@ def upgrade() -> None:
         ),
         sa.ForeignKeyConstraint(
             ["system_notification_id"],
-            ["users.id"],
-            name=op.f("fk_read_system_notifications_system_notification_id_users"),
+            ["system_notifications.id"],
+            name="fk_read_system_notifications_system_notification_id",
             ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
@@ -69,6 +69,9 @@ def upgrade() -> None:
             ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint(
+            "user_id", "system_notification_id", name="uq_user_system_notification"
+        ),
     )
     # ### end Alembic commands ###
 
