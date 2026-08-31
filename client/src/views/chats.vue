@@ -30,6 +30,11 @@ function selectChat(chatId: number) {
 
 const mobileInfoOpen = ref(false)
 
+function handleLeft() {
+  mobileInfoOpen.value = false
+  router.push("/chats")
+}
+
 watch(activeChatId, () => {
   mobileInfoOpen.value = false
 })
@@ -52,7 +57,7 @@ watch(activeChatId, () => {
         @open-info="mobileInfoOpen = true"
       />
       <div v-if="activeChat" class="hidden h-full lg:block">
-        <ChatMetaPanel :chat="activeChat" />
+        <ChatMetaPanel :chat="activeChat" @left="handleLeft" />
       </div>
 
       <div
@@ -69,7 +74,7 @@ watch(activeChatId, () => {
           >
             <NavIcon name="cancel" />
           </button>
-          <ChatMetaPanel :chat="activeChat" variant="page" class="h-full" />
+          <ChatMetaPanel :chat="activeChat" variant="page" class="h-full" @left="handleLeft" />
         </div>
       </div>
     </template>

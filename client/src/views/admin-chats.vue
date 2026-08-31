@@ -46,7 +46,13 @@ function selectChat(chatId: number) {
           <NavIcon name="arrow-right" :size="16" class="rotate-180" />
           Назад к списку
         </button>
-        <ChatMetaPanel :key="activeChat.id" :chat="activeChat" manage variant="page" />
+        <ChatMetaPanel
+          :key="activeChat.id"
+          :chat="activeChat"
+          manage
+          variant="page"
+          @deleted="router.push('/admin/chats')"
+        />
       </div>
     </template>
     <div
