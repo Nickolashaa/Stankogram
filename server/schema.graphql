@@ -192,6 +192,7 @@ type SystemNotification implements IBaseType {
   id: Int!
   createdAt: DateTime!
   updatedAt: DateTime!
+  title: String!
   text: String!
 }
 
@@ -200,6 +201,7 @@ input SystemNotificationFiltersIn {
 }
 
 input SystemNotificationIn {
+  title: String!
   text: String!
 }
 
