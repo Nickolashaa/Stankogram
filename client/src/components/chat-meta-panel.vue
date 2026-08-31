@@ -26,6 +26,8 @@ const props = withDefaults(
   },
 )
 
+const emit = defineEmits<{ left: [] }>()
+
 const chatTypeLabels: Record<EChatType, string> = {
   [EChatType.Private]: "Личный чат",
   [EChatType.Public]: "Групповой чат",
@@ -112,6 +114,29 @@ async function removeParticipant(participant: ChatParticipantItem) {
     notify.success("Участник удалён из чата")
   } catch {
     notify.error("Не удалось удалить участника")
+  }
+}
+
+const canLeave = computed(
+  () => !props.manage && isGroupChat.value && currentParticipant.value !== null,
+)
+
+const leaving = ref(false)
+
+async function leaveChat() {
+  if (!window.confirm(`Выйти из чата «${props.chat.title}»?`)) {
+    return
+  }
+
+  leaving.value = true
+  try {
+    await chatStore.leaveChat(props.chat.id)
+    notify.success("Вы вышли из чата")
+    emit("left")
+  } catch {
+    notify.error("Не удалось выйти из чата")
+  } finally {
+    leaving.value = false
   }
 }
 
@@ -284,6 +309,18 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
       <span v-if="isCurrentUserAdmin" class="text-xs text-second">
         Нажмите правой кнопкой мыши на участника, чтобы изменить его права
       </span>
+    </div>
+
+    <div v-if="canLeave" class="mt-auto border-t border-second/15 px-4 py-4 lg:px-6">
+      <button
+        type="button"
+        class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-input border-[1.5px] border-red-500/30 px-4 py-2.5 text-sm font-medium text-red-600 transition-colors duration-150 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-60 dark:text-red-400"
+        :disabled="leaving"
+        @click="leaveChat"
+      >
+        <NavIcon name="logout" :size="16" />
+        Выйти из чата
+      </button>
     </div>
 
     <AddParticipantsDialog
