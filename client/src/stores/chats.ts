@@ -8,6 +8,7 @@ import { UpdateChatDocument } from "@/graphql/mutations/chats/update-chat.genera
 import { AddParticipantToChatDocument } from "@/graphql/mutations/chats/add-participant-to-chat.generated"
 import { RemoveParticipantFromChatDocument } from "@/graphql/mutations/chats/remove-participant-from-chat.generated"
 import { LeaveChatDocument } from "@/graphql/mutations/chats/leave-chat.generated"
+import { DeleteChatDocument } from "@/graphql/mutations/chats/delete-chat.generated"
 import { UpdateChatParticipantPermissionsDocument } from "@/graphql/mutations/chats/update-chat-participant-permissions.generated"
 import { MarkChatReadDocument } from "@/graphql/mutations/chats/mark-chat-read.generated"
 import { MeChatsDocument } from "@/graphql/queries/chats/me-chats.generated"
@@ -270,6 +271,22 @@ export const useChatStore = defineStore("chats", () => {
     }
   }
 
+  async function deleteChat(chatId: number) {
+    const { data } = await apolloClient.mutate({
+      mutation: DeleteChatDocument,
+      variables: { chatId },
+    })
+
+    const result = data?.deleteChat
+
+    if (result?.__typename !== "Chat") {
+      throw new Error(result?.message ?? "Failed to delete chat")
+    }
+
+    removeChatIn(chats, totalCount, chatId)
+    removeChatIn(adminChats, adminTotalCount, chatId)
+  }
+
   async function setParticipantPermissions(
     chatId: number,
     userId: number,
@@ -340,6 +357,7 @@ export const useChatStore = defineStore("chats", () => {
     addParticipant,
     removeParticipant,
     leaveChat,
+    deleteChat,
     setParticipantPermissions,
     markChatRead,
     handleIncomingMessage,
