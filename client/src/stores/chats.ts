@@ -7,6 +7,7 @@ import { CreatePublicChatDocument } from "@/graphql/mutations/chats/create-publi
 import { UpdateChatDocument } from "@/graphql/mutations/chats/update-chat.generated"
 import { AddParticipantToChatDocument } from "@/graphql/mutations/chats/add-participant-to-chat.generated"
 import { RemoveParticipantFromChatDocument } from "@/graphql/mutations/chats/remove-participant-from-chat.generated"
+import { LeaveChatDocument } from "@/graphql/mutations/chats/leave-chat.generated"
 import { UpdateChatParticipantPermissionsDocument } from "@/graphql/mutations/chats/update-chat-participant-permissions.generated"
 import { MarkChatReadDocument } from "@/graphql/mutations/chats/mark-chat-read.generated"
 import { MeChatsDocument } from "@/graphql/queries/chats/me-chats.generated"
@@ -174,6 +175,14 @@ export const useChatStore = defineStore("chats", () => {
     patchParticipantIn(adminChats, chatId, participant)
   }
 
+  function removeChatIn(list: Ref<ChatSummary[]>, total: Ref<number>, chatId: number) {
+    if (!list.value.some((chat) => chat.id === chatId)) {
+      return
+    }
+    list.value = list.value.filter((chat) => chat.id !== chatId)
+    total.value = Math.max(0, total.value - 1)
+  }
+
   function removeParticipantIn(list: Ref<ChatSummary[]>, chatId: number, userId: number) {
     const chat = list.value.find((item) => item.id === chatId)
     if (chat === undefined) {
@@ -239,6 +248,26 @@ export const useChatStore = defineStore("chats", () => {
 
     removeParticipantIn(chats, chatId, userId)
     removeParticipantIn(adminChats, chatId, userId)
+  }
+
+  async function leaveChat(chatId: number) {
+    const { data } = await apolloClient.mutate({
+      mutation: LeaveChatDocument,
+      variables: { chatId },
+    })
+
+    const result = data?.leaveChat
+
+    if (result?.__typename !== "Chat") {
+      throw new Error(result?.message ?? "Failed to leave chat")
+    }
+
+    removeChatIn(chats, totalCount, chatId)
+
+    const currentUser = authStore.user
+    if (currentUser !== undefined) {
+      removeParticipantIn(adminChats, chatId, currentUser.id)
+    }
   }
 
   async function setParticipantPermissions(
@@ -310,6 +339,7 @@ export const useChatStore = defineStore("chats", () => {
     updateChatTitle,
     addParticipant,
     removeParticipant,
+    leaveChat,
     setParticipantPermissions,
     markChatRead,
     handleIncomingMessage,
