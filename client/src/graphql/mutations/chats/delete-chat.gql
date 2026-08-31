@@ -1,0 +1,14 @@
+mutation DeleteChat($chatId: Int!) {
+  deleteChat(chatId: $chatId) {
+    __typename
+    ... on Chat {
+      id
+    }
+    ... on InvalidInputError {
+      message
+    }
+    ... on ObjectNotFoundError {
+      message
+    }
+  }
+}
