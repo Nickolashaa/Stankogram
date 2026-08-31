@@ -1,6 +1,6 @@
 from typing import Unpack
 
-from sqlalchemy import Select, func, insert, select, update
+from sqlalchemy import Select, delete, func, insert, select, update
 from sqlalchemy.exc import IntegrityError
 
 from ...database.models.chats import Chat
@@ -53,6 +53,14 @@ class ChatService(BaseService):
         res = await self._session.execute(stmt)
 
         return ChatResponse.model_validate(res.scalar_one())
+
+    async def delete(
+        self,
+        id: int,
+    ) -> None:
+        stmt = delete(Chat).where(Chat.id == id)
+
+        await self._session.execute(stmt)
 
     @staticmethod
     def _apply_filters(

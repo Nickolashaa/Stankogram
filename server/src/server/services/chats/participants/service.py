@@ -64,6 +64,41 @@ class ChatParticipantService(BaseService):
         )
         await self._session.execute(stmt)
 
+    async def leave(
+        self,
+        chat_id: int,
+        user_id: int,
+    ) -> None:
+        chat = await self._chat_service.get(chat_id)
+        if chat.type == ChatType.PRIVATE:
+            raise InvalidInput("You cannot leave a private chat")
+
+        link = await self.get_or_none(chat_id=chat_id, user_id=user_id)
+        if link is None:
+            raise ObjectNotFound(
+                f"User with id {user_id} not in chat with id {chat_id}"
+            )
+
+        await self.delete(chat_id=chat_id, user_id=user_id)
+
+        remaining = await self.get_list(chat_id=chat_id)
+        if not remaining:
+            await self._chat_service.delete(chat_id)
+            return
+
+        if not link.is_admin:
+            return
+
+        admins_count = await self.count(chat_id=chat_id, is_admin=True)
+        if admins_count > 0:
+            return
+
+        await self.update(
+            chat_id=chat_id,
+            user_id=min(remaining, key=lambda item: item.id).user_id,
+            is_admin=True,
+        )
+
     @staticmethod
     def _apply_filters(
         stmt: Select[tuple[ChatParticipant]],
