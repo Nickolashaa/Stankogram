@@ -61,15 +61,6 @@ const shortcuts = computed(() => {
     { to: "/support", label: "Поддержка", description: "Задать вопрос команде", icon: "support" },
   ]
 
-  if (user.value?.isAdmin) {
-    items.push({
-      to: "/admin",
-      label: "Админка",
-      description: "Управление системой",
-      icon: "admin",
-    })
-  }
-
   return items
 })
 
