@@ -4,7 +4,7 @@ import strawberry
 
 from ....services.exceptions import InvalidInput, ObjectAlreadyExists, ObjectNotFound
 from ...context import AuthorizedAppInfo
-from ...permissions.auth import IsAuthenticated
+from ...permissions.auth import IsAdmin, IsAuthenticated
 from ...permissions.chats import IsChatAdmin, IsChatParticipant
 from ...types.chats import (
     Chat,
@@ -104,6 +104,24 @@ class ChatMutation:
             instance = await info.context.services.chat_service.update(
                 id=chat_id, **input.to_service_params()
             )
+            await info.context.session.commit()
+            return Chat.from_schema(instance)
+        except InvalidInput as e:
+            await info.context.session.rollback()
+            return InvalidInputError.from_service_exception(e)
+        except ObjectNotFound as e:
+            await info.context.session.rollback()
+            return ObjectNotFoundError.from_service_exception(e)
+
+    @strawberry.mutation(permission_classes=[IsAdmin])
+    async def delete_chat(
+        self,
+        info: AuthorizedAppInfo,
+        chat_id: int,
+    ) -> Chat | InvalidInputError | ObjectNotFoundError:
+        try:
+            instance = await info.context.services.chat_service.get(chat_id)
+            await info.context.services.chat_service.delete(chat_id)
             await info.context.session.commit()
             return Chat.from_schema(instance)
         except InvalidInput as e:

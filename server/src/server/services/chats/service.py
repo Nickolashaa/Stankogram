@@ -1,7 +1,6 @@
 from typing import Unpack
 
 from sqlalchemy import Select, delete, func, insert, select, update
-from sqlalchemy.exc import IntegrityError
 
 from ...database.models.chats import Chat
 from ...database.models.messages import Message
@@ -32,12 +31,12 @@ class ChatService(BaseService):
     ) -> ChatResponse:
         stmt = select(Chat).where(Chat.id == id)
 
-        try:
-            res = await self._session.execute(stmt)
-        except IntegrityError:
+        res = await self._session.execute(stmt)
+        instance = res.scalar_one_or_none()
+        if instance is None:
             raise ObjectNotFound(f"Chat with id {id} not found")
 
-        return ChatResponse.model_validate(res.scalar_one())
+        return ChatResponse.model_validate(instance)
 
     async def update(
         self,
@@ -58,6 +57,10 @@ class ChatService(BaseService):
         self,
         id: int,
     ) -> None:
+        chat = await self.get(id)
+        if chat.type == ChatType.PRIVATE:
+            raise InvalidInput("Private chat cannot be deleted")
+
         stmt = delete(Chat).where(Chat.id == id)
 
         await self._session.execute(stmt)
