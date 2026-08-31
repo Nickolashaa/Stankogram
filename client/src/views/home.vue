@@ -1,17 +1,36 @@
 <script setup lang="ts">
-import { computed, ref } from "vue"
+import { computed, onMounted, ref } from "vue"
 import { storeToRefs } from "pinia"
 import { useAuthStore } from "@/stores/auth"
 import { useChatStore } from "@/stores/chats"
-import { shortName, formatFullDate } from "@/lib/format"
+import { useSystemNotificationStore } from "@/stores/system-notifications"
+import { shortName, formatFullDate, formatDateTime } from "@/lib/format"
 import { getGreeting, getDayPeriod } from "@/lib/greeting"
+import { notify } from "@/lib/notify"
 import TimeOfDayIcon from "@/components/time-of-day-icon.vue"
 import NavIcon, { type IconName } from "@/components/nav-icon.vue"
+import Button from "@/components/button.vue"
+
+const NOTIFICATIONS_PAGE_SIZE = 20
 
 const authStore = useAuthStore()
 const chatStore = useChatStore()
+const notificationStore = useSystemNotificationStore()
 const { user } = storeToRefs(authStore)
 const { hasUnread } = storeToRefs(chatStore)
+const { unreadNotifications } = storeToRefs(notificationStore)
+
+onMounted(() => {
+  notificationStore.fetchUnreadNotifications(NOTIFICATIONS_PAGE_SIZE, 0)
+})
+
+async function markNotificationRead(id: number) {
+  try {
+    await notificationStore.markNotificationRead(id)
+  } catch {
+    notify.error("Не удалось скрыть уведомление")
+  }
+}
 
 const now = new Date()
 const period = getDayPeriod(now.getHours())
@@ -126,6 +145,35 @@ function handleSunClick() {
           class="shrink-0 text-second opacity-0 transition-opacity duration-200 group-hover:opacity-100"
         />
       </RouterLink>
+    </div>
+
+    <div
+      v-if="unreadNotifications.length > 0"
+      class="flex w-full max-w-3xl animate-appear flex-col gap-3"
+    >
+      <div class="flex items-center gap-2 text-second">
+        <NavIcon name="bell" :size="16" />
+        <span class="text-sm font-medium">Уведомления</span>
+        <span class="h-2 w-2 shrink-0 rounded-full bg-accent" />
+      </div>
+
+      <div
+        v-for="notification in unreadNotifications"
+        :key="notification.id"
+        class="flex items-start gap-4 rounded-card border-l-[3px] border-accent bg-card px-5 py-4 shadow-card"
+      >
+        <span class="flex min-w-0 flex-1 flex-col gap-1">
+          <span class="text-[15px] whitespace-pre-wrap text-main">{{ notification.text }}</span>
+          <span class="text-xs text-second">{{ formatDateTime(notification.createdAt) }}</span>
+        </span>
+        <Button
+          icon="cancel"
+          variant="ghost"
+          title="Скрыть"
+          aria-label="Скрыть"
+          @click="markNotificationRead(notification.id)"
+        />
+      </div>
     </div>
   </div>
 </template>
