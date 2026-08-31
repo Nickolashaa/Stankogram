@@ -1,6 +1,7 @@
 import { defineStore } from "pinia"
-import { ref, type Ref } from "vue"
+import { computed, ref, type Ref } from "vue"
 import { apolloClient } from "@/api"
+import { useAuthStore } from "@/stores/auth"
 import { CreatePrivateChatDocument } from "@/graphql/mutations/chats/create-private-chat.generated"
 import { CreatePublicChatDocument } from "@/graphql/mutations/chats/create-public-chat.generated"
 import { UpdateChatDocument } from "@/graphql/mutations/chats/update-chat.generated"
@@ -45,8 +46,18 @@ export function hasUnreadMessages(chat: ChatSummary, currentUserId: number): boo
 }
 
 export const useChatStore = defineStore("chats", () => {
+  const authStore = useAuthStore()
+
   const chats = ref<ChatSummary[]>([])
   const totalCount = ref(0)
+
+  const hasUnread = computed(() => {
+    const currentUser = authStore.user
+    if (currentUser === undefined) {
+      return false
+    }
+    return chats.value.some((chat) => hasUnreadMessages(chat, currentUser.id))
+  })
 
   const adminChats = ref<ChatSummary[]>([])
   const adminTotalCount = ref(0)
@@ -289,6 +300,7 @@ export const useChatStore = defineStore("chats", () => {
   return {
     chats,
     totalCount,
+    hasUnread,
     adminChats,
     adminTotalCount,
     fetchChats,

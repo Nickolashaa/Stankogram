@@ -3,6 +3,7 @@ import { computed, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { storeToRefs } from "pinia"
 import { useAuthStore } from "@/stores/auth"
+import { useChatStore } from "@/stores/chats"
 import { shortName, initials } from "@/lib/format"
 import { roleLabels } from "@/lib/roles"
 import AppBrand from "@/components/app-brand.vue"
@@ -13,7 +14,9 @@ import ThemePickerPanel from "@/components/theme-picker-panel.vue"
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const chatStore = useChatStore()
 const { user } = storeToRefs(authStore)
+const { hasUnread } = storeToRefs(chatStore)
 
 const themePickerOpen = ref(false)
 const mobileMenuOpen = ref(false)
@@ -25,10 +28,11 @@ const navItems = computed(() => {
     to: string
     label: string
     icon: "home" | "chats" | "users" | "support" | "admin"
+    unread?: boolean
   }[] = [
     { to: "/home", label: "Главная", icon: "home" },
     { to: "/users", label: "Написать", icon: "users" },
-    { to: "/chats", label: "Чаты", icon: "chats" },
+    { to: "/chats", label: "Чаты", icon: "chats", unread: hasUnread.value },
     { to: "/support", label: "Поддержка", icon: "support" },
   ]
 
@@ -80,6 +84,7 @@ function openThemePicker() {
               <NavIcon :name="item.icon" :size="18" />
             </span>
             {{ item.label }}
+            <span v-if="item.unread" class="h-2 w-2 shrink-0 rounded-full bg-accent" />
           </a>
         </RouterLink>
       </div>
@@ -142,10 +147,14 @@ function openThemePicker() {
         @click="navigate"
       >
         <span
-          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors duration-200"
+          class="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors duration-200"
           :class="isActive ? 'bg-accent text-bg' : 'text-second'"
         >
           <NavIcon :name="item.icon" :size="18" />
+          <span
+            v-if="item.unread"
+            class="absolute top-0 right-0 h-2 w-2 rounded-full bg-accent ring-2 ring-card"
+          />
         </span>
         {{ item.label }}
       </a>

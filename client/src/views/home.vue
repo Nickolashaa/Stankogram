@@ -2,13 +2,16 @@
 import { computed, ref } from "vue"
 import { storeToRefs } from "pinia"
 import { useAuthStore } from "@/stores/auth"
+import { useChatStore } from "@/stores/chats"
 import { shortName, formatFullDate } from "@/lib/format"
 import { getGreeting, getDayPeriod } from "@/lib/greeting"
 import TimeOfDayIcon from "@/components/time-of-day-icon.vue"
 import NavIcon, { type IconName } from "@/components/nav-icon.vue"
 
 const authStore = useAuthStore()
+const chatStore = useChatStore()
 const { user } = storeToRefs(authStore)
+const { hasUnread } = storeToRefs(chatStore)
 
 const now = new Date()
 const period = getDayPeriod(now.getHours())
@@ -17,14 +20,26 @@ const greeting = computed(() => (user.value ? getGreeting(shortName(user.value))
 const today = formatFullDate(now)
 
 const shortcuts = computed(() => {
-  const items: { to: string; label: string; description: string; icon: IconName }[] = [
+  const items: {
+    to: string
+    label: string
+    description: string
+    icon: IconName
+    unread?: boolean
+  }[] = [
     {
       to: "/users",
       label: "Написать",
       description: "Найти коллегу и начать личный чат",
       icon: "users",
     },
-    { to: "/chats", label: "Чаты", description: "Личные и групповые обсуждения", icon: "chats" },
+    {
+      to: "/chats",
+      label: "Чаты",
+      description: "Личные и групповые обсуждения",
+      icon: "chats",
+      unread: hasUnread.value,
+    },
     { to: "/support", label: "Поддержка", description: "Задать вопрос команде", icon: "support" },
   ]
 
@@ -99,7 +114,10 @@ function handleSunClick() {
           <NavIcon :name="item.icon" />
         </span>
         <span class="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span class="text-[15px] font-medium text-main">{{ item.label }}</span>
+          <span class="flex items-center gap-2 text-[15px] font-medium text-main">
+            {{ item.label }}
+            <span v-if="item.unread" class="h-2 w-2 shrink-0 rounded-full bg-accent" />
+          </span>
           <span class="truncate text-xs text-second">{{ item.description }}</span>
         </span>
         <NavIcon

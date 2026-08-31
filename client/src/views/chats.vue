@@ -3,8 +3,6 @@ import { computed, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { storeToRefs } from "pinia"
 import { useChatStore } from "@/stores/chats"
-import { useMessageStore } from "@/stores/messages"
-import { useEventsSubscription } from "@/graphql/subscriptions/events.generated"
 import ChatsListPanel from "@/components/chats-list-panel.vue"
 import ChatWindow from "@/components/chat-window.vue"
 import ChatMetaPanel from "@/components/chat-meta-panel.vue"
@@ -14,7 +12,6 @@ const route = useRoute()
 const router = useRouter()
 
 const chatStore = useChatStore()
-const messageStore = useMessageStore()
 const { chats } = storeToRefs(chatStore)
 
 const activeChatId = computed(() => {
@@ -35,17 +32,6 @@ const mobileInfoOpen = ref(false)
 
 watch(activeChatId, () => {
   mobileInfoOpen.value = false
-})
-
-const { onResult } = useEventsSubscription()
-
-onResult(({ data }) => {
-  if (!data) {
-    return
-  }
-
-  chatStore.handleIncomingMessage(data.events)
-  messageStore.handleIncomingMessage(data.events)
 })
 </script>
 
