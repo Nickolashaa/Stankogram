@@ -1,0 +1,14 @@
+mutation LeaveChat($chatId: Int!) {
+  leaveChat(chatId: $chatId) {
+    __typename
+    ... on Chat {
+      id
+    }
+    ... on InvalidInputError {
+      message
+    }
+    ... on ObjectNotFoundError {
+      message
+    }
+  }
+}

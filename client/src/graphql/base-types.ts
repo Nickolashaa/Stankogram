@@ -168,6 +168,7 @@ export type Mutation = {
   createPrivateChat: ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError
   createPublicChat: ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError
   createSystemNotification: SystemNotification
+  leaveChat: ChatInvalidInputErrorObjectNotFoundError
   login: JwTsObjectNotFoundError
   logout?: Maybe<Scalars["Void"]["output"]>
   markChatRead: ChatParticipantObjectNotFoundError
@@ -202,6 +203,10 @@ export type MutationCreatePublicChatArgs = {
 
 export type MutationCreateSystemNotificationArgs = {
   input: SystemNotificationIn
+}
+
+export type MutationLeaveChatArgs = {
+  chatId: Scalars["Int"]["input"]
 }
 
 export type MutationLoginArgs = {
