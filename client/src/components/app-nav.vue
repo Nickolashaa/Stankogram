@@ -33,7 +33,6 @@ const navItems = computed(() => {
     { to: "/home", label: "Главная", icon: "home" },
     { to: "/users", label: "Написать", icon: "users" },
     { to: "/chats", label: "Чаты", icon: "chats", unread: hasUnread.value },
-    { to: "/support", label: "Поддержка", icon: "support" },
   ]
 
   if (user.value?.isAdmin) {
@@ -102,6 +101,17 @@ function openThemePicker() {
         </div>
       </div>
 
+      <RouterLink
+        to="/support"
+        class="flex cursor-pointer items-center gap-3 rounded-input px-3 py-2.5 text-[15px] font-medium text-second transition-colors duration-150 hover:bg-accent/5 hover:text-main"
+      >
+        <span
+          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-second/10 text-second"
+        >
+          <NavIcon name="support" :size="18" />
+        </span>
+        Поддержка
+      </RouterLink>
       <button
         type="button"
         class="flex cursor-pointer items-center gap-3 rounded-input px-3 py-2.5 text-[15px] font-medium text-second transition-colors duration-150 hover:bg-accent/5 hover:text-main"
@@ -186,6 +196,18 @@ function openThemePicker() {
         </div>
       </div>
 
+      <RouterLink
+        to="/support"
+        class="flex cursor-pointer items-center gap-3 rounded-input px-3 py-2.5 text-[15px] font-medium text-second transition-colors duration-150 hover:bg-accent/5 hover:text-main"
+        @click="mobileMenuOpen = false"
+      >
+        <span
+          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-second/10 text-second"
+        >
+          <NavIcon name="support" :size="18" />
+        </span>
+        Поддержка
+      </RouterLink>
       <button
         type="button"
         class="flex cursor-pointer items-center gap-3 rounded-input px-3 py-2.5 text-[15px] font-medium text-second transition-colors duration-150 hover:bg-accent/5 hover:text-main"

@@ -58,7 +58,6 @@ const shortcuts = computed(() => {
       icon: "chats",
       unread: hasUnread.value,
     },
-    { to: "/support", label: "Поддержка", description: "Задать вопрос команде", icon: "support" },
   ]
 
   return items
