@@ -12,6 +12,7 @@ import * as VueCompositionApi from "vue"
 export type ReactiveFunction<TParam> = () => TParam
 export type SystemNotificationIn = {
   text: string
+  title: string
 }
 
 export type CreateSystemNotificationMutationVariables = Exact<{
@@ -19,7 +20,13 @@ export type CreateSystemNotificationMutationVariables = Exact<{
 }>
 
 export type CreateSystemNotificationMutation = {
-  createSystemNotification: { id: number; createdAt: string; updatedAt: string; text: string }
+  createSystemNotification: {
+    id: number
+    createdAt: string
+    updatedAt: string
+    title: string
+    text: string
+  }
 }
 
 export const CreateSystemNotificationDocument = gql`

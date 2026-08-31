@@ -2,5 +2,6 @@ fragment SystemNotificationFields on SystemNotification {
   id
   createdAt
   updatedAt
+  title
   text
 }

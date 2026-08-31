@@ -8,6 +8,7 @@ export type SystemNotificationFieldsFragment = {
   id: number
   createdAt: string
   updatedAt: string
+  title: string
   text: string
 }
 
@@ -16,6 +17,7 @@ export const SystemNotificationFieldsFragmentDoc = gql`
     id
     createdAt
     updatedAt
+    title
     text
   }
 `

@@ -12,6 +12,7 @@ import * as VueCompositionApi from "vue"
 export type ReactiveFunction<TParam> = () => TParam
 export type SystemNotificationIn = {
   text: string
+  title: string
 }
 
 export type UpdateSystemNotificationMutationVariables = Exact<{
@@ -27,6 +28,7 @@ export type UpdateSystemNotificationMutation = {
         id: number
         createdAt: string
         updatedAt: string
+        title: string
         text: string
       }
 }

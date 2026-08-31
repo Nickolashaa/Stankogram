@@ -27,7 +27,13 @@ export type MeSystemNotificationsQueryVariables = Exact<{
 export type MeSystemNotificationsQuery = {
   meSystemNotifications: {
     count: number
-    systemNotifications: Array<{ id: number; createdAt: string; updatedAt: string; text: string }>
+    systemNotifications: Array<{
+      id: number
+      createdAt: string
+      updatedAt: string
+      title: string
+      text: string
+    }>
   }
 }
 

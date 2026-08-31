@@ -327,6 +327,7 @@ export type SystemNotification = IBaseType & {
   createdAt: Scalars["DateTime"]["output"]
   id: Scalars["Int"]["output"]
   text: Scalars["String"]["output"]
+  title: Scalars["String"]["output"]
   updatedAt: Scalars["DateTime"]["output"]
 }
 
@@ -336,6 +337,7 @@ export type SystemNotificationFiltersIn = {
 
 export type SystemNotificationIn = {
   text: Scalars["String"]["input"]
+  title: Scalars["String"]["input"]
 }
 
 export type SystemNotificationObjectNotFoundError = ObjectNotFoundError | SystemNotification
