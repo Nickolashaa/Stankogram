@@ -1,0 +1,6 @@
+mutation MarkSystemNotificationRead($id: Int!) {
+  markSystemNotificationRead(id: $id) {
+    __typename
+    message
+  }
+}

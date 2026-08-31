@@ -1,0 +1,8 @@
+query SystemNotifications($pagination: BasePaginationIn) {
+  systemNotifications(pagination: $pagination) {
+    count
+    systemNotifications {
+      ...SystemNotificationFields
+    }
+  }
+}
