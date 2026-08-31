@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from "vue"
+import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import type { DayPeriod } from "@/lib/greeting"
 
-defineProps<{
+const props = defineProps<{
   period: DayPeriod
 }>()
 
@@ -11,9 +11,14 @@ const BOOST_PER_CLICK = 220
 const MAX_SPEED = 1400
 const DECAY_MS = 900
 const LAUNCH_SPEED = 900
+const IDLE_ENERGY = 0.003
 
 const sunRays = ref<SVGGElement | null>(null)
 const sunSvg = ref<SVGSVGElement | null>(null)
+const sunsetGroup = ref<SVGGElement | null>(null)
+const moonGroup = ref<SVGGElement | null>(null)
+
+const isSun = computed(() => props.period === "morning" || props.period === "day")
 
 const launched = ref(false)
 
@@ -21,6 +26,18 @@ let angle = 0
 let speed = BASE_SPEED
 let lastTime: number | null = null
 let rafId: number | null = null
+
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches
+}
+
+function startLoop() {
+  if (rafId !== null || prefersReducedMotion()) {
+    return
+  }
+  lastTime = null
+  rafId = requestAnimationFrame(tick)
+}
 
 function tick(time: number) {
   if (lastTime === null) {
@@ -32,12 +49,34 @@ function tick(time: number) {
   angle = (angle + speed * (deltaMs / 1000)) % 360
   speed = BASE_SPEED + (speed - BASE_SPEED) * Math.exp(-deltaMs / DECAY_MS)
 
+  const energy = Math.min((speed - BASE_SPEED) / (LAUNCH_SPEED - BASE_SPEED), 1)
+
+  if (!launched.value && speed >= LAUNCH_SPEED) {
+    launch()
+  }
+
   if (sunRays.value) {
     sunRays.value.style.transform = `rotate(${angle}deg)`
   }
 
-  if (!launched.value && speed >= LAUNCH_SPEED) {
-    launch()
+  if (!isSun.value) {
+    if (launched.value) {
+      rafId = null
+      return
+    }
+
+    if (sunsetGroup.value) {
+      sunsetGroup.value.style.transform = `translateY(${energy * 22}px)`
+    }
+
+    if (moonGroup.value) {
+      moonGroup.value.style.transform = `rotate(${Math.sin(time / 55) * energy * 16}deg)`
+    }
+
+    if (energy <= IDLE_ENERGY) {
+      rafId = null
+      return
+    }
   }
 
   rafId = requestAnimationFrame(tick)
@@ -46,19 +85,27 @@ function tick(time: number) {
 function launch() {
   launched.value = true
 
-  if (sunSvg.value) {
-    sunSvg.value.style.transition =
+  if (props.period === "evening") {
+    if (sunsetGroup.value) {
+      sunsetGroup.value.style.transition = "transform 0.9s cubic-bezier(0.45, 0, 0.7, 1)"
+      sunsetGroup.value.style.transform = "translateY(48px)"
+    }
+    return
+  }
+
+  const escaping = props.period === "night" ? moonGroup.value : sunSvg.value
+  if (escaping) {
+    escaping.style.transition =
       "transform 0.7s cubic-bezier(0.5, -0.3, 0.85, 0.3), opacity 0.5s ease-in 0.2s"
-    sunSvg.value.style.transform = "translateY(-220px) scale(0.4)"
-    sunSvg.value.style.opacity = "0"
+    escaping.style.transform = "translateY(-220px) scale(0.4)"
+    escaping.style.opacity = "0"
   }
 }
 
 onMounted(() => {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    return
+  if (isSun.value) {
+    startLoop()
   }
-  rafId = requestAnimationFrame(tick)
 })
 
 onBeforeUnmount(() => {
@@ -72,6 +119,7 @@ function boost() {
     return
   }
   speed = Math.min(speed + BOOST_PER_CLICK, MAX_SPEED)
+  startLoop()
 }
 
 defineExpose({ boost, launched })
@@ -88,7 +136,9 @@ defineExpose({ boost, launched })
       <rect width="100" height="100" fill="white" />
       <circle cx="61" cy="41" r="23" fill="black" />
     </mask>
-    <circle cx="48" cy="50" r="27" fill="currentColor" mask="url(#moon-mask)" />
+    <g ref="moonGroup" class="moon">
+      <circle cx="48" cy="50" r="27" fill="currentColor" mask="url(#moon-mask)" />
+    </g>
     <circle class="star star-1" cx="18" cy="26" r="2.2" />
     <circle class="star star-2" cx="82" cy="32" r="1.6" />
     <circle class="star star-3" cx="78" cy="72" r="2" />
@@ -102,20 +152,22 @@ defineExpose({ boost, launched })
       </clipPath>
     </defs>
     <g clip-path="url(#sunset-clip)">
-      <g
-        class="sunset-rays"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="4"
-        stroke-linecap="round"
-      >
-        <line x1="50" y1="6" x2="50" y2="17" />
-        <line x1="19" y1="19" x2="27" y2="27" />
-        <line x1="81" y1="19" x2="73" y2="27" />
-        <line x1="6" y1="52" x2="17" y2="52" />
-        <line x1="94" y1="52" x2="83" y2="52" />
+      <g ref="sunsetGroup" class="sunset-group">
+        <g
+          class="sunset-rays"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="4"
+          stroke-linecap="round"
+        >
+          <line x1="50" y1="6" x2="50" y2="17" />
+          <line x1="19" y1="19" x2="27" y2="27" />
+          <line x1="81" y1="19" x2="73" y2="27" />
+          <line x1="6" y1="52" x2="17" y2="52" />
+          <line x1="94" y1="52" x2="83" y2="52" />
+        </g>
+        <circle class="sunset-sun" cx="50" cy="56" r="21" fill="currentColor" />
       </g>
-      <circle class="sunset-sun" cx="50" cy="56" r="21" fill="currentColor" />
     </g>
     <line
       x1="10"
@@ -153,6 +205,12 @@ defineExpose({ boost, launched })
 
 <style scoped>
 .sun-rays {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+}
+
+.sunset-group,
+.moon {
   transform-box: view-box;
   transform-origin: 50% 50%;
 }
