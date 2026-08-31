@@ -6,8 +6,10 @@ class SystemNotificationGetListFilters(TypedDict):
 
 
 class SystemNotificationCreateParams(TypedDict):
+    title: Required[str]
     text: Required[str]
 
 
 class SystemNotificationUpdateParams(TypedDict):
+    title: Required[str]
     text: Required[str]

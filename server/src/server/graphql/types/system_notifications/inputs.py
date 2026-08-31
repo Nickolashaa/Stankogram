@@ -25,10 +25,11 @@ class SystemNotificationFiltersIn:
 
 @strawberry.input
 class SystemNotificationIn:
+    title: str
     text: str
 
     def to_create_service_params(self) -> SystemNotificationCreateParams:
-        return SystemNotificationCreateParams(text=self.text)
+        return SystemNotificationCreateParams(title=self.title, text=self.text)
 
     def to_update_service_params(self) -> SystemNotificationUpdateParams:
-        return SystemNotificationUpdateParams(text=self.text)
+        return SystemNotificationUpdateParams(title=self.title, text=self.text)

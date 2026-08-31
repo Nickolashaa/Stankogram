@@ -8,6 +8,7 @@ from .auth import User
 class SystemNotification(Base):
     __tablename__ = "system_notifications"
 
+    title: Mapped[str]
     text: Mapped[str]
 
 
