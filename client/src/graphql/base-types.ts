@@ -167,13 +167,16 @@ export type Mutation = {
   createMessage: MessageObjectNotFoundError
   createPrivateChat: ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError
   createPublicChat: ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError
+  createSystemNotification: SystemNotification
   login: JwTsObjectNotFoundError
   logout?: Maybe<Scalars["Void"]["output"]>
   markChatRead: ChatParticipantObjectNotFoundError
+  markSystemNotificationRead?: Maybe<ObjectNotFoundError>
   refresh: JwTsUnauthorizedErrorObjectNotFoundError
   removeParticipantFromChat?: Maybe<Scalars["Void"]["output"]>
   updateChat: ChatInvalidInputErrorObjectNotFoundError
   updateChatParticipantPermissions: ChatParticipantObjectNotFoundError
+  updateSystemNotification: SystemNotificationObjectNotFoundError
   userCreate: UserObjectAlreadyExistsError
   userDelete?: Maybe<Scalars["Void"]["output"]>
   userResetPasswordConfirm?: Maybe<ObjectNotFoundError>
@@ -197,12 +200,20 @@ export type MutationCreatePublicChatArgs = {
   input: PublicChatIn
 }
 
+export type MutationCreateSystemNotificationArgs = {
+  input: SystemNotificationIn
+}
+
 export type MutationLoginArgs = {
   input: UserCredentialsIn
 }
 
 export type MutationMarkChatReadArgs = {
   chatId: Scalars["Int"]["input"]
+}
+
+export type MutationMarkSystemNotificationReadArgs = {
+  id: Scalars["Int"]["input"]
 }
 
 export type MutationRemoveParticipantFromChatArgs = {
@@ -217,6 +228,11 @@ export type MutationUpdateChatArgs = {
 
 export type MutationUpdateChatParticipantPermissionsArgs = {
   input: ChatParticipantIn
+}
+
+export type MutationUpdateSystemNotificationArgs = {
+  id: Scalars["Int"]["input"]
+  input: SystemNotificationIn
 }
 
 export type MutationUserCreateArgs = {
@@ -266,7 +282,9 @@ export type Query = {
   health: Scalars["Int"]["output"]
   me: UserObjectNotFoundError
   meChats: ChatsMetaUnauthorizedError
+  meSystemNotifications: SystemNotificationsMeta
   messages: MessagesMeta
+  systemNotifications: SystemNotificationsMeta
   users: UsersMeta
 }
 
@@ -280,8 +298,17 @@ export type QueryMeChatsArgs = {
   pagination?: InputMaybe<BasePaginationIn>
 }
 
+export type QueryMeSystemNotificationsArgs = {
+  filters?: InputMaybe<SystemNotificationFiltersIn>
+  pagination?: InputMaybe<BasePaginationIn>
+}
+
 export type QueryMessagesArgs = {
   filters: MessageFiltersIn
+  pagination?: InputMaybe<BasePaginationIn>
+}
+
+export type QuerySystemNotificationsArgs = {
   pagination?: InputMaybe<BasePaginationIn>
 }
 
@@ -293,6 +320,32 @@ export type QueryUsersArgs = {
 export type Subscription = {
   __typename?: "Subscription"
   events: Message
+}
+
+export type SystemNotification = IBaseType & {
+  __typename?: "SystemNotification"
+  createdAt: Scalars["DateTime"]["output"]
+  id: Scalars["Int"]["output"]
+  text: Scalars["String"]["output"]
+  title: Scalars["String"]["output"]
+  updatedAt: Scalars["DateTime"]["output"]
+}
+
+export type SystemNotificationFiltersIn = {
+  onlyUnread?: InputMaybe<Scalars["Boolean"]["input"]>
+}
+
+export type SystemNotificationIn = {
+  text: Scalars["String"]["input"]
+  title: Scalars["String"]["input"]
+}
+
+export type SystemNotificationObjectNotFoundError = ObjectNotFoundError | SystemNotification
+
+export type SystemNotificationsMeta = IBaseMeta & {
+  __typename?: "SystemNotificationsMeta"
+  count: Scalars["Int"]["output"]
+  systemNotifications: Array<SystemNotification>
 }
 
 export type UnauthorizedError = IAppError & {

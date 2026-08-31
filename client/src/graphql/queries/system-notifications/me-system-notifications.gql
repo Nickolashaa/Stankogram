@@ -1,0 +1,8 @@
+query MeSystemNotifications($pagination: BasePaginationIn, $filters: SystemNotificationFiltersIn) {
+  meSystemNotifications(pagination: $pagination, filters: $filters) {
+    count
+    systemNotifications {
+      ...SystemNotificationFields
+    }
+  }
+}

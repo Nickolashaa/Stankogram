@@ -15,6 +15,10 @@ from server.database.models.auth import (  # noqa: F401
 )
 from server.database.models.chats import Chat, ChatParticipant  # noqa: F401
 from server.database.models.messages import Message  # noqa: F401
+from server.database.models.system_notifications import (  # noqa: F401
+    ReadSystemNotification,
+    SystemNotification,
+)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

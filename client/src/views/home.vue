@@ -1,17 +1,35 @@
 <script setup lang="ts">
-import { computed, ref } from "vue"
+import { computed, onMounted, ref } from "vue"
 import { storeToRefs } from "pinia"
 import { useAuthStore } from "@/stores/auth"
 import { useChatStore } from "@/stores/chats"
-import { shortName, formatFullDate } from "@/lib/format"
+import { useSystemNotificationStore } from "@/stores/system-notifications"
+import { shortName, formatFullDate, formatDateTime } from "@/lib/format"
 import { getGreeting, getDayPeriod } from "@/lib/greeting"
+import { notify } from "@/lib/notify"
 import TimeOfDayIcon from "@/components/time-of-day-icon.vue"
 import NavIcon, { type IconName } from "@/components/nav-icon.vue"
 
+const NOTIFICATIONS_PAGE_SIZE = 20
+
 const authStore = useAuthStore()
 const chatStore = useChatStore()
+const notificationStore = useSystemNotificationStore()
 const { user } = storeToRefs(authStore)
 const { hasUnread } = storeToRefs(chatStore)
+const { unreadNotifications } = storeToRefs(notificationStore)
+
+onMounted(() => {
+  notificationStore.fetchUnreadNotifications(NOTIFICATIONS_PAGE_SIZE, 0)
+})
+
+async function markNotificationRead(id: number) {
+  try {
+    await notificationStore.markNotificationRead(id)
+  } catch {
+    notify.error("Не удалось скрыть уведомление")
+  }
+}
 
 const now = new Date()
 const period = getDayPeriod(now.getHours())
@@ -40,17 +58,7 @@ const shortcuts = computed(() => {
       icon: "chats",
       unread: hasUnread.value,
     },
-    { to: "/support", label: "Поддержка", description: "Задать вопрос команде", icon: "support" },
   ]
-
-  if (user.value?.isAdmin) {
-    items.push({
-      to: "/admin",
-      label: "Админка",
-      description: "Управление системой",
-      icon: "admin",
-    })
-  }
 
   return items
 })
@@ -126,6 +134,35 @@ function handleSunClick() {
           class="shrink-0 text-second opacity-0 transition-opacity duration-200 group-hover:opacity-100"
         />
       </RouterLink>
+    </div>
+
+    <div v-if="unreadNotifications.length > 0" class="flex w-full max-w-3xl flex-col gap-3">
+      <div
+        v-for="(notification, index) in unreadNotifications"
+        :key="notification.id"
+        class="flex animate-appear items-start gap-4 rounded-card bg-card px-5 py-4 shadow-card"
+        :style="{ animationDelay: `${(shortcuts.length + index) * 80}ms` }"
+      >
+        <span
+          class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent"
+        >
+          <NavIcon name="bell" />
+        </span>
+        <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span class="text-[15px] font-medium text-main">{{ notification.title }}</span>
+          <span class="text-sm whitespace-pre-wrap text-second">{{ notification.text }}</span>
+          <span class="text-xs text-second">{{ formatDateTime(notification.createdAt) }}</span>
+        </span>
+        <button
+          type="button"
+          class="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-second transition-colors duration-150 hover:bg-accent/5 hover:text-main"
+          title="Скрыть"
+          aria-label="Скрыть"
+          @click="markNotificationRead(notification.id)"
+        >
+          <NavIcon name="cancel" :size="16" />
+        </button>
+      </div>
     </div>
   </div>
 </template>

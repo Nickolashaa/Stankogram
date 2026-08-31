@@ -1,0 +1,11 @@
+mutation UpdateSystemNotification($id: Int!, $input: SystemNotificationIn!) {
+  updateSystemNotification(id: $id, input: $input) {
+    __typename
+    ... on SystemNotification {
+      ...SystemNotificationFields
+    }
+    ... on ObjectNotFoundError {
+      message
+    }
+  }
+}
