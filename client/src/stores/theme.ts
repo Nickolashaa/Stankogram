@@ -149,14 +149,14 @@ export const COLOR_SCHEMES = [
 
 export type ColorScheme = (typeof COLOR_SCHEMES)[number]["id"]
 
-const DEFAULT_SCHEME: ColorScheme = "emerald"
+const DEFAULT_SCHEME: ColorScheme = "graphite"
 
 export function getSchemeMeta(id: string) {
   return COLOR_SCHEMES.find((item) => item.id === id) ?? COLOR_SCHEMES[0]
 }
 
 export const useThemeStore = defineStore("theme", () => {
-  const isDark = useDark({ storageKey: "theme", initialValue: "light", disableTransition: false })
+  const isDark = useDark({ storageKey: "theme", initialValue: "dark", disableTransition: false })
   const scheme = useStorage<ColorScheme>(SCHEME_KEY, DEFAULT_SCHEME)
 
   watch(
