@@ -58,7 +58,9 @@ class AuthService(BaseService):
 
     @staticmethod
     def _generate_create_email(email: str, password: str) -> str:
-        return _CREATE_USER_EMAIL_TEMPLATE.substitute(email=email, password=password)
+        return _CREATE_USER_EMAIL_TEMPLATE.substitute(
+            email=email, password=password, app_url=APP_BASE_URL
+        )
 
     @staticmethod
     def _generate_password_reset_email(user_id: int, code: str) -> str:
@@ -68,7 +70,7 @@ class AuthService(BaseService):
     @staticmethod
     def _generate_password_reset_confirm_email(email: str, password: str) -> str:
         return _PASSWORD_RESET_CONFIRM_EMAIL_TEMPLATE.substitute(
-            email=email, password=password
+            email=email, password=password, app_url=APP_BASE_URL
         )
 
     @staticmethod
