@@ -20,6 +20,10 @@ export const router = createRouter({
             { path: "", redirect: "/admin/users" },
             { path: "users", component: () => import("./views/admin-users.vue") },
             { path: "chats/:chatId?", component: () => import("./views/admin-chats.vue") },
+            {
+              path: "notifications",
+              component: () => import("./views/admin-notifications.vue"),
+            },
           ],
         },
       ],

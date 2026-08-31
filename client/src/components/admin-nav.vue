@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import NavIcon from "@/components/nav-icon.vue"
 
-const navItems: { to: string; label: string; icon: "users" | "chats" }[] = [
+const navItems: { to: string; label: string; icon: "users" | "chats" | "bell" }[] = [
   { to: "/admin/users", label: "Пользователи", icon: "users" },
   { to: "/admin/chats", label: "Групповые чаты", icon: "chats" },
+  { to: "/admin/notifications", label: "Уведомления", icon: "bell" },
 ]
 </script>
 
