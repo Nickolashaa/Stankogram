@@ -9,6 +9,7 @@ import { useDraftStore } from "@/stores/drafts"
 import { EChatType } from "@/graphql/base-types"
 import { notify } from "@/lib/notify"
 import { shortName, formatTime, chatInitials } from "@/lib/format"
+import { linkify } from "@/lib/linkify"
 import { participantBadges, userBadges } from "@/lib/badges"
 import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
 import Input from "@/components/input.vue"
@@ -183,7 +184,19 @@ async function handleSubmit() {
               :label="badge.label"
             />
           </div>
-          <div class="whitespace-pre-wrap break-words">{{ message.text }}</div>
+          <div class="whitespace-pre-wrap break-words">
+            <template v-for="(segment, index) in linkify(message.text)" :key="index">
+              <a
+                v-if="segment.type === 'link'"
+                :href="segment.href"
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                class="underline underline-offset-2 transition-opacity hover:opacity-70"
+                >{{ segment.value }}</a
+              >
+              <template v-else>{{ segment.value }}</template>
+            </template>
+          </div>
         </div>
         <span class="px-1 text-xs text-second">{{ formatTime(message.createdAt) }}</span>
       </div>
