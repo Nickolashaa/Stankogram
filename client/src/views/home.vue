@@ -9,7 +9,6 @@ import { getGreeting, getDayPeriod } from "@/lib/greeting"
 import { notify } from "@/lib/notify"
 import TimeOfDayIcon from "@/components/time-of-day-icon.vue"
 import NavIcon, { type IconName } from "@/components/nav-icon.vue"
-import Button from "@/components/button.vue"
 
 const NOTIFICATIONS_PAGE_SIZE = 20
 
@@ -147,32 +146,31 @@ function handleSunClick() {
       </RouterLink>
     </div>
 
-    <div
-      v-if="unreadNotifications.length > 0"
-      class="flex w-full max-w-3xl animate-appear flex-col gap-3"
-    >
-      <div class="flex items-center gap-2 text-second">
-        <NavIcon name="bell" :size="16" />
-        <span class="text-sm font-medium">Уведомления</span>
-        <span class="h-2 w-2 shrink-0 rounded-full bg-accent" />
-      </div>
-
+    <div v-if="unreadNotifications.length > 0" class="flex w-full max-w-3xl flex-col gap-3">
       <div
-        v-for="notification in unreadNotifications"
+        v-for="(notification, index) in unreadNotifications"
         :key="notification.id"
-        class="flex items-start gap-4 rounded-card border-l-[3px] border-accent bg-card px-5 py-4 shadow-card"
+        class="flex animate-appear items-center gap-4 rounded-card bg-card px-5 py-4 shadow-card"
+        :style="{ animationDelay: `${(shortcuts.length + index) * 80}ms` }"
       >
-        <span class="flex min-w-0 flex-1 flex-col gap-1">
+        <span
+          class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent"
+        >
+          <NavIcon name="bell" />
+        </span>
+        <span class="flex min-w-0 flex-1 flex-col gap-0.5">
           <span class="text-[15px] whitespace-pre-wrap text-main">{{ notification.text }}</span>
           <span class="text-xs text-second">{{ formatDateTime(notification.createdAt) }}</span>
         </span>
-        <Button
-          icon="cancel"
-          variant="ghost"
+        <button
+          type="button"
+          class="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-second transition-colors duration-150 hover:bg-accent/5 hover:text-main"
           title="Скрыть"
           aria-label="Скрыть"
           @click="markNotificationRead(notification.id)"
-        />
+        >
+          <NavIcon name="cancel" :size="16" />
+        </button>
       </div>
     </div>
   </div>
