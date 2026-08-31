@@ -148,6 +148,7 @@ type Mutation {
   updateChat(chatId: Int!, input: ChatUpdateIn!): ChatInvalidInputErrorObjectNotFoundError!
   addParticipantToChat(input: ChatParticipantIn!): ChatParticipantObjectNotFoundErrorObjectAlreadyExistsErrorInvalidInputError!
   removeParticipantFromChat(chatId: Int!, userId: Int!): Void
+  leaveChat(chatId: Int!): ChatInvalidInputErrorObjectNotFoundError!
   updateChatParticipantPermissions(input: ChatParticipantIn!): ChatParticipantObjectNotFoundError!
   markChatRead(chatId: Int!): ChatParticipantObjectNotFoundError!
   createMessage(input: MessageIn!): MessageObjectNotFoundError!
