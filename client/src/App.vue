@@ -4,9 +4,12 @@ import { storeToRefs } from "pinia"
 import { Toaster } from "vue-sonner"
 import "vue-sonner/style.css"
 import { useAuthStore } from "@/stores/auth"
+import { useThemeStore } from "@/stores/theme"
 import { router, PUBLIC_PATHS } from "@/router"
 
 const authStore = useAuthStore()
+
+useThemeStore()
 const { accessToken } = storeToRefs(authStore)
 
 watch(accessToken, (value) => {
