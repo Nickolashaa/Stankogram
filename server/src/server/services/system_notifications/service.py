@@ -98,7 +98,7 @@ class SystemNotificationService(BaseService):
         pagination: BasePagination | None = None,
         **filters: Unpack[SystemNotificationGetListFilters],
     ) -> list[SystemNotificationResponse]:
-        stmt = select(SystemNotification).order_by(SystemNotification.created_at.desc())
+        stmt = select(SystemNotification).order_by(SystemNotification.created_at)
 
         stmt = self._apply_filters(stmt=stmt, **filters)
 
