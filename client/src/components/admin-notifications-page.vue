@@ -103,7 +103,8 @@ async function handleSubmit(data: SystemNotificationIn) {
           <NavIcon name="bell" :size="18" />
         </span>
         <div class="flex min-w-0 flex-1 flex-col gap-1">
-          <span class="text-[15px] whitespace-pre-wrap text-main">{{ notification.text }}</span>
+          <span class="text-[15px] font-semibold text-main">{{ notification.title }}</span>
+          <span class="text-sm whitespace-pre-wrap text-second">{{ notification.text }}</span>
           <span class="text-xs text-second">{{ formatDateTime(notification.createdAt) }}</span>
         </div>
         <Button

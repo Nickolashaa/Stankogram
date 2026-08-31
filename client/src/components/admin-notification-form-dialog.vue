@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from "vue"
+import Input from "@/components/input.vue"
 import Button from "@/components/button.vue"
 import type { SystemNotificationIn } from "@/graphql/base-types"
 import type { SystemNotificationFieldsFragment } from "@/graphql/fragments/system-notifications.generated"
@@ -16,6 +17,7 @@ const emit = defineEmits<{
   submit: [data: SystemNotificationIn]
 }>()
 
+const notificationTitle = ref("")
 const text = ref("")
 
 watch(
@@ -24,6 +26,7 @@ watch(
     if (!isOpen) {
       return
     }
+    notificationTitle.value = props.initialNotification?.title ?? ""
     text.value = props.initialNotification?.text ?? ""
   },
   { immediate: true },
@@ -34,10 +37,10 @@ function handleClose() {
 }
 
 function handleSubmit() {
-  if (text.value.trim() === "") {
+  if (notificationTitle.value.trim() === "" || text.value.trim() === "") {
     return
   }
-  emit("submit", { text: text.value.trim() })
+  emit("submit", { title: notificationTitle.value.trim(), text: text.value.trim() })
 }
 </script>
 
@@ -52,6 +55,8 @@ function handleSubmit() {
       @submit.prevent="handleSubmit"
     >
       <h2 class="m-0 text-xl font-semibold text-main">{{ title }}</h2>
+
+      <Input placeholder="Заголовок" v-model="notificationTitle" />
 
       <textarea
         v-model="text"
@@ -76,7 +81,7 @@ function handleSubmit() {
           class="flex-[2]"
           icon="save"
           :short-mode="false"
-          :disabled="submitting || text.trim() === ''"
+          :disabled="submitting || notificationTitle.trim() === '' || text.trim() === ''"
         >
           Сохранить
         </Button>

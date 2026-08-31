@@ -150,7 +150,7 @@ function handleSunClick() {
       <div
         v-for="(notification, index) in unreadNotifications"
         :key="notification.id"
-        class="flex animate-appear items-center gap-4 rounded-card bg-card px-5 py-4 shadow-card"
+        class="flex animate-appear items-start gap-4 rounded-card bg-card px-5 py-4 shadow-card"
         :style="{ animationDelay: `${(shortcuts.length + index) * 80}ms` }"
       >
         <span
@@ -159,7 +159,8 @@ function handleSunClick() {
           <NavIcon name="bell" />
         </span>
         <span class="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span class="text-[15px] whitespace-pre-wrap text-main">{{ notification.text }}</span>
+          <span class="text-[15px] font-medium text-main">{{ notification.title }}</span>
+          <span class="text-sm whitespace-pre-wrap text-second">{{ notification.text }}</span>
           <span class="text-xs text-second">{{ formatDateTime(notification.createdAt) }}</span>
         </span>
         <button
