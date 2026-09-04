@@ -110,7 +110,7 @@ async function handleSubmit() {
       @submit.prevent="handleSubmit"
     >
       <div class="flex items-center justify-between gap-4">
-        <h2 class="m-0 text-xl font-semibold text-main">Новая группа</h2>
+        <h2 class="m-0 text-xl font-semibold text-main">Групповой чат</h2>
         <button
           type="button"
           class="cursor-pointer text-second transition-colors duration-150 hover:text-main"

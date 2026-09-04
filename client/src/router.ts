@@ -10,7 +10,6 @@ export const router = createRouter({
         { path: "", redirect: "/home" },
         { path: "home", component: () => import("./views/home.vue") },
         { path: "chats/:chatId?", component: () => import("./views/chats.vue") },
-        { path: "users", component: () => import("./views/users.vue") },
         { path: "support", component: () => import("./views/support.vue") },
         {
           path: "admin",

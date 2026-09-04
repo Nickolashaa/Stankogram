@@ -31,7 +31,6 @@ const navItems = computed(() => {
     unread?: boolean
   }[] = [
     { to: "/home", label: "Главная", icon: "home" },
-    { to: "/users", label: "Написать", icon: "users" },
     { to: "/chats", label: "Чаты", icon: "chats", unread: hasUnread.value },
   ]
 

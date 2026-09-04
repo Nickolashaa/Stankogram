@@ -9,7 +9,9 @@ import { useDraftStore } from "@/stores/drafts"
 import { shortName, formatTime, chatInitials } from "@/lib/format"
 import Button from "@/components/button.vue"
 import Avatar from "@/components/avatar.vue"
+import NavIcon from "@/components/nav-icon.vue"
 import CreateGroupChatDialog from "@/components/create-group-chat-dialog.vue"
+import CreatePrivateChatDialog from "@/components/create-private-chat-dialog.vue"
 
 const PAGE_SIZE = 30
 
@@ -34,6 +36,23 @@ function isUnread(chat: (typeof chats.value)[number]) {
 }
 
 const createGroupOpen = ref(false)
+const createPrivateOpen = ref(false)
+const createMenuOpen = ref(false)
+
+function openPrivateChatDialog() {
+  createMenuOpen.value = false
+  createPrivateOpen.value = true
+}
+
+function openGroupChatDialog() {
+  createMenuOpen.value = false
+  createGroupOpen.value = true
+}
+
+function handlePrivateCreated(chatId: number) {
+  createPrivateOpen.value = false
+  router.push(`/chats/${chatId}`)
+}
 
 function handleGroupCreated(chatId: number) {
   createGroupOpen.value = false
@@ -75,12 +94,54 @@ function lastMessagePreview(chat: (typeof chats.value)[number]) {
       class="flex shrink-0 items-center justify-between gap-2 border-b border-second/15 px-5 py-5"
     >
       <h2 class="m-0 text-lg font-semibold text-main">Чаты</h2>
-      <Button
-        icon="plus"
-        title="Новая группа"
-        aria-label="Новая группа"
-        @click="createGroupOpen = true"
-      />
+
+      <div class="relative">
+        <Button
+          icon="plus"
+          title="Новый чат"
+          aria-label="Новый чат"
+          @click="createMenuOpen = !createMenuOpen"
+        />
+
+        <div v-if="createMenuOpen" class="fixed inset-0 z-40" @click="createMenuOpen = false" />
+
+        <div
+          v-if="createMenuOpen"
+          class="absolute top-full right-0 z-50 mt-2 flex w-64 animate-appear flex-col gap-1 rounded-card bg-card p-2 shadow-card"
+        >
+          <button
+            type="button"
+            class="flex cursor-pointer items-center gap-3 rounded-input px-3 py-2.5 text-left transition-colors duration-150 hover:bg-accent/5"
+            @click="openPrivateChatDialog"
+          >
+            <span
+              class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent"
+            >
+              <NavIcon name="users" :size="18" />
+            </span>
+            <span class="flex min-w-0 flex-col gap-0.5">
+              <span class="text-[15px] font-medium text-main">Личный чат</span>
+              <span class="truncate text-xs text-second">Найти коллегу и написать ему</span>
+            </span>
+          </button>
+
+          <button
+            type="button"
+            class="flex cursor-pointer items-center gap-3 rounded-input px-3 py-2.5 text-left transition-colors duration-150 hover:bg-accent/5"
+            @click="openGroupChatDialog"
+          >
+            <span
+              class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent"
+            >
+              <NavIcon name="chats" :size="18" />
+            </span>
+            <span class="flex min-w-0 flex-col gap-0.5">
+              <span class="text-[15px] font-medium text-main">Групповой чат</span>
+              <span class="truncate text-xs text-second">Создать группу с участниками</span>
+            </span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <div ref="scrollContainer" class="flex-1 overflow-y-auto px-2 pt-2 pb-20 lg:pb-2">
@@ -129,6 +190,12 @@ function lastMessagePreview(chat: (typeof chats.value)[number]) {
         Загрузка...
       </div>
     </div>
+
+    <CreatePrivateChatDialog
+      :open="createPrivateOpen"
+      @close="createPrivateOpen = false"
+      @created="handlePrivateCreated"
+    />
 
     <CreateGroupChatDialog
       :open="createGroupOpen"

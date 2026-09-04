@@ -2,21 +2,18 @@
 import { computed, onMounted, ref } from "vue"
 import { storeToRefs } from "pinia"
 import { useAuthStore } from "@/stores/auth"
-import { useChatStore } from "@/stores/chats"
 import { useSystemNotificationStore } from "@/stores/system-notifications"
 import { shortName, formatFullDate, formatDateTime } from "@/lib/format"
 import { getGreeting, getDayPeriod } from "@/lib/greeting"
 import { notify } from "@/lib/notify"
 import TimeOfDayIcon from "@/components/time-of-day-icon.vue"
-import NavIcon, { type IconName } from "@/components/nav-icon.vue"
+import NavIcon from "@/components/nav-icon.vue"
 
 const NOTIFICATIONS_PAGE_SIZE = 20
 
 const authStore = useAuthStore()
-const chatStore = useChatStore()
 const notificationStore = useSystemNotificationStore()
 const { user } = storeToRefs(authStore)
-const { hasUnread } = storeToRefs(chatStore)
 const { unreadNotifications } = storeToRefs(notificationStore)
 
 onMounted(() => {
@@ -36,32 +33,6 @@ const period = getDayPeriod(now.getHours())
 
 const greeting = computed(() => (user.value ? getGreeting(shortName(user.value)) : ""))
 const today = formatFullDate(now)
-
-const shortcuts = computed(() => {
-  const items: {
-    to: string
-    label: string
-    description: string
-    icon: IconName
-    unread?: boolean
-  }[] = [
-    {
-      to: "/users",
-      label: "Написать",
-      description: "Найти коллегу и начать личный чат",
-      icon: "users",
-    },
-    {
-      to: "/chats",
-      label: "Чаты",
-      description: "Личные и групповые обсуждения",
-      icon: "chats",
-      unread: hasUnread.value,
-    },
-  ]
-
-  return items
-})
 
 const sunIcon = ref<InstanceType<typeof TimeOfDayIcon> | null>(null)
 const isSunLaunched = computed(() => sunIcon.value?.launched ?? false)
@@ -106,40 +77,12 @@ function handleSunClick() {
       </div>
     </div>
 
-    <div class="grid w-full max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
-      <RouterLink
-        v-for="(item, index) in shortcuts"
-        :key="item.to"
-        :to="item.to"
-        class="group flex animate-appear items-center gap-4 rounded-card bg-card px-5 py-4 shadow-card transition-transform duration-200 hover:-translate-y-0.5"
-        :style="{ animationDelay: `${index * 80}ms` }"
-      >
-        <span
-          class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent transition-colors duration-200 group-hover:bg-accent group-hover:text-bg"
-        >
-          <NavIcon :name="item.icon" />
-        </span>
-        <span class="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span class="flex items-center gap-2 text-[15px] font-medium text-main">
-            {{ item.label }}
-            <span v-if="item.unread" class="h-2 w-2 shrink-0 rounded-full bg-accent" />
-          </span>
-          <span class="truncate text-xs text-second">{{ item.description }}</span>
-        </span>
-        <NavIcon
-          name="arrow-right"
-          :size="16"
-          class="shrink-0 text-second opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-        />
-      </RouterLink>
-    </div>
-
     <div v-if="unreadNotifications.length > 0" class="flex w-full max-w-3xl flex-col gap-3">
       <div
         v-for="(notification, index) in unreadNotifications"
         :key="notification.id"
         class="flex animate-appear items-start gap-4 rounded-card bg-card px-5 py-4 shadow-card"
-        :style="{ animationDelay: `${(shortcuts.length + index) * 80}ms` }"
+        :style="{ animationDelay: `${index * 80}ms` }"
       >
         <span
           class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent"
