@@ -254,25 +254,24 @@ async function handleSubmit() {
         ref="composerEl"
         :value="text"
         rows="1"
-        placeholder="Написать сообщение..."
+        placeholder="Сообщение..."
         name="message"
         autocomplete="off"
         autocapitalize="sentences"
         autocorrect="on"
         spellcheck="true"
         :enterkeyhint="sendsOnEnter ? 'send' : 'enter'"
-        class="box-border max-h-40 min-h-12 min-w-0 flex-1 resize-none overflow-y-auto rounded-input border-[1.5px] border-second/30 bg-bg px-4 py-3 font-sans text-[15px] leading-6 text-main outline-none transition-colors duration-150 placeholder:text-second focus:border-accent"
+        class="box-border max-h-40 min-h-12 min-w-0 flex-1 resize-none overflow-y-auto rounded-input border-[1.5px] border-second/30 bg-bg px-4 py-3 font-sans text-[15px] leading-6 text-main outline-none transition-colors duration-150 placeholder:overflow-hidden placeholder:text-ellipsis placeholder:whitespace-nowrap placeholder:text-second focus:border-accent"
         @input="handleComposerInput"
         @keydown="handleComposerKeydown"
       />
       <Button
         type="submit"
         icon="send"
-        :short-mode="false"
+        title="Отправить"
+        aria-label="Отправить"
         :disabled="sending || text.trim() === ''"
-      >
-        Отправить
-      </Button>
+      />
     </form>
   </div>
 </template>
