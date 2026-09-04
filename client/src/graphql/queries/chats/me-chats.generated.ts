@@ -72,6 +72,7 @@ export type MeChatsQuery = {
               role: Types.EUserRole
               isAdmin: boolean
             }
+            reactions: Array<{ id: number; emoji: string; user: { id: number } }>
           } | null
         }>
       }

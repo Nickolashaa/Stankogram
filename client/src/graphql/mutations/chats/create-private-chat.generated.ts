@@ -64,6 +64,7 @@ export type CreatePrivateChatMutation = {
             role: Types.EUserRole
             isAdmin: boolean
           }
+          reactions: Array<{ id: number; emoji: string; user: { id: number } }>
         } | null
       }
     | { __typename: "InvalidInputError"; message: string }

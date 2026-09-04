@@ -16,34 +16,72 @@ export type EUserRole = "STUDENT" | "TEACHER"
 export type EventsSubscriptionVariables = Exact<{ [key: string]: never }>
 
 export type EventsSubscription = {
-  events: {
-    id: number
-    createdAt: string
-    text: string
-    user: {
-      id: number
-      createdAt: string
-      updatedAt: string
-      name: string
-      surname: string
-      patronymic: string | null
-      email: string
-      role: Types.EUserRole
-      isAdmin: boolean
-    }
-    chat: { id: number }
-  }
+  events:
+    | {
+        __typename: "Message"
+        id: number
+        createdAt: string
+        text: string
+        user: {
+          id: number
+          createdAt: string
+          updatedAt: string
+          name: string
+          surname: string
+          patronymic: string | null
+          email: string
+          role: Types.EUserRole
+          isAdmin: boolean
+        }
+        chat: { id: number }
+        reactions: Array<{ id: number; emoji: string; user: { id: number } }>
+      }
+    | {
+        __typename: "MessageReactionsUpdated"
+        message: {
+          id: number
+          createdAt: string
+          text: string
+          user: {
+            id: number
+            createdAt: string
+            updatedAt: string
+            name: string
+            surname: string
+            patronymic: string | null
+            email: string
+            role: Types.EUserRole
+            isAdmin: boolean
+          }
+          chat: { id: number }
+          reactions: Array<{ id: number; emoji: string; user: { id: number } }>
+        }
+      }
 }
 
 export const EventsDocument = gql`
   subscription Events {
     events {
-      ...MessageFields
-      user {
-        ...UserFields
+      __typename
+      ... on Message {
+        ...MessageFields
+        user {
+          ...UserFields
+        }
+        chat {
+          id
+        }
       }
-      chat {
-        id
+      ... on MessageReactionsUpdated {
+        message {
+          ...MessageFields
+          user {
+            ...UserFields
+          }
+          chat {
+            id
+          }
+        }
       }
     }
   }

@@ -2,4 +2,11 @@ fragment MessageFields on Message {
   id
   createdAt
   text
+  reactions {
+    id
+    emoji
+    user {
+      id
+    }
+  }
 }

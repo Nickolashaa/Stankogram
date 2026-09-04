@@ -87,6 +87,8 @@ export enum EUserRole {
   Teacher = "TEACHER",
 }
 
+export type Event = Message | MessageReactionsUpdated
+
 export type IAppError = {
   message: Scalars["String"]["output"]
 }
@@ -132,6 +134,7 @@ export type Message = IBaseType &
     chat: Chat
     createdAt: Scalars["DateTime"]["output"]
     id: Scalars["Int"]["output"]
+    reactions: Array<MessageReaction>
     text: Scalars["String"]["output"]
     updatedAt: Scalars["DateTime"]["output"]
     user: User
@@ -147,6 +150,29 @@ export type MessageIn = {
 }
 
 export type MessageObjectNotFoundError = Message | ObjectNotFoundError
+
+export type MessageObjectNotFoundErrorInvalidInputError =
+  InvalidInputError | Message | ObjectNotFoundError
+
+export type MessageReaction = IBaseType &
+  IUser & {
+    __typename?: "MessageReaction"
+    createdAt: Scalars["DateTime"]["output"]
+    emoji: Scalars["String"]["output"]
+    id: Scalars["Int"]["output"]
+    updatedAt: Scalars["DateTime"]["output"]
+    user: User
+  }
+
+export type MessageReactionIn = {
+  emoji: Scalars["String"]["input"]
+  messageId: Scalars["Int"]["input"]
+}
+
+export type MessageReactionsUpdated = {
+  __typename?: "MessageReactionsUpdated"
+  message: Message
+}
 
 export type MessagesMeta = IBaseMeta & {
   __typename?: "MessagesMeta"
@@ -169,6 +195,7 @@ export type Mutation = {
   markSystemNotificationRead?: Maybe<ObjectNotFoundError>
   refresh: JwTsUnauthorizedErrorObjectNotFoundError
   removeParticipantFromChat?: Maybe<Scalars["Void"]["output"]>
+  toggleMessageReaction: MessageObjectNotFoundErrorInvalidInputError
   updateChat: ChatInvalidInputErrorObjectNotFoundError
   updateChatParticipantPermissions: ChatParticipantObjectNotFoundError
   updateSystemNotification: SystemNotificationObjectNotFoundError
@@ -222,6 +249,10 @@ export type MutationMarkSystemNotificationReadArgs = {
 export type MutationRemoveParticipantFromChatArgs = {
   chatId: Scalars["Int"]["input"]
   userId: Scalars["Int"]["input"]
+}
+
+export type MutationToggleMessageReactionArgs = {
+  input: MessageReactionIn
 }
 
 export type MutationUpdateChatArgs = {
@@ -322,7 +353,7 @@ export type QueryUsersArgs = {
 
 export type Subscription = {
   __typename?: "Subscription"
-  events: Message
+  events: Event
 }
 
 export type SystemNotification = IBaseType & {

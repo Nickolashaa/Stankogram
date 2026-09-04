@@ -13,17 +13,18 @@ import * as VueCompositionApi from "vue"
 export type ReactiveFunction<TParam> = () => TParam
 export type EUserRole = "STUDENT" | "TEACHER"
 
-export type MessageIn = {
-  chatId: number
-  text: string
+export type MessageReactionIn = {
+  emoji: string
+  messageId: number
 }
 
-export type CreateMessageMutationVariables = Exact<{
-  input: Types.MessageIn
+export type ToggleMessageReactionMutationVariables = Exact<{
+  input: Types.MessageReactionIn
 }>
 
-export type CreateMessageMutation = {
-  createMessage:
+export type ToggleMessageReactionMutation = {
+  toggleMessageReaction:
+    | { __typename: "InvalidInputError" }
     | {
         __typename: "Message"
         id: number
@@ -45,9 +46,9 @@ export type CreateMessageMutation = {
     | { __typename: "ObjectNotFoundError"; message: string }
 }
 
-export const CreateMessageDocument = gql`
-  mutation CreateMessage($input: MessageIn!) {
-    createMessage(input: $input) {
+export const ToggleMessageReactionDocument = gql`
+  mutation ToggleMessageReaction($input: MessageReactionIn!) {
+    toggleMessageReaction(input: $input) {
       __typename
       ... on Message {
         ...MessageFields
@@ -65,38 +66,42 @@ export const CreateMessageDocument = gql`
 `
 
 /**
- * __useCreateMessageMutation__
+ * __useToggleMessageReactionMutation__
  *
- * To run a mutation, you first call `useCreateMessageMutation` within a Vue component and pass it any options that fit your needs.
- * When your component renders, `useCreateMessageMutation` returns an object that includes:
+ * To run a mutation, you first call `useToggleMessageReactionMutation` within a Vue component and pass it any options that fit your needs.
+ * When your component renders, `useToggleMessageReactionMutation` returns an object that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - Several other properties: https://v4.apollo.vuejs.org/api/use-mutation.html#return
  *
  * @param options that will be passed into the mutation, supported options are listed on: https://v4.apollo.vuejs.org/guide-composable/mutation.html#options;
  *
  * @example
- * const { mutate, loading, error, onDone } = useCreateMessageMutation({
+ * const { mutate, loading, error, onDone } = useToggleMessageReactionMutation({
  *   variables: {
  *     input: // value for 'input'
  *   },
  * });
  */
-export function useCreateMessageMutation(
+export function useToggleMessageReactionMutation(
   options:
-    | VueApolloComposable.UseMutationOptions<CreateMessageMutation, CreateMessageMutationVariables>
+    | VueApolloComposable.UseMutationOptions<
+        ToggleMessageReactionMutation,
+        ToggleMessageReactionMutationVariables
+      >
     | ReactiveFunction<
         VueApolloComposable.UseMutationOptions<
-          CreateMessageMutation,
-          CreateMessageMutationVariables
+          ToggleMessageReactionMutation,
+          ToggleMessageReactionMutationVariables
         >
       > = {},
 ) {
-  return VueApolloComposable.useMutation<CreateMessageMutation, CreateMessageMutationVariables>(
-    CreateMessageDocument,
-    options,
-  )
+  return VueApolloComposable.useMutation<
+    ToggleMessageReactionMutation,
+    ToggleMessageReactionMutationVariables
+  >(ToggleMessageReactionDocument, options)
 }
-export type CreateMessageMutationCompositionFunctionResult = VueApolloComposable.UseMutationReturn<
-  CreateMessageMutation,
-  CreateMessageMutationVariables
->
+export type ToggleMessageReactionMutationCompositionFunctionResult =
+  VueApolloComposable.UseMutationReturn<
+    ToggleMessageReactionMutation,
+    ToggleMessageReactionMutationVariables
+  >
