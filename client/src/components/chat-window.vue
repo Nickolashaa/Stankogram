@@ -240,14 +240,14 @@ async function handleSubmit() {
 
     <div
       v-if="isMuted"
-      class="flex shrink-0 items-center justify-center gap-2 border-t border-second/15 px-4 py-3 text-sm text-second lg:px-6 lg:py-4"
+      class="flex shrink-0 items-center justify-center gap-2 border-t border-second/15 px-4 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))] text-sm text-second lg:px-6 lg:py-4"
     >
       <NavIcon name="mute" :size="16" />
       Вы не можете отправлять сообщения в этом чате
     </div>
     <form
       v-else
-      class="flex shrink-0 items-end gap-3 border-t border-second/15 px-4 py-3 lg:px-6 lg:py-4"
+      class="flex shrink-0 items-end gap-3 border-t border-second/15 px-4 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))] lg:px-6 lg:py-4"
       @submit.prevent="handleSubmit"
     >
       <textarea
