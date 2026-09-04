@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue"
+import { onMounted, ref, watch } from "vue"
 import { storeToRefs } from "pinia"
 import { useRouter } from "vue-router"
 import { useInfiniteScroll } from "@vueuse/core"
@@ -15,7 +15,7 @@ import CreatePrivateChatDialog from "@/components/create-private-chat-dialog.vue
 
 const PAGE_SIZE = 30
 
-defineProps<{
+const props = defineProps<{
   activeChatId: number | null
   mobileHidden?: boolean
 }>()
@@ -61,10 +61,6 @@ function handleGroupCreated(chatId: number) {
 
 const scrollContainer = ref<HTMLElement | null>(null)
 
-onMounted(() => {
-  chatStore.fetchChats(undefined, PAGE_SIZE, 0)
-})
-
 const infiniteScroll = useInfiniteScroll(
   scrollContainer,
   async () => {
@@ -73,6 +69,22 @@ const infiniteScroll = useInfiniteScroll(
   {
     distance: 100,
     canLoadMore: () => chats.value.length < totalCount.value,
+  },
+)
+
+async function refreshChats() {
+  await chatStore.fetchChats(undefined, PAGE_SIZE, 0)
+  infiniteScroll.reset()
+}
+
+onMounted(refreshChats)
+
+watch(
+  () => props.activeChatId,
+  (chatId) => {
+    if (chatId === null) {
+      refreshChats()
+    }
   },
 )
 
