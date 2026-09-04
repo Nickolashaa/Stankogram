@@ -11,7 +11,6 @@ from ..database.models.auth import User
 from ..database.models.chats import Chat, ChatParticipant
 from ..database.models.messages import Message
 from ..enums.chats import ChatType
-from ..enums.messages import MessageType
 from ..enums.users import UserRole
 
 _TEST_DATA_PATH = Path(__file__).parent / "test_data.json"
@@ -83,7 +82,6 @@ async def _seed_messages(
             chat_id=chats[chat_idx].id,
             user_id=users[user_idx].id,
             encrypted_text=fernet.encrypt(text.encode()).decode(),
-            type=MessageType.TEXT,
         )
         for chat_idx, user_idx, text in _MESSAGES_INDEXES
     ]

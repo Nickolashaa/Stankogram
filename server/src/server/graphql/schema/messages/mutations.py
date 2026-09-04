@@ -21,7 +21,6 @@ class MessageMutation:
             instance = await info.context.services.message_service.create(
                 user_id=info.context.current_user.id,
                 chat_id=input.chat_id,
-                type=input.type,
                 text=input.text,
             )
             await info.context.session.commit()
