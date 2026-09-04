@@ -30,7 +30,6 @@ class MessageService(BaseService):
             .values(
                 chat_id=values.get("chat_id"),
                 user_id=values.get("user_id"),
-                type=values.get("type"),
                 encrypted_text=self._fernet.encrypt(
                     values.get("text").encode()
                 ).decode(),
