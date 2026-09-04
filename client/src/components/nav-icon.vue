@@ -21,6 +21,7 @@ export type IconName =
   | "code"
   | "palette"
   | "bell"
+  | "smile"
 
 const props = withDefaults(
   defineProps<{
@@ -157,6 +158,13 @@ const props = withDefaults(
     <template v-else-if="name === 'bell'">
       <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
       <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </template>
+
+    <template v-else-if="name === 'smile'">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8.5 14.5a4.5 4.5 0 0 0 7 0" />
+      <circle cx="9" cy="9.5" r="1" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="9.5" r="1" fill="currentColor" stroke="none" />
     </template>
   </svg>
 </template>
