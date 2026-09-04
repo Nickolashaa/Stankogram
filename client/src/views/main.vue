@@ -35,7 +35,10 @@ onResult(({ data }) => {
 <template>
   <div class="flex h-dvh">
     <AppNav />
-    <div class="flex-1 overflow-y-auto" :class="isChatsRoute ? '' : 'pb-16 lg:pb-0'">
+    <div
+      class="flex-1 overflow-y-auto"
+      :class="isChatsRoute ? '' : 'pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0'"
+    >
       <RouterView />
     </div>
   </div>

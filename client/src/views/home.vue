@@ -72,9 +72,7 @@ function handleSunClick() {
 </script>
 
 <template>
-  <div
-    class="flex h-full min-h-[60vh] flex-col items-center justify-center gap-8 p-6 sm:gap-10 sm:p-10"
-  >
+  <div class="flex min-h-full flex-col items-center justify-center gap-8 p-6 sm:gap-10 sm:p-10">
     <div class="flex animate-appear flex-col items-center gap-5 text-center">
       <div class="relative flex h-28 w-28 items-center justify-center" @click="handleSunClick">
         <div
