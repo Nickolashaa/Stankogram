@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, ref } from "vue"
 import type { BadgeVariant } from "@/lib/badges"
 import NavIcon, { type IconName } from "@/components/nav-icon.vue"
 
@@ -22,14 +22,31 @@ const colorClasses: Record<BadgeVariant, string> = {
 }
 
 const icon = computed(() => iconByVariant[props.variant])
+
+const badgeEl = ref<HTMLElement | null>(null)
+const tooltipPosition = ref<{ top: number; left: number } | null>(null)
+
+function showTooltip() {
+  const rect = badgeEl.value?.getBoundingClientRect()
+  if (!rect) {
+    return
+  }
+  tooltipPosition.value = { top: rect.top, left: rect.left + rect.width / 2 }
+}
+
+function hideTooltip() {
+  tooltipPosition.value = null
+}
 </script>
 
 <template>
   <span
     v-if="icon"
+    ref="badgeEl"
     class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
     :class="colorClasses[variant]"
-    :title="label"
+    @mouseenter="showTooltip"
+    @mouseleave="hideTooltip"
   >
     <NavIcon :name="icon" :size="16" />
   </span>
@@ -40,4 +57,14 @@ const icon = computed(() => iconByVariant[props.variant])
   >
     {{ label }}
   </span>
+
+  <Teleport to="body">
+    <span
+      v-if="tooltipPosition"
+      class="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-full rounded-input bg-main px-2 py-1 text-xs font-medium whitespace-nowrap text-bg shadow-card"
+      :style="{ top: `${tooltipPosition.top - 6}px`, left: `${tooltipPosition.left}px` }"
+    >
+      {{ label }}
+    </span>
+  </Teleport>
 </template>
