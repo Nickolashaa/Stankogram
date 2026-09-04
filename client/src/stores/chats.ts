@@ -34,7 +34,7 @@ export type ChatSummary = ChatFieldsFragment & {
 }
 
 export function hasUnreadMessages(chat: ChatSummary, currentUserId: number): boolean {
-  if (chat.lastMessage === null) {
+  if (chat.lastMessage === null || chat.lastMessage.user.id === currentUserId) {
     return false
   }
   const participant = chat.participants.find((item) => item.user.id === currentUserId)
@@ -308,6 +308,15 @@ export const useChatStore = defineStore("chats", () => {
   }
 
   async function markChatRead(chatId: number) {
+    const currentUserId = authStore.user?.id
+    const local = chats.value
+      .find((chat) => chat.id === chatId)
+      ?.participants.find((item) => item.user.id === currentUserId)
+
+    if (local !== undefined) {
+      patchParticipant(chatId, { ...local, lastReadAt: new Date().toISOString() })
+    }
+
     const { data } = await apolloClient.mutate({
       mutation: MarkChatReadDocument,
       variables: { chatId },
