@@ -197,7 +197,7 @@ async function handleSubmit() {
         :class="message.user.id === currentUser?.id ? 'items-end' : 'items-start'"
       >
         <div
-          class="max-w-md rounded-card px-4 py-2.5 text-[15px]"
+          class="max-w-[min(28rem,85%)] rounded-card px-4 py-2.5 text-[15px]"
           :class="
             message.user.id === currentUser?.id
               ? 'bg-accent text-bg'
