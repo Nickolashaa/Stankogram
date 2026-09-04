@@ -14,8 +14,6 @@ import * as VueCompositionApi from "vue"
 export type ReactiveFunction<TParam> = () => TParam
 export type EChatType = "PRIVATE" | "PUBLIC"
 
-export type EMessageType = "TEXT"
-
 export type EUserRole = "STUDENT" | "TEACHER"
 
 export type PrivateChatIn = {
@@ -55,7 +53,6 @@ export type CreatePrivateChatMutation = {
           id: number
           createdAt: string
           text: string
-          type: Types.EMessageType
           user: {
             id: number
             createdAt: string

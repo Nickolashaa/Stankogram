@@ -16,13 +16,10 @@ export type BasePaginationIn = {
   offset?: number | null | undefined
 }
 
-export type EMessageType = "TEXT"
-
 export type EUserRole = "STUDENT" | "TEACHER"
 
 export type MessageFiltersIn = {
   chatId: number
-  type?: EMessageType | null | undefined
 }
 
 export type MessagesQueryVariables = Exact<{
@@ -37,7 +34,6 @@ export type MessagesQuery = {
       id: number
       createdAt: string
       text: string
-      type: Types.EMessageType
       user: {
         id: number
         createdAt: string
