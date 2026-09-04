@@ -1,11 +1,8 @@
 from asyncio.queues import Queue
-from typing import Annotated
 
-import strawberry
+from .types.messages import Message
 
-from .types.messages import Message, MessageReactionsUpdated
-
-Event = Annotated[Message | MessageReactionsUpdated, strawberry.union("Event")]
+Event = Message
 
 
 class PubSub:

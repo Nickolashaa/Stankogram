@@ -1,12 +1,9 @@
-from .inputs import MessageFiltersIn, MessageIn, MessageReactionIn
-from .types import Message, MessageReaction, MessageReactionsUpdated, MessagesMeta
+from .inputs import MessageFiltersIn, MessageIn
+from .types import Message, MessagesMeta
 
 __all__ = (
     "Message",
-    "MessageReaction",
-    "MessageReactionsUpdated",
     "MessagesMeta",
     "MessageFiltersIn",
     "MessageIn",
-    "MessageReactionIn",
 )

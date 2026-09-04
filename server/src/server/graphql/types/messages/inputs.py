@@ -15,9 +15,3 @@ class MessageFiltersIn:
 class MessageIn:
     chat_id: int
     text: str
-
-
-@strawberry.input
-class MessageReactionIn:
-    message_id: int
-    emoji: str

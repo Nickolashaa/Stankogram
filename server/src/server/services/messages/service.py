@@ -51,14 +51,6 @@ class MessageService(BaseService):
         stmt = delete(Message).where(Message.id == id)
         await self._session.execute(stmt)
 
-    async def get(self, id: int) -> MessageResponse:
-        stmt = select(Message).where(Message.id == id)
-        res = await self._session.execute(stmt)
-        instance = res.scalar_one_or_none()
-        if instance is None:
-            raise ObjectNotFound(f"Message with id {id} not found")
-        return MessageResponse.from_ORM(fernet=self._fernet, instance=instance)
-
     @staticmethod
     def _apply_filters(
         stmt: Select[tuple[Message]],
