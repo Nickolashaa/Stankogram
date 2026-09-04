@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from "vue"
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue"
 import { storeToRefs } from "pinia"
 import { useDebounceFn, useInfiniteScroll } from "@vueuse/core"
 import { useMessageStore } from "@/stores/messages"
@@ -12,7 +12,6 @@ import { shortName, formatTime, chatInitials } from "@/lib/format"
 import { linkify } from "@/lib/linkify"
 import { participantBadges, userBadges } from "@/lib/badges"
 import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
-import Input from "@/components/input.vue"
 import Button from "@/components/button.vue"
 import Badge from "@/components/badge.vue"
 import NavIcon from "@/components/nav-icon.vue"
@@ -77,6 +76,32 @@ onUnmounted(() => {
   draftStore.setDraft(props.chatId, text.value)
 })
 
+const composerEl = ref<HTMLTextAreaElement | null>(null)
+const sendsOnEnter = window.matchMedia("(pointer: fine)").matches
+
+function resizeComposer() {
+  const el = composerEl.value
+  if (!el) {
+    return
+  }
+  el.style.height = "auto"
+  el.style.height = `${el.scrollHeight}px`
+}
+
+function handleComposerInput(event: Event) {
+  text.value = (event.target as HTMLTextAreaElement).value
+  resizeComposer()
+}
+
+function handleComposerKeydown(event: KeyboardEvent) {
+  if (!sendsOnEnter || event.key !== "Enter" || event.shiftKey || event.isComposing) {
+    return
+  }
+
+  event.preventDefault()
+  handleSubmit()
+}
+
 const infiniteScroll = useInfiniteScroll(
   scrollContainer,
   async () => {
@@ -90,6 +115,11 @@ const infiniteScroll = useInfiniteScroll(
 )
 
 onMounted(async () => {
+  resizeComposer()
+  if (sendsOnEnter) {
+    composerEl.value?.focus()
+  }
+
   messageStore.openChat(props.chatId)
   await messageStore.fetchMessages(PAGE_SIZE, 0)
   infiniteScroll.reset()
@@ -115,6 +145,8 @@ async function handleSubmit() {
     await messageStore.sendMessage(value)
     text.value = ""
     draftStore.setDraft(props.chatId, "")
+    await nextTick()
+    resizeComposer()
   } catch {
     notify.error("Не удалось отправить сообщение")
   } finally {
@@ -215,10 +247,24 @@ async function handleSubmit() {
     </div>
     <form
       v-else
-      class="flex shrink-0 items-center gap-3 border-t border-second/15 px-4 py-3 lg:px-6 lg:py-4"
+      class="flex shrink-0 items-end gap-3 border-t border-second/15 px-4 py-3 lg:px-6 lg:py-4"
       @submit.prevent="handleSubmit"
     >
-      <Input v-model="text" placeholder="Написать сообщение..." class="flex-1" autofocus />
+      <textarea
+        ref="composerEl"
+        :value="text"
+        rows="1"
+        placeholder="Написать сообщение..."
+        name="message"
+        autocomplete="off"
+        autocapitalize="sentences"
+        autocorrect="on"
+        spellcheck="true"
+        :enterkeyhint="sendsOnEnter ? 'send' : 'enter'"
+        class="box-border max-h-40 min-h-12 min-w-0 flex-1 resize-none overflow-y-auto rounded-input border-[1.5px] border-second/30 bg-bg px-4 py-3 font-sans text-[15px] leading-6 text-main outline-none transition-colors duration-150 placeholder:text-second focus:border-accent"
+        @input="handleComposerInput"
+        @keydown="handleComposerKeydown"
+      />
       <Button
         type="submit"
         icon="send"
