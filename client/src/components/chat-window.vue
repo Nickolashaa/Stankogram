@@ -8,7 +8,7 @@ import { useChatStore, type ChatParticipantItem, type ChatSummary } from "@/stor
 import { useDraftStore } from "@/stores/drafts"
 import { EChatType } from "@/graphql/base-types"
 import { notify } from "@/lib/notify"
-import { shortName, formatTime, chatInitials } from "@/lib/format"
+import { shortName, formatTime, chatInitials, isSameDay, formatDaySeparator } from "@/lib/format"
 import { linkify } from "@/lib/linkify"
 import { isLargeEmojiMessage } from "@/lib/emoji"
 import { participantBadges, userBadges } from "@/lib/badges"
@@ -124,6 +124,20 @@ function handleComposerKeydown(event: KeyboardEvent) {
   handleSubmit()
 }
 
+function isFirstMessageOfDay(index: number) {
+  const message = messages.value[index]
+  if (message === undefined) {
+    return false
+  }
+
+  const older = messages.value[index + 1]
+  if (older === undefined) {
+    return true
+  }
+
+  return !isSameDay(message.createdAt, older.createdAt)
+}
+
 const infiniteScroll = useInfiniteScroll(
   scrollContainer,
   async () => {
@@ -212,53 +226,64 @@ async function handleSubmit() {
       ref="scrollContainer"
       class="flex flex-1 flex-col-reverse gap-3 overflow-y-auto px-4 py-3 lg:px-6 lg:py-4"
     >
-      <div
-        v-for="message in messages"
-        :key="message.id"
-        class="flex flex-col gap-1"
-        :class="message.user.id === currentUser?.id ? 'items-end' : 'items-start'"
-      >
+      <template v-for="(message, index) in messages" :key="message.id">
         <div
-          class="max-w-[min(28rem,85%)] rounded-card"
-          :class="[
-            isLargeEmojiMessage(message.text)
-              ? 'px-1 py-0.5 text-5xl leading-tight'
-              : 'px-4 py-2.5 text-[15px]',
-            isLargeEmojiMessage(message.text)
-              ? 'text-main'
-              : message.user.id === currentUser?.id
-                ? 'bg-accent text-bg'
-                : 'bg-card text-main shadow-card',
-          ]"
+          class="flex flex-col gap-1"
+          :class="message.user.id === currentUser?.id ? 'items-end' : 'items-start'"
         >
           <div
-            v-if="message.user.id !== currentUser?.id"
-            class="mb-1 flex flex-wrap items-center gap-1.5 text-xs font-medium opacity-70"
+            class="max-w-[min(28rem,85%)] rounded-card"
+            :class="[
+              isLargeEmojiMessage(message.text)
+                ? 'px-1 py-0.5 text-5xl leading-tight'
+                : 'px-4 py-2.5 text-[15px]',
+              isLargeEmojiMessage(message.text)
+                ? 'text-main'
+                : message.user.id === currentUser?.id
+                  ? 'bg-accent text-bg'
+                  : 'bg-card text-main shadow-card',
+            ]"
           >
-            <span>{{ shortName(message.user) }}</span>
-            <Badge
-              v-for="badge in badgesForSender(message.user)"
-              :key="badge.label"
-              :variant="badge.variant"
-              :label="badge.label"
-            />
-          </div>
-          <div class="whitespace-pre-wrap break-words">
-            <template v-for="(segment, index) in linkify(message.text)" :key="index">
-              <a
-                v-if="segment.type === 'link'"
-                :href="segment.href"
-                target="_blank"
-                rel="noopener noreferrer nofollow"
-                class="underline underline-offset-2 transition-opacity hover:opacity-70"
-                >{{ segment.value }}</a
+            <div
+              v-if="message.user.id !== currentUser?.id"
+              class="mb-1 flex flex-wrap items-center gap-1.5 text-xs font-medium opacity-70"
+            >
+              <span>{{ shortName(message.user) }}</span>
+              <Badge
+                v-for="badge in badgesForSender(message.user)"
+                :key="badge.label"
+                :variant="badge.variant"
+                :label="badge.label"
+              />
+            </div>
+            <div class="whitespace-pre-wrap break-words">
+              <template
+                v-for="(segment, segmentIndex) in linkify(message.text)"
+                :key="segmentIndex"
               >
-              <template v-else>{{ segment.value }}</template>
-            </template>
+                <a
+                  v-if="segment.type === 'link'"
+                  :href="segment.href"
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  class="underline underline-offset-2 transition-opacity hover:opacity-70"
+                  >{{ segment.value }}</a
+                >
+                <template v-else>{{ segment.value }}</template>
+              </template>
+            </div>
           </div>
+          <span class="px-1 text-xs text-second">{{ formatTime(message.createdAt) }}</span>
         </div>
-        <span class="px-1 text-xs text-second">{{ formatTime(message.createdAt) }}</span>
-      </div>
+
+        <div v-if="isFirstMessageOfDay(index)" class="flex items-center gap-3 py-1">
+          <span class="h-px flex-1 bg-second/15" />
+          <span class="shrink-0 text-xs font-medium text-second">
+            {{ formatDaySeparator(message.createdAt) }}
+          </span>
+          <span class="h-px flex-1 bg-second/15" />
+        </div>
+      </template>
 
       <div v-if="infiniteScroll.isLoading.value" class="py-2 text-center text-sm text-second">
         Загрузка...

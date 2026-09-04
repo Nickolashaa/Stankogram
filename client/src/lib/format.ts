@@ -43,3 +43,36 @@ export function formatFullDate(value: Date) {
   })
   return formatted.charAt(0).toUpperCase() + formatted.slice(1)
 }
+
+export function isSameDay(first: string, second: string) {
+  const a = new Date(first)
+  const b = new Date(second)
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  )
+}
+
+export function formatDaySeparator(value: string) {
+  const date = new Date(value)
+  const today = new Date()
+  const yesterday = new Date(today)
+  yesterday.setDate(today.getDate() - 1)
+
+  if (isSameDay(value, today.toISOString())) {
+    return "Сегодня"
+  }
+
+  if (isSameDay(value, yesterday.toISOString())) {
+    return "Вчера"
+  }
+
+  const formatted = date.toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "long",
+    ...(date.getFullYear() === today.getFullYear() ? {} : { year: "numeric" }),
+  })
+
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1)
+}
