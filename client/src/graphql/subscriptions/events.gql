@@ -1,25 +1,11 @@
 subscription Events {
   events {
-    __typename
-    ... on Message {
-      ...MessageFields
-      user {
-        ...UserFields
-      }
-      chat {
-        id
-      }
+    ...MessageFields
+    user {
+      ...UserFields
     }
-    ... on MessageReactionsUpdated {
-      message {
-        ...MessageFields
-        user {
-          ...UserFields
-        }
-        chat {
-          id
-        }
-      }
+    chat {
+      id
     }
   }
 }
