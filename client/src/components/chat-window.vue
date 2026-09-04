@@ -10,12 +10,14 @@ import { EChatType } from "@/graphql/base-types"
 import { notify } from "@/lib/notify"
 import { shortName, formatTime, chatInitials } from "@/lib/format"
 import { linkify } from "@/lib/linkify"
+import { isLargeEmojiMessage } from "@/lib/emoji"
 import { participantBadges, userBadges } from "@/lib/badges"
 import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
 import Button from "@/components/button.vue"
 import Badge from "@/components/badge.vue"
 import NavIcon from "@/components/nav-icon.vue"
 import Avatar from "@/components/avatar.vue"
+import EmojiPicker from "@/components/emoji-picker.vue"
 
 const PAGE_SIZE = 30
 
@@ -91,6 +93,26 @@ function resizeComposer() {
 function handleComposerInput(event: Event) {
   text.value = (event.target as HTMLTextAreaElement).value
   resizeComposer()
+}
+
+const emojiPickerOpen = ref(false)
+
+function insertEmoji(emoji: string) {
+  const el = composerEl.value
+  const start = el?.selectionStart ?? text.value.length
+  const end = el?.selectionEnd ?? text.value.length
+
+  text.value = `${text.value.slice(0, start)}${emoji}${text.value.slice(end)}`
+
+  nextTick(() => {
+    resizeComposer()
+    if (el === null || el === undefined) {
+      return
+    }
+    const caret = start + emoji.length
+    el.focus()
+    el.setSelectionRange(caret, caret)
+  })
 }
 
 function handleComposerKeydown(event: KeyboardEvent) {
@@ -197,12 +219,17 @@ async function handleSubmit() {
         :class="message.user.id === currentUser?.id ? 'items-end' : 'items-start'"
       >
         <div
-          class="max-w-[min(28rem,85%)] rounded-card px-4 py-2.5 text-[15px]"
-          :class="
-            message.user.id === currentUser?.id
-              ? 'bg-accent text-bg'
-              : 'bg-card text-main shadow-card'
-          "
+          class="max-w-[min(28rem,85%)] rounded-card"
+          :class="[
+            isLargeEmojiMessage(message.text)
+              ? 'px-1 py-0.5 text-5xl leading-tight'
+              : 'px-4 py-2.5 text-[15px]',
+            isLargeEmojiMessage(message.text)
+              ? 'text-main'
+              : message.user.id === currentUser?.id
+                ? 'bg-accent text-bg'
+                : 'bg-card text-main shadow-card',
+          ]"
         >
           <div
             v-if="message.user.id !== currentUser?.id"
@@ -247,9 +274,11 @@ async function handleSubmit() {
     </div>
     <form
       v-else
-      class="flex shrink-0 items-end gap-3 border-t border-second/15 px-4 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))] lg:px-6 lg:py-4"
+      class="relative flex shrink-0 items-end gap-3 border-t border-second/15 px-4 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))] lg:px-6 lg:py-4"
       @submit.prevent="handleSubmit"
     >
+      <EmojiPicker :open="emojiPickerOpen" @close="emojiPickerOpen = false" @select="insertEmoji" />
+
       <textarea
         ref="composerEl"
         :value="text"
@@ -264,6 +293,14 @@ async function handleSubmit() {
         class="box-border max-h-40 min-h-12 min-w-0 flex-1 resize-none overflow-y-auto rounded-input border-[1.5px] border-second/30 bg-bg px-4 py-3 font-sans text-[15px] leading-6 text-main outline-none transition-colors duration-150 placeholder:overflow-hidden placeholder:text-ellipsis placeholder:whitespace-nowrap placeholder:text-second focus:border-accent"
         @input="handleComposerInput"
         @keydown="handleComposerKeydown"
+      />
+      <Button
+        variant="ghost"
+        icon="smile"
+        class="mb-3.5 shrink-0"
+        title="Эмодзи"
+        aria-label="Эмодзи"
+        @click="emojiPickerOpen = !emojiPickerOpen"
       />
       <Button
         type="submit"
