@@ -5,7 +5,6 @@ import { CreateMessageDocument } from "@/graphql/mutations/messages/create-messa
 import { MessagesDocument } from "@/graphql/queries/messages/messages.generated"
 import type { MessageFieldsFragment } from "@/graphql/fragments/messages.generated"
 import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
-import { EMessageType } from "@/graphql/base-types"
 
 export type MessageItem = MessageFieldsFragment & { user: UserFieldsFragment }
 
@@ -49,7 +48,7 @@ export const useMessageStore = defineStore("messages", () => {
 
     const { data } = await apolloClient.mutate({
       mutation: CreateMessageDocument,
-      variables: { input: { chatId: chatId.value, type: EMessageType.Text, text } },
+      variables: { input: { chatId: chatId.value, text } },
     })
 
     if (data === undefined || data === null || data.createMessage.__typename !== "Message") {

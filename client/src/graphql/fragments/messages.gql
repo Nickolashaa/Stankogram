@@ -2,5 +2,4 @@ fragment MessageFields on Message {
   id
   createdAt
   text
-  type
 }

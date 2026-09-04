@@ -23,8 +23,6 @@ export type ChatFiltersIn = {
 
 export type EChatType = "PRIVATE" | "PUBLIC"
 
-export type EMessageType = "TEXT"
-
 export type EUserRole = "STUDENT" | "TEACHER"
 
 export type MeChatsQueryVariables = Exact<{
@@ -63,7 +61,6 @@ export type MeChatsQuery = {
             id: number
             createdAt: string
             text: string
-            type: Types.EMessageType
             user: {
               id: number
               createdAt: string

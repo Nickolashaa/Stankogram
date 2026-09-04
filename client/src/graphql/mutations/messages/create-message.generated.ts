@@ -11,14 +11,11 @@ import { UserFieldsFragmentDoc } from "../../fragments/auth.generated"
 import * as VueApolloComposable from "@vue/apollo-composable"
 import * as VueCompositionApi from "vue"
 export type ReactiveFunction<TParam> = () => TParam
-export type EMessageType = "TEXT"
-
 export type EUserRole = "STUDENT" | "TEACHER"
 
 export type MessageIn = {
   chatId: number
   text: string
-  type: EMessageType
 }
 
 export type CreateMessageMutationVariables = Exact<{
@@ -32,7 +29,6 @@ export type CreateMessageMutation = {
         id: number
         createdAt: string
         text: string
-        type: Types.EMessageType
         user: {
           id: number
           createdAt: string

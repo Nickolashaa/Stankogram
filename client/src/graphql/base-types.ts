@@ -82,10 +82,6 @@ export enum EChatType {
   Public = "PUBLIC",
 }
 
-export enum EMessageType {
-  Text = "TEXT",
-}
-
 export enum EUserRole {
   Student = "STUDENT",
   Teacher = "TEACHER",
@@ -137,20 +133,17 @@ export type Message = IBaseType &
     createdAt: Scalars["DateTime"]["output"]
     id: Scalars["Int"]["output"]
     text: Scalars["String"]["output"]
-    type: EMessageType
     updatedAt: Scalars["DateTime"]["output"]
     user: User
   }
 
 export type MessageFiltersIn = {
   chatId: Scalars["Int"]["input"]
-  type?: InputMaybe<EMessageType>
 }
 
 export type MessageIn = {
   chatId: Scalars["Int"]["input"]
   text: Scalars["String"]["input"]
-  type: EMessageType
 }
 
 export type MessageObjectNotFoundError = Message | ObjectNotFoundError

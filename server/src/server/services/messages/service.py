@@ -30,7 +30,6 @@ class MessageService(BaseService):
             .values(
                 chat_id=values.get("chat_id"),
                 user_id=values.get("user_id"),
-                type=values.get("type"),
                 encrypted_text=self._fernet.encrypt(
                     values.get("text").encode()
                 ).decode(),
@@ -62,9 +61,6 @@ class MessageService(BaseService):
 
         if (chat_ids := filters.get("chat_ids")) is not None:
             stmt = stmt.where(Message.chat_id.in_(chat_ids))
-
-        if (type := filters.get("type")) is not None:
-            stmt = stmt.where(Message.type == type)
 
         return stmt
 
