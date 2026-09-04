@@ -72,7 +72,7 @@ function handleSunClick() {
       </div>
 
       <div class="flex flex-col gap-1.5">
-        <h1 class="m-0 text-3xl font-semibold text-main">{{ greeting }}</h1>
+        <h1 class="m-0 text-xl font-semibold text-balance text-main sm:text-3xl">{{ greeting }}</h1>
         <span class="text-sm text-second">{{ today }}</span>
       </div>
     </div>
