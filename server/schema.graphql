@@ -67,8 +67,6 @@ enum EUserRole {
   TEACHER
 }
 
-union Event = Message | MessageReactionsUpdated
-
 interface IAppError {
   message: String!
 }
@@ -111,7 +109,6 @@ type Message implements IBaseType & IUser & IChat {
   user: User!
   chat: Chat!
   text: String!
-  reactions: [MessageReaction!]!
 }
 
 input MessageFiltersIn {
@@ -124,25 +121,6 @@ input MessageIn {
 }
 
 union MessageObjectNotFoundError = Message | ObjectNotFoundError
-
-union MessageObjectNotFoundErrorInvalidInputError = Message | ObjectNotFoundError | InvalidInputError
-
-type MessageReaction implements IBaseType & IUser {
-  id: Int!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  user: User!
-  emoji: String!
-}
-
-input MessageReactionIn {
-  messageId: Int!
-  emoji: String!
-}
-
-type MessageReactionsUpdated {
-  message: Message!
-}
 
 type MessagesMeta implements IBaseMeta {
   count: Int!
@@ -168,7 +146,6 @@ type Mutation {
   updateChatParticipantPermissions(input: ChatParticipantIn!): ChatParticipantObjectNotFoundError!
   markChatRead(chatId: Int!): ChatParticipantObjectNotFoundError!
   createMessage(input: MessageIn!): MessageObjectNotFoundError!
-  toggleMessageReaction(input: MessageReactionIn!): MessageObjectNotFoundErrorInvalidInputError!
   createSystemNotification(input: SystemNotificationIn!): SystemNotification!
   updateSystemNotification(id: Int!, input: SystemNotificationIn!): SystemNotificationObjectNotFoundError!
   markSystemNotificationRead(id: Int!): ObjectNotFoundError
@@ -203,7 +180,7 @@ type Query {
 }
 
 type Subscription {
-  events: Event!
+  events: Message!
 }
 
 type SystemNotification implements IBaseType {
