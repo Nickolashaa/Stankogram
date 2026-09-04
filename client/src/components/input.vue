@@ -29,7 +29,8 @@ onMounted(() => {
     ref="inputEl"
     :type="props.type"
     :placeholder="props.placeholder"
-    v-model="model"
+    :value="model"
     class="box-border h-12 w-full rounded-input border-[1.5px] border-second/30 bg-bg px-4 font-sans text-[15px] text-main outline-none transition-colors duration-150 placeholder:text-second focus:border-accent"
+    @input="model = ($event.target as HTMLInputElement).value"
   />
 </template>
