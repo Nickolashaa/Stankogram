@@ -1,7 +1,7 @@
 from typing import Unpack
 
 from cryptography.fernet import Fernet
-from sqlalchemy import Select, delete, insert, select
+from sqlalchemy import Select, delete, insert, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,7 +9,7 @@ from ...database.models.messages import Message
 from ..base import BasePagination, BaseService
 from ..exceptions import ObjectNotFound
 from .schemas import MessageResponse
-from .types import MessageCreateParams, MessageGetListFilters
+from .types import MessageCreateParams, MessageGetListFilters, MessageUpdateParams
 
 
 class MessageService(BaseService):
@@ -46,6 +46,48 @@ class MessageService(BaseService):
             raise
 
         return MessageResponse.from_ORM(fernet=self._fernet, instance=res.scalar_one())
+
+    async def get(self, id: int) -> MessageResponse:
+        stmt = select(Message).where(Message.id == id)
+
+        res = await self._session.execute(stmt)
+        instance = res.scalar_one_or_none()
+        if instance is None:
+            raise ObjectNotFound(f"Message with id {id} not found")
+
+        return MessageResponse.from_ORM(fernet=self._fernet, instance=instance)
+
+    async def get_or_none(self, id: int) -> MessageResponse | None:
+        stmt = select(Message).where(Message.id == id)
+
+        res = await self._session.execute(stmt)
+        instance = res.scalar_one_or_none()
+        if instance is None:
+            return None
+
+        return MessageResponse.from_ORM(fernet=self._fernet, instance=instance)
+
+    async def update(
+        self,
+        id: int,
+        **values: Unpack[MessageUpdateParams],
+    ) -> MessageResponse:
+        stmt = (
+            update(Message)
+            .where(Message.id == id)
+            .values(
+                encrypted_text=self._fernet.encrypt(
+                    values.get("text").encode()
+                ).decode(),
+            )
+            .returning(Message)
+        )
+        res = await self._session.execute(stmt)
+        instance = res.scalar_one_or_none()
+        if instance is None:
+            raise ObjectNotFound(f"Message with id {id} not found")
+
+        return MessageResponse.from_ORM(fernet=self._fernet, instance=instance)
 
     async def delete(self, id: int) -> None:
         stmt = delete(Message).where(Message.id == id)

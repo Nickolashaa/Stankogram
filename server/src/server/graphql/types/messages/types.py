@@ -27,3 +27,18 @@ class Message(IBaseType, IUser, IChat):
 @strawberry.type
 class MessagesMeta(IBaseMeta):
     messages: list[Message]
+
+
+@strawberry.type
+class CreateMessage:
+    message: Message
+
+
+@strawberry.type
+class UpdateMessage:
+    message: Message
+
+
+@strawberry.type
+class DeleteMessage:
+    message: Message

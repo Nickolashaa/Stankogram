@@ -10,3 +10,7 @@ class MessageCreateParams(TypedDict):
     chat_id: Required[int]
     user_id: Required[int]
     text: Required[str]
+
+
+class MessageUpdateParams(TypedDict):
+    text: Required[str]
