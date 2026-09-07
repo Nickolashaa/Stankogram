@@ -1,0 +1,14 @@
+mutation UpdateMessage($messageId: Int!, $input: MessageUpdateIn!) {
+  updateMessage(messageId: $messageId, input: $input) {
+    __typename
+    ... on Message {
+      ...MessageFields
+      user {
+        ...UserFields
+      }
+    }
+    ... on ObjectNotFoundError {
+      message
+    }
+  }
+}

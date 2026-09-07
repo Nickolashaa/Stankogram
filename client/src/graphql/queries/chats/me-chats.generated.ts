@@ -60,6 +60,7 @@ export type MeChatsQuery = {
           lastMessage: {
             id: number
             createdAt: string
+            updatedAt: string
             text: string
             user: {
               id: number

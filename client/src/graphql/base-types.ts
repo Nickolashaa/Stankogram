@@ -77,6 +77,18 @@ export type ChatsMeta = IBaseMeta & {
 
 export type ChatsMetaUnauthorizedError = ChatsMeta | UnauthorizedError
 
+export type CreateMessage = {
+  __typename?: "CreateMessage"
+  message: Message
+}
+
+export type CreateMessageUpdateMessageDeleteMessage = CreateMessage | DeleteMessage | UpdateMessage
+
+export type DeleteMessage = {
+  __typename?: "DeleteMessage"
+  message: Message
+}
+
 export enum EChatType {
   Private = "PRIVATE",
   Public = "PUBLIC",
@@ -148,6 +160,10 @@ export type MessageIn = {
 
 export type MessageObjectNotFoundError = Message | ObjectNotFoundError
 
+export type MessageUpdateIn = {
+  text: Scalars["String"]["input"]
+}
+
 export type MessagesMeta = IBaseMeta & {
   __typename?: "MessagesMeta"
   count: Scalars["Int"]["output"]
@@ -162,6 +178,7 @@ export type Mutation = {
   createPublicChat: ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError
   createSystemNotification: SystemNotification
   deleteChat: ChatInvalidInputErrorObjectNotFoundError
+  deleteMessage: MessageObjectNotFoundError
   leaveChat: ChatInvalidInputErrorObjectNotFoundError
   login: JwTsObjectNotFoundError
   logout?: Maybe<Scalars["Void"]["output"]>
@@ -171,6 +188,7 @@ export type Mutation = {
   removeParticipantFromChat?: Maybe<Scalars["Void"]["output"]>
   updateChat: ChatInvalidInputErrorObjectNotFoundError
   updateChatParticipantPermissions: ChatParticipantObjectNotFoundError
+  updateMessage: MessageObjectNotFoundError
   updateSystemNotification: SystemNotificationObjectNotFoundError
   userCreate: UserObjectAlreadyExistsError
   userDelete?: Maybe<Scalars["Void"]["output"]>
@@ -203,6 +221,10 @@ export type MutationDeleteChatArgs = {
   chatId: Scalars["Int"]["input"]
 }
 
+export type MutationDeleteMessageArgs = {
+  messageId: Scalars["Int"]["input"]
+}
+
 export type MutationLeaveChatArgs = {
   chatId: Scalars["Int"]["input"]
 }
@@ -231,6 +253,11 @@ export type MutationUpdateChatArgs = {
 
 export type MutationUpdateChatParticipantPermissionsArgs = {
   input: ChatParticipantIn
+}
+
+export type MutationUpdateMessageArgs = {
+  input: MessageUpdateIn
+  messageId: Scalars["Int"]["input"]
 }
 
 export type MutationUpdateSystemNotificationArgs = {
@@ -322,7 +349,7 @@ export type QueryUsersArgs = {
 
 export type Subscription = {
   __typename?: "Subscription"
-  events: Message
+  events: CreateMessageUpdateMessageDeleteMessage
 }
 
 export type SystemNotification = IBaseType & {
@@ -354,6 +381,11 @@ export type SystemNotificationsMeta = IBaseMeta & {
 export type UnauthorizedError = IAppError & {
   __typename?: "UnauthorizedError"
   message: Scalars["String"]["output"]
+}
+
+export type UpdateMessage = {
+  __typename?: "UpdateMessage"
+  message: Message
 }
 
 export type User = IBaseType & {

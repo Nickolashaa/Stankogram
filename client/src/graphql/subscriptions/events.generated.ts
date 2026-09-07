@@ -16,34 +16,85 @@ export type EUserRole = "STUDENT" | "TEACHER"
 export type EventsSubscriptionVariables = Exact<{ [key: string]: never }>
 
 export type EventsSubscription = {
-  events: {
-    id: number
-    createdAt: string
-    text: string
-    user: {
-      id: number
-      createdAt: string
-      updatedAt: string
-      name: string
-      surname: string
-      patronymic: string | null
-      email: string
-      role: Types.EUserRole
-      isAdmin: boolean
-    }
-    chat: { id: number }
-  }
+  events:
+    | {
+        __typename: "CreateMessage"
+        message: {
+          id: number
+          createdAt: string
+          updatedAt: string
+          text: string
+          user: {
+            id: number
+            createdAt: string
+            updatedAt: string
+            name: string
+            surname: string
+            patronymic: string | null
+            email: string
+            role: Types.EUserRole
+            isAdmin: boolean
+          }
+          chat: { id: number }
+        }
+      }
+    | { __typename: "DeleteMessage"; message: { id: number; chat: { id: number } } }
+    | {
+        __typename: "UpdateMessage"
+        message: {
+          id: number
+          createdAt: string
+          updatedAt: string
+          text: string
+          user: {
+            id: number
+            createdAt: string
+            updatedAt: string
+            name: string
+            surname: string
+            patronymic: string | null
+            email: string
+            role: Types.EUserRole
+            isAdmin: boolean
+          }
+          chat: { id: number }
+        }
+      }
 }
 
 export const EventsDocument = gql`
   subscription Events {
     events {
-      ...MessageFields
-      user {
-        ...UserFields
+      __typename
+      ... on CreateMessage {
+        message {
+          ...MessageFields
+          user {
+            ...UserFields
+          }
+          chat {
+            id
+          }
+        }
       }
-      chat {
-        id
+      ... on UpdateMessage {
+        message {
+          ...MessageFields
+          user {
+            ...UserFields
+          }
+          chat {
+            id
+          }
+        }
+      }
+      ... on DeleteMessage {
+        message {
+          id
+          chat {
+            id
+          }
+        }
       }
     }
   }

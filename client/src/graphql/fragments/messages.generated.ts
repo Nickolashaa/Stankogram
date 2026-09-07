@@ -4,12 +4,18 @@ export type Incremental<T> =
 import * as Types from "../base-types"
 
 import gql from "graphql-tag"
-export type MessageFieldsFragment = { id: number; createdAt: string; text: string }
+export type MessageFieldsFragment = {
+  id: number
+  createdAt: string
+  updatedAt: string
+  text: string
+}
 
 export const MessageFieldsFragmentDoc = gql`
   fragment MessageFields on Message {
     id
     createdAt
+    updatedAt
     text
   }
 `

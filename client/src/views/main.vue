@@ -27,8 +27,22 @@ onResult(({ data }) => {
     return
   }
 
-  chatStore.handleIncomingMessage(data.events)
-  messageStore.handleIncomingMessage(data.events)
+  const event = data.events
+
+  switch (event.__typename) {
+    case "CreateMessage":
+      chatStore.handleCreateMessage(event.message)
+      messageStore.handleCreateMessage(event.message)
+      break
+    case "UpdateMessage":
+      chatStore.handleUpdateMessage(event.message)
+      messageStore.handleUpdateMessage(event.message)
+      break
+    case "DeleteMessage":
+      chatStore.handleDeleteMessage(event.message)
+      messageStore.handleDeleteMessage(event.message)
+      break
+  }
 })
 </script>
 

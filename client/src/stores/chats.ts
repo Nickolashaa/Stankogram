@@ -331,7 +331,7 @@ export const useChatStore = defineStore("chats", () => {
     patchParticipant(chatId, result)
   }
 
-  function handleIncomingMessage(
+  function handleCreateMessage(
     message: MessageFieldsFragment & { user: UserFieldsFragment; chat: { id: number } },
   ) {
     const index = chats.value.findIndex((chat) => chat.id === message.chat.id)
@@ -352,6 +352,34 @@ export const useChatStore = defineStore("chats", () => {
     chats.value = [updated, ...rest]
   }
 
+  function patchLastMessageIn(
+    list: Ref<ChatSummary[]>,
+    chatId: number,
+    messageId: number,
+    lastMessage: ChatSummary["lastMessage"],
+  ) {
+    const chat = list.value.find((item) => item.id === chatId)
+    if (chat === undefined || chat.lastMessage?.id !== messageId) {
+      return
+    }
+    patchChatIn(list, chatId, { lastMessage })
+  }
+
+  function handleUpdateMessage(
+    message: MessageFieldsFragment & { user: UserFieldsFragment; chat: { id: number } },
+  ) {
+    patchLastMessageIn(chats, message.chat.id, message.id, message)
+    patchLastMessageIn(adminChats, message.chat.id, message.id, message)
+  }
+
+  function handleDeleteMessage(message: { id: number; chat: { id: number } }) {
+    const current = chats.value.find((chat) => chat.id === message.chat.id)
+    if (current?.lastMessage?.id === message.id) {
+      fetchChats(undefined, RESYNC_PAGE_SIZE, 0)
+    }
+    patchLastMessageIn(adminChats, message.chat.id, message.id, null)
+  }
+
   return {
     chats,
     totalCount,
@@ -369,6 +397,8 @@ export const useChatStore = defineStore("chats", () => {
     deleteChat,
     setParticipantPermissions,
     markChatRead,
-    handleIncomingMessage,
+    handleCreateMessage,
+    handleUpdateMessage,
+    handleDeleteMessage,
   }
 })

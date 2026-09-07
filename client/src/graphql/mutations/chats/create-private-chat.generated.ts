@@ -52,6 +52,7 @@ export type CreatePrivateChatMutation = {
         lastMessage: {
           id: number
           createdAt: string
+          updatedAt: string
           text: string
           user: {
             id: number

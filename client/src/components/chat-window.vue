@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue"
 import { storeToRefs } from "pinia"
 import { useDebounceFn, useInfiniteScroll } from "@vueuse/core"
-import { useMessageStore } from "@/stores/messages"
+import { useMessageStore, type MessageItem } from "@/stores/messages"
 import { useAuthStore } from "@/stores/auth"
 import { useChatStore, type ChatParticipantItem, type ChatSummary } from "@/stores/chats"
 import { useDraftStore } from "@/stores/drafts"
@@ -59,6 +59,126 @@ const isMuted = computed(() => {
   }
   return participantsByUserId.value.get(userId)?.isMuted === true
 })
+
+const isCurrentUserChatAdmin = computed(() => {
+  if (currentUser.value?.isAdmin === true) {
+    return true
+  }
+  const userId = currentUser.value?.id
+  if (userId === undefined) {
+    return false
+  }
+  return participantsByUserId.value.get(userId)?.isAdmin === true
+})
+
+function canEditMessage(message: MessageItem) {
+  return message.user.id === currentUser.value?.id
+}
+
+function canDeleteMessage(message: MessageItem) {
+  return message.user.id === currentUser.value?.id || isCurrentUserChatAdmin.value
+}
+
+type MessageContextMenu = {
+  x: number
+  y: number
+  message: MessageItem
+}
+
+const MESSAGE_MENU_WIDTH = 180
+const MESSAGE_MENU_HEIGHT = 90
+
+const contextMenu = ref<MessageContextMenu | null>(null)
+
+function closeContextMenu() {
+  contextMenu.value = null
+}
+
+function handleMessageContextMenu(event: MouseEvent, message: MessageItem) {
+  if (!canEditMessage(message) && !canDeleteMessage(message)) {
+    return
+  }
+  event.preventDefault()
+  contextMenu.value = {
+    x: Math.min(event.clientX, window.innerWidth - MESSAGE_MENU_WIDTH - 8),
+    y: Math.min(event.clientY, window.innerHeight - MESSAGE_MENU_HEIGHT - 8),
+    message,
+  }
+}
+
+function handleMessageMenuEscape(event: KeyboardEvent) {
+  if (event.key === "Escape") {
+    closeContextMenu()
+  }
+}
+
+onMounted(() => window.addEventListener("keydown", handleMessageMenuEscape))
+onUnmounted(() => window.removeEventListener("keydown", handleMessageMenuEscape))
+
+const editingMessageId = ref<number | null>(null)
+const editDraft = ref("")
+const savingEdit = ref(false)
+
+function startEdit(message: MessageItem) {
+  editingMessageId.value = message.id
+  editDraft.value = message.text
+}
+
+function cancelEdit() {
+  editingMessageId.value = null
+  editDraft.value = ""
+}
+
+async function saveEdit() {
+  const messageId = editingMessageId.value
+  if (messageId === null) {
+    return
+  }
+  const value = editDraft.value.trim()
+  if (value === "") {
+    return
+  }
+
+  savingEdit.value = true
+  try {
+    await messageStore.updateMessage(messageId, value)
+    cancelEdit()
+  } catch {
+    notify.error("Не удалось изменить сообщение")
+  } finally {
+    savingEdit.value = false
+  }
+}
+
+function handleMenuEdit() {
+  const message = contextMenu.value?.message
+  closeContextMenu()
+  if (message !== undefined) {
+    startEdit(message)
+  }
+}
+
+async function handleMenuDelete() {
+  const message = contextMenu.value?.message
+  closeContextMenu()
+  if (message === undefined || !window.confirm("Удалить сообщение?")) {
+    return
+  }
+
+  try {
+    await messageStore.deleteMessage(message.id)
+  } catch {
+    notify.error("Не удалось удалить сообщение")
+  }
+}
+
+watch(
+  () => props.chatId,
+  () => {
+    closeContextMenu()
+    cancelEdit()
+  },
+)
 
 const draftStore = useDraftStore()
 
@@ -229,9 +349,44 @@ async function handleSubmit() {
       <template v-for="(message, index) in messages" :key="message.id">
         <div
           class="flex flex-col gap-1"
-          :class="message.user.id === currentUser?.id ? 'items-end' : 'items-start'"
+          :class="[
+            message.user.id === currentUser?.id ? 'items-end' : 'items-start',
+            canEditMessage(message) || canDeleteMessage(message) ? 'cursor-context-menu' : '',
+          ]"
+          @contextmenu="handleMessageContextMenu($event, message)"
         >
           <div
+            v-if="editingMessageId === message.id"
+            class="flex w-[min(28rem,85%)] flex-col gap-2 rounded-card bg-card px-4 py-2.5 text-[15px] text-main shadow-card"
+          >
+            <textarea
+              v-model="editDraft"
+              rows="1"
+              autofocus
+              class="max-h-40 min-h-9 w-full resize-none overflow-y-auto bg-transparent font-sans text-[15px] leading-6 text-main outline-none"
+              @keydown.enter.exact.prevent="saveEdit"
+              @keydown.esc="cancelEdit"
+            />
+            <div class="flex items-center justify-end gap-2">
+              <button
+                type="button"
+                class="cursor-pointer text-xs font-medium text-second transition-colors duration-150 hover:text-main"
+                @click="cancelEdit"
+              >
+                Отмена
+              </button>
+              <button
+                type="button"
+                class="cursor-pointer text-xs font-medium text-accent transition-colors duration-150 hover:text-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+                :disabled="savingEdit || editDraft.trim() === ''"
+                @click="saveEdit"
+              >
+                Сохранить
+              </button>
+            </div>
+          </div>
+          <div
+            v-else
             class="max-w-[min(28rem,85%)] rounded-card"
             :class="[
               isLargeEmojiMessage(message.text)
@@ -273,7 +428,10 @@ async function handleSubmit() {
               </template>
             </div>
           </div>
-          <span class="px-1 text-xs text-second">{{ formatTime(message.createdAt) }}</span>
+          <span class="flex items-center gap-1 px-1 text-xs text-second">
+            <template v-if="message.updatedAt !== message.createdAt">изменено · </template>
+            {{ formatTime(message.createdAt) }}
+          </span>
         </div>
 
         <div v-if="isFirstMessageOfDay(index)" class="flex items-center gap-3 py-1">
@@ -335,5 +493,36 @@ async function handleSubmit() {
         :disabled="sending || text.trim() === ''"
       />
     </form>
+
+    <div
+      v-if="contextMenu"
+      class="fixed inset-0 z-40"
+      @click="closeContextMenu"
+      @contextmenu.prevent="closeContextMenu"
+    />
+
+    <div
+      v-if="contextMenu"
+      class="fixed z-50 flex w-44 animate-appear flex-col overflow-hidden rounded-input border-[1.5px] border-second/15 bg-card py-1.5 shadow-card"
+      :style="{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }"
+    >
+      <button
+        v-if="canEditMessage(contextMenu.message)"
+        type="button"
+        class="cursor-pointer px-4 py-2 text-left text-sm text-main transition-colors duration-150 hover:bg-accent/10"
+        @click="handleMenuEdit"
+      >
+        Редактировать
+      </button>
+
+      <button
+        v-if="canDeleteMessage(contextMenu.message)"
+        type="button"
+        class="cursor-pointer px-4 py-2 text-left text-sm text-red-600 transition-colors duration-150 hover:bg-red-500/10 dark:text-red-400"
+        @click="handleMenuDelete"
+      >
+        Удалить
+      </button>
+    </div>
   </div>
 </template>

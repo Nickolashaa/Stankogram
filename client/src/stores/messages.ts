@@ -2,6 +2,8 @@ import { defineStore } from "pinia"
 import { ref } from "vue"
 import { apolloClient } from "@/api"
 import { CreateMessageDocument } from "@/graphql/mutations/messages/create-message.generated"
+import { UpdateMessageDocument } from "@/graphql/mutations/messages/update-message.generated"
+import { DeleteMessageDocument } from "@/graphql/mutations/messages/delete-message.generated"
 import { MessagesDocument } from "@/graphql/queries/messages/messages.generated"
 import type { MessageFieldsFragment } from "@/graphql/fragments/messages.generated"
 import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
@@ -56,13 +58,57 @@ export const useMessageStore = defineStore("messages", () => {
     }
   }
 
-  function handleIncomingMessage(message: MessageItem & { chat: { id: number } }) {
+  async function updateMessage(messageId: number, text: string) {
+    const { data } = await apolloClient.mutate({
+      mutation: UpdateMessageDocument,
+      variables: { messageId, input: { text } },
+    })
+
+    if (data === undefined || data === null || data.updateMessage.__typename !== "Message") {
+      throw new Error(data?.updateMessage.message ?? "Failed to update message")
+    }
+  }
+
+  async function deleteMessage(messageId: number) {
+    const { data } = await apolloClient.mutate({
+      mutation: DeleteMessageDocument,
+      variables: { messageId },
+    })
+
+    if (data === undefined || data === null || data.deleteMessage.__typename !== "Message") {
+      throw new Error(data?.deleteMessage.message ?? "Failed to delete message")
+    }
+  }
+
+  function handleCreateMessage(message: MessageItem & { chat: { id: number } }) {
     if (chatId.value === null || message.chat.id !== chatId.value) {
       return
     }
 
     messages.value = [message, ...messages.value]
     totalCount.value += 1
+  }
+
+  function handleUpdateMessage(message: MessageItem & { chat: { id: number } }) {
+    if (chatId.value === null || message.chat.id !== chatId.value) {
+      return
+    }
+
+    messages.value = messages.value.map((item) =>
+      item.id === message.id ? { ...item, ...message } : item,
+    )
+  }
+
+  function handleDeleteMessage(message: { id: number; chat: { id: number } }) {
+    if (chatId.value === null || message.chat.id !== chatId.value) {
+      return
+    }
+    if (!messages.value.some((item) => item.id === message.id)) {
+      return
+    }
+
+    messages.value = messages.value.filter((item) => item.id !== message.id)
+    totalCount.value = Math.max(0, totalCount.value - 1)
   }
 
   return {
@@ -72,6 +118,10 @@ export const useMessageStore = defineStore("messages", () => {
     openChat,
     fetchMessages,
     sendMessage,
-    handleIncomingMessage,
+    updateMessage,
+    deleteMessage,
+    handleCreateMessage,
+    handleUpdateMessage,
+    handleDeleteMessage,
   }
 })
