@@ -33,6 +33,7 @@ export type MessagesQuery = {
     messages: Array<{
       id: number
       createdAt: string
+      updatedAt: string
       text: string
       user: {
         id: number

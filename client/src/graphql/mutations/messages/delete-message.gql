@@ -1,0 +1,14 @@
+mutation DeleteMessage($messageId: Int!) {
+  deleteMessage(messageId: $messageId) {
+    __typename
+    ... on Message {
+      id
+      chat {
+        id
+      }
+    }
+    ... on ObjectNotFoundError {
+      message
+    }
+  }
+}
