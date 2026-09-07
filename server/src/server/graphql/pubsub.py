@@ -1,8 +1,8 @@
 from asyncio.queues import Queue
 
-from .types.messages import Message
+from .types.messages import CreateMessage, DeleteMessage, UpdateMessage
 
-Event = Message
+Event = CreateMessage | UpdateMessage | DeleteMessage
 
 
 class PubSub:
