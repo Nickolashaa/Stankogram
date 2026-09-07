@@ -54,8 +54,18 @@ type ChatsMeta implements IBaseMeta {
 
 union ChatsMetaUnauthorizedError = ChatsMeta | UnauthorizedError
 
+type CreateMessage {
+  message: Message!
+}
+
+union CreateMessageUpdateMessageDeleteMessage = CreateMessage | UpdateMessage | DeleteMessage
+
 """Date with time (isoformat)"""
 scalar DateTime
+
+type DeleteMessage {
+  message: Message!
+}
 
 enum EChatType {
   PRIVATE
@@ -122,6 +132,10 @@ input MessageIn {
 
 union MessageObjectNotFoundError = Message | ObjectNotFoundError
 
+input MessageUpdateIn {
+  text: String!
+}
+
 type MessagesMeta implements IBaseMeta {
   count: Int!
   messages: [Message!]!
@@ -146,6 +160,8 @@ type Mutation {
   updateChatParticipantPermissions(input: ChatParticipantIn!): ChatParticipantObjectNotFoundError!
   markChatRead(chatId: Int!): ChatParticipantObjectNotFoundError!
   createMessage(input: MessageIn!): MessageObjectNotFoundError!
+  updateMessage(messageId: Int!, input: MessageUpdateIn!): MessageObjectNotFoundError!
+  deleteMessage(messageId: Int!): MessageObjectNotFoundError!
   createSystemNotification(input: SystemNotificationIn!): SystemNotification!
   updateSystemNotification(id: Int!, input: SystemNotificationIn!): SystemNotificationObjectNotFoundError!
   markSystemNotificationRead(id: Int!): ObjectNotFoundError
@@ -180,7 +196,7 @@ type Query {
 }
 
 type Subscription {
-  events: Message!
+  events: CreateMessageUpdateMessageDeleteMessage!
 }
 
 type SystemNotification implements IBaseType {
@@ -209,6 +225,10 @@ type SystemNotificationsMeta implements IBaseMeta {
 
 type UnauthorizedError implements IAppError {
   message: String!
+}
+
+type UpdateMessage {
+  message: Message!
 }
 
 type User implements IBaseType {
