@@ -1,4 +1,4 @@
 __pycache__/
 .ruff_cache/
 .venv/
-test_data.json
+test_data.sql
