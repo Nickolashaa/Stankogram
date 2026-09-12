@@ -85,7 +85,9 @@ async function handleSubmit(data: SystemNotificationIn) {
 <template>
   <div class="flex animate-appear flex-col gap-6">
     <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <h1 class="m-0 text-2xl font-semibold text-main">Системные уведомления</h1>
+      <h1 class="m-0 text-2xl font-semibold tracking-tight text-main sm:text-3xl">
+        Системные уведомления
+      </h1>
       <Button icon="plus" :short-mode="false" class="w-full sm:w-auto" @click="openCreateDialog"
         >Создать уведомление</Button
       >
@@ -95,10 +97,10 @@ async function handleSubmit(data: SystemNotificationIn) {
       <div
         v-for="notification in notifications"
         :key="notification.id"
-        class="flex items-start gap-4 rounded-card bg-card px-5 py-4 shadow-card"
+        class="glass hairline shadow-card flex animate-rise items-start gap-4 rounded-card px-5 py-4 transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-float"
       >
         <span
-          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent"
+          class="chip-accent glow-accent-soft flex h-11 w-11 shrink-0 items-center justify-center"
         >
           <NavIcon name="bell" :size="18" />
         </span>
@@ -118,7 +120,7 @@ async function handleSubmit(data: SystemNotificationIn) {
 
       <div
         v-if="notifications.length === 0 && !loading"
-        class="rounded-card bg-card px-5 py-8 text-center text-sm text-second shadow-card"
+        class="glass hairline shadow-card rounded-card px-5 py-10 text-center text-sm text-second"
       >
         Уведомлений пока нет
       </div>

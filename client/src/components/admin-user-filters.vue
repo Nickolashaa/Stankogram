@@ -11,11 +11,11 @@ const isAdmin = defineModel<"" | "true" | "false">("isAdmin", { default: "" })
 <template>
   <div class="flex flex-wrap items-end gap-3">
     <div class="flex min-w-[240px] flex-1 flex-col gap-1">
-      <label class="text-xs font-medium uppercase tracking-wide text-second">Поиск</label>
+      <label class="text-xs font-semibold tracking-wider text-second uppercase">Поиск</label>
       <Input v-model="search" placeholder="Имя, фамилия, email..." autofocus />
     </div>
     <div class="flex w-48 flex-col gap-1">
-      <label class="text-xs font-medium uppercase tracking-wide text-second">Роль</label>
+      <label class="text-xs font-semibold tracking-wider text-second uppercase">Роль</label>
       <Select v-model="role">
         <option value="">Все роли</option>
         <option value="STUDENT">Студент</option>
@@ -23,7 +23,7 @@ const isAdmin = defineModel<"" | "true" | "false">("isAdmin", { default: "" })
       </Select>
     </div>
     <div class="flex w-48 flex-col gap-1">
-      <label class="text-xs font-medium uppercase tracking-wide text-second">Админ</label>
+      <label class="text-xs font-semibold tracking-wider text-second uppercase">Админ</label>
       <Select v-model="isAdmin">
         <option value="">Все</option>
         <option value="true">Да</option>

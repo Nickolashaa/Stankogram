@@ -10,7 +10,7 @@ const navItems: { to: string; label: string; icon: "users" | "chats" | "bell" }[
 
 <template>
   <nav
-    class="flex shrink-0 gap-1 overflow-x-auto border-b border-second/10 bg-card px-3 py-3 lg:w-56 lg:flex-col lg:overflow-visible lg:border-r lg:border-b-0 lg:py-8"
+    class="glass hairline-b flex shrink-0 gap-1.5 overflow-x-auto px-3 py-3 lg:w-60 lg:flex-col lg:overflow-visible lg:border-b-0 lg:py-8 lg:hairline-r"
   >
     <RouterLink
       v-for="item in navItems"
@@ -21,13 +21,15 @@ const navItems: { to: string; label: string; icon: "users" | "chats" | "bell" }[
     >
       <a
         :href="href"
-        class="flex shrink-0 cursor-pointer items-center gap-3 rounded-input px-3 py-2.5 text-[15px] font-medium transition-colors duration-150"
-        :class="isActive ? 'text-main' : 'text-second hover:bg-accent/5 hover:text-main'"
+        class="press group flex shrink-0 cursor-pointer items-center gap-3 rounded-card px-2.5 py-2.5 text-[15px] font-medium"
+        :class="isActive ? 'pill-active' : 'pill-idle'"
         @click="navigate"
       >
         <span
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors duration-200"
-          :class="isActive ? 'bg-accent text-bg' : 'bg-second/10 text-second'"
+          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-input transition-all duration-300"
+          :class="
+            isActive ? 'accent-surface glow-accent text-bg' : 'chip-idle group-hover:text-main'
+          "
         >
           <NavIcon :name="item.icon" :size="18" />
         </span>

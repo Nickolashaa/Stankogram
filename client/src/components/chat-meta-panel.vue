@@ -231,14 +231,14 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
 
 <template>
   <div
-    class="flex h-full w-full flex-col overflow-y-auto bg-card"
+    class="glass flex h-full w-full flex-col overflow-y-auto"
     :class="
       variant === 'page'
-        ? 'flex-1 rounded-card shadow-card'
-        : 'lg:w-80 lg:shrink-0 lg:border-l lg:border-second/15'
+        ? 'hairline shadow-card flex-1 rounded-card'
+        : 'lg:w-84 lg:shrink-0 lg:hairline-l'
     "
   >
-    <div class="flex items-center gap-3 border-b border-second/15 px-4 py-5 lg:px-6 lg:py-6">
+    <div class="hairline-b flex items-center gap-3 px-4 py-5 lg:px-6 lg:py-6">
       <Avatar :label="chatInitials(chat.title)" size="lg" />
 
       <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -247,7 +247,7 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
             <input
               v-model="titleDraft"
               autofocus
-              class="h-9 min-w-0 flex-1 rounded-input border-[1.5px] border-second/30 bg-bg px-3 text-[15px] font-semibold text-main outline-none transition-colors duration-150 focus:border-accent"
+              class="glass-field hairline h-10 min-w-0 flex-1 rounded-input px-3 text-[15px] font-semibold text-main outline-none transition-[border-color,box-shadow] duration-200 focus-glow"
               @keyup.enter="saveTitle"
               @keyup.esc="cancelEditTitle"
             />
@@ -288,13 +288,13 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
 
     <div class="flex flex-col gap-3 px-4 py-5 lg:px-6">
       <div class="flex items-center justify-between gap-2">
-        <span class="text-xs font-medium uppercase tracking-wide text-second">
+        <span class="text-xs font-semibold tracking-wider text-second uppercase">
           Участники ({{ chat.participants.length }})
         </span>
         <button
           v-if="isCurrentUserAdmin"
           type="button"
-          class="flex cursor-pointer items-center gap-1 text-xs font-medium text-accent transition-colors duration-150 hover:text-accent-hover"
+          class="press flex cursor-pointer items-center gap-1 rounded-full bg-accent/12 px-2.5 py-1 text-xs font-medium text-accent hover:bg-accent/20"
           @click="addParticipantsOpen = true"
         >
           <NavIcon name="plus" :size="14" />
@@ -306,8 +306,8 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
         <div
           v-for="participant in chat.participants"
           :key="participant.id"
-          class="flex items-center gap-3 rounded-card px-2 py-2.5 transition-colors duration-150"
-          :class="isCurrentUserAdmin ? 'cursor-context-menu hover:bg-accent/5' : ''"
+          class="flex items-center gap-3 rounded-card px-2.5 py-2.5 transition-colors duration-200"
+          :class="isCurrentUserAdmin ? 'cursor-context-menu hover:bg-main/5' : ''"
           @contextmenu="handleContextMenu($event, participant)"
         >
           <Avatar :label="initials(participant.user)" size="sm" />
@@ -332,11 +332,11 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
       </span>
     </div>
 
-    <div v-if="canLeave || canDelete" class="mt-auto border-t border-second/15 px-4 py-4 lg:px-6">
+    <div v-if="canLeave || canDelete" class="hairline-t mt-auto px-4 py-4 lg:px-6">
       <button
         v-if="canLeave"
         type="button"
-        class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-input border-[1.5px] border-red-500/30 px-4 py-2.5 text-sm font-medium text-red-600 transition-colors duration-150 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-60 dark:text-red-400"
+        class="press flex w-full cursor-pointer items-center justify-center gap-2 rounded-input bg-red-500/10 px-4 py-3 text-sm font-medium text-red-600 ring-1 ring-red-500/20 ring-inset hover:bg-red-500/18 disabled:cursor-not-allowed disabled:opacity-60 dark:text-red-400"
         :disabled="leaving"
         @click="leaveChat"
       >
@@ -347,7 +347,7 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
       <button
         v-if="canDelete"
         type="button"
-        class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-input border-[1.5px] border-red-500/30 px-4 py-2.5 text-sm font-medium text-red-600 transition-colors duration-150 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-60 dark:text-red-400"
+        class="press flex w-full cursor-pointer items-center justify-center gap-2 rounded-input bg-red-500/10 px-4 py-3 text-sm font-medium text-red-600 ring-1 ring-red-500/20 ring-inset hover:bg-red-500/18 disabled:cursor-not-allowed disabled:opacity-60 dark:text-red-400"
         :disabled="deleting"
         @click="deleteChat"
       >
@@ -373,16 +373,16 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
 
     <div
       v-if="contextMenu"
-      class="fixed z-50 flex w-56 animate-appear flex-col overflow-hidden rounded-input border-[1.5px] border-second/15 bg-card py-1.5 shadow-card"
+      class="glass-strong hairline shadow-float fixed z-50 flex w-60 origin-top-left animate-pop flex-col gap-0.5 overflow-hidden rounded-card p-1.5"
       :style="{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }"
     >
-      <span class="truncate px-4 pt-1 pb-2 text-xs font-medium text-second">
+      <span class="truncate px-3 pt-1.5 pb-2 text-xs font-semibold text-second">
         {{ fullName(contextMenu.participant.user) }}
       </span>
 
       <button
         type="button"
-        class="cursor-pointer px-4 py-2 text-left text-sm text-main transition-colors duration-150 hover:bg-accent/10"
+        class="press cursor-pointer rounded-input px-3 py-2 text-left text-sm text-main hover:bg-main/6"
         @click="handleMenuToggleAdmin"
       >
         {{ contextMenu.participant.isAdmin ? "Разжаловать" : "Сделать админом" }}
@@ -390,7 +390,7 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
 
       <button
         type="button"
-        class="cursor-pointer px-4 py-2 text-left text-sm text-main transition-colors duration-150 hover:bg-accent/10"
+        class="press cursor-pointer rounded-input px-3 py-2 text-left text-sm text-main hover:bg-main/6"
         @click="handleMenuToggleMute"
       >
         {{ contextMenu.participant.isMuted ? "Размутить" : "Замутить" }}
@@ -398,7 +398,7 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
 
       <button
         type="button"
-        class="cursor-pointer px-4 py-2 text-left text-sm text-red-600 transition-colors duration-150 hover:bg-red-500/10 dark:text-red-400"
+        class="press cursor-pointer rounded-input px-3 py-2 text-left text-sm text-red-600 hover:bg-red-500/12 dark:text-red-400"
         @click="handleMenuRemove"
       >
         Удалить из чата

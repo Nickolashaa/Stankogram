@@ -44,21 +44,21 @@ const infiniteScroll = useInfiniteScroll(
 
 <template>
   <div
-    class="h-full w-full shrink-0 flex-col overflow-hidden rounded-card bg-card shadow-card lg:flex lg:w-80"
+    class="glass hairline shadow-card h-full w-full shrink-0 flex-col overflow-hidden rounded-card lg:flex lg:w-84"
     :class="mobileHidden ? 'hidden' : 'flex'"
   >
-    <div class="shrink-0 border-b border-second/15 px-5 py-5">
-      <h2 class="m-0 text-lg font-semibold text-main">Групповые чаты</h2>
+    <div class="hairline-b shrink-0 px-5 py-5">
+      <h2 class="m-0 text-lg font-semibold tracking-tight text-main">Групповые чаты</h2>
       <span class="text-sm text-second">Всего: {{ adminTotalCount }}</span>
     </div>
 
-    <div ref="scrollContainer" class="flex-1 overflow-y-auto">
+    <div ref="scrollContainer" class="flex flex-1 flex-col gap-1 overflow-y-auto p-2.5">
       <button
         v-for="chat in adminChats"
         :key="chat.id"
         type="button"
-        class="flex w-full cursor-pointer flex-col gap-1 border-b border-second/10 px-5 py-3 text-left transition-colors duration-150 hover:bg-accent/5"
-        :class="chat.id === activeChatId ? 'bg-accent/10' : ''"
+        class="press flex w-full cursor-pointer flex-col gap-1 rounded-card px-3.5 py-3 text-left"
+        :class="chat.id === activeChatId ? 'pill-active' : 'pill-idle'"
         @click="emit('select', chat.id)"
       >
         <span class="truncate text-[15px] font-medium text-main">{{ chat.title }}</span>

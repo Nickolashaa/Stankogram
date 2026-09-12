@@ -78,15 +78,19 @@ function handleSelect(emoji: string) {
 
   <div
     v-if="open"
-    class="absolute right-0 bottom-full z-50 mb-2 flex w-full max-w-sm animate-appear flex-col overflow-hidden rounded-card border-[1.5px] border-second/15 bg-card shadow-card"
+    class="glass-strong hairline shadow-float absolute right-0 bottom-full z-50 mb-3 flex w-full max-w-sm origin-bottom-right animate-pop flex-col overflow-hidden rounded-card"
   >
-    <div class="flex shrink-0 gap-0.5 overflow-x-auto border-b border-second/15 px-2 py-2">
+    <div class="hairline-b flex shrink-0 gap-0.5 overflow-x-auto px-2 py-2">
       <button
         v-for="tab in tabs"
         :key="tab.id"
         type="button"
-        class="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-input text-base transition-colors duration-150"
-        :class="activeGroupId === tab.id ? 'bg-accent/15' : 'hover:bg-accent/5'"
+        class="press flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-input text-base"
+        :class="
+          activeGroupId === tab.id
+            ? 'bg-accent/15 ring-1 ring-accent/25 ring-inset'
+            : 'hover:bg-main/6'
+        "
         :title="tab.label"
         :aria-label="tab.label"
         @click="activeGroupId = tab.id"
@@ -100,7 +104,7 @@ function handleSelect(emoji: string) {
         v-for="(emoji, index) in visibleEmojis"
         :key="`${emoji}-${index}`"
         type="button"
-        class="flex h-9 cursor-pointer items-center justify-center rounded-input text-xl leading-none transition-colors duration-150 hover:bg-accent/10"
+        class="press flex h-9 cursor-pointer items-center justify-center rounded-input text-xl leading-none hover:bg-accent/12"
         @click="handleSelect(emoji)"
       >
         {{ emoji }}

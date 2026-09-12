@@ -59,25 +59,21 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
 <template>
   <div
     v-if="open"
-    class="fixed inset-0 z-50 flex animate-appear items-center justify-center bg-black/40 px-4"
+    class="fixed inset-0 z-50 flex animate-appear items-center justify-center bg-black/45 px-4 backdrop-blur-sm"
     @click.self="handleClose"
   >
     <div
-      class="flex h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-card bg-card shadow-card lg:flex-row"
+      class="glass-strong hairline shadow-float flex h-[92vh] w-full max-w-6xl animate-pop flex-col overflow-hidden rounded-card lg:flex-row"
     >
-      <div
-        class="flex min-h-0 w-full flex-1 flex-col border-second/15 lg:w-96 lg:flex-none lg:border-r"
-      >
-        <div
-          class="flex shrink-0 items-center justify-between gap-4 border-b border-second/15 px-4 py-5 lg:px-6"
-        >
+      <div class="flex min-h-0 w-full flex-1 flex-col lg:w-100 lg:flex-none lg:hairline-r">
+        <div class="hairline-b flex shrink-0 items-center justify-between gap-4 px-4 py-5 lg:px-6">
           <div class="flex flex-col gap-0.5">
-            <h2 class="m-0 text-lg font-semibold text-main">Цветовая тема</h2>
-            <span class="text-xs text-second">Выберите палитру для всего сайта</span>
+            <h2 class="m-0 text-lg font-semibold tracking-tight text-main">Цветовая тема</h2>
+            <span class="text-xs text-second">Палитра для всего сайта</span>
           </div>
           <button
             type="button"
-            class="cursor-pointer text-second transition-colors duration-150 hover:text-main"
+            class="press flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-second hover:bg-main/6 hover:text-main"
             aria-label="Закрыть"
             @click="handleClose"
           >
@@ -85,19 +81,27 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
           </button>
         </div>
 
-        <div class="mx-4 my-4 flex shrink-0 gap-1 rounded-input bg-second/10 p-1 lg:mx-6">
+        <div class="glass-field hairline mx-4 my-4 flex shrink-0 gap-1 rounded-input p-1 lg:mx-6">
           <button
             type="button"
-            class="flex-1 cursor-pointer rounded-input px-3 py-1.5 text-sm font-medium transition-colors duration-150"
-            :class="!draftDark ? 'bg-card text-main shadow-card' : 'text-second hover:text-main'"
+            class="press flex-1 cursor-pointer rounded-input px-3 py-2 text-sm font-medium"
+            :class="
+              !draftDark
+                ? 'accent-surface glow-accent text-bg'
+                : 'text-second hover:bg-main/5 hover:text-main'
+            "
             @click="draftDark = false"
           >
             Светлая
           </button>
           <button
             type="button"
-            class="flex-1 cursor-pointer rounded-input px-3 py-1.5 text-sm font-medium transition-colors duration-150"
-            :class="draftDark ? 'bg-card text-main shadow-card' : 'text-second hover:text-main'"
+            class="press flex-1 cursor-pointer rounded-input px-3 py-2 text-sm font-medium"
+            :class="
+              draftDark
+                ? 'accent-surface glow-accent text-bg'
+                : 'text-second hover:bg-main/5 hover:text-main'
+            "
             @click="draftDark = true"
           >
             Тёмная
@@ -109,16 +113,16 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
             v-for="item in COLOR_SCHEMES"
             :key="item.id"
             type="button"
-            class="flex cursor-pointer items-center gap-3 rounded-input border-[1.5px] px-3 py-2.5 text-left transition-colors duration-150"
+            class="press flex cursor-pointer items-center gap-3 rounded-card px-3 py-2.5 text-left"
             :class="
               draftScheme === item.id
-                ? 'border-accent bg-accent/5'
-                : 'border-transparent hover:bg-second/5'
+                ? 'bg-accent/12 ring-1 ring-accent/25 ring-inset'
+                : 'hover:bg-main/5'
             "
             @click="draftScheme = item.id"
           >
             <span
-              class="h-10 w-10 shrink-0 rounded-full shadow-card"
+              class="shadow-pop h-11 w-11 shrink-0 rounded-full ring-1 ring-main/10 ring-inset"
               :style="{
                 background: `linear-gradient(135deg, ${swatchColor(item, 'bg')} 50%, ${swatchColor(item, 'accent')} 50%)`,
               }"
@@ -136,7 +140,7 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
           </button>
         </div>
 
-        <div class="flex shrink-0 gap-2 border-t border-second/15 px-4 py-5 lg:px-6">
+        <div class="hairline-t flex shrink-0 gap-2 px-4 py-5 lg:px-6">
           <Button
             variant="ghost"
             icon="cancel"
@@ -152,22 +156,20 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
         </div>
       </div>
 
-      <div class="hidden flex-1 flex-col bg-second/5 p-6 lg:flex">
-        <span class="mb-3 shrink-0 text-xs font-medium tracking-wide text-second uppercase">
+      <div class="hidden flex-1 flex-col bg-main/4 p-6 lg:flex">
+        <span class="mb-3 shrink-0 text-xs font-semibold tracking-wider text-second uppercase">
           Пример чата
         </span>
 
         <div
-          class="flex flex-1 flex-col overflow-hidden rounded-card shadow-card"
+          class="shadow-float hairline flex flex-1 flex-col overflow-hidden rounded-card"
           :class="draftDark ? 'dark' : ''"
           :data-scheme="draftScheme"
         >
-          <div class="flex h-full flex-col bg-bg">
-            <div
-              class="flex shrink-0 items-center gap-3 border-b border-second/15 bg-card px-6 py-5"
-            >
+          <div class="ambient flex h-full flex-col bg-bg">
+            <div class="glass hairline-b flex shrink-0 items-center gap-3 px-6 py-5">
               <span
-                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent text-[15px] font-semibold text-bg"
+                class="accent-surface glow-accent flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[15px] font-semibold text-bg"
               >
                 ОР
               </span>
@@ -180,7 +182,7 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
             <div class="flex flex-1 flex-col justify-end gap-3 overflow-hidden px-6 py-4">
               <div class="flex flex-col items-start gap-1">
                 <div
-                  class="max-w-xs rounded-card bg-card px-4 py-2.5 text-[15px] text-main shadow-card"
+                  class="glass hairline shadow-card max-w-xs rounded-card rounded-bl-md px-4 py-2.5 text-[15px] text-main"
                 >
                   <div
                     class="mb-1 flex flex-wrap items-center gap-1.5 text-xs font-medium opacity-70"
@@ -195,7 +197,9 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
               </div>
 
               <div class="flex flex-col items-end gap-1 self-end">
-                <div class="max-w-xs rounded-card bg-accent px-4 py-2.5 text-[15px] text-bg">
+                <div
+                  class="accent-surface glow-accent max-w-xs rounded-card rounded-br-md px-4 py-2.5 text-[15px] text-bg"
+                >
                   Го, гляну как освобожусь
                 </div>
                 <span class="px-1 text-xs text-second">14:03</span>
@@ -203,7 +207,7 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
 
               <div class="flex flex-col items-start gap-1">
                 <div
-                  class="max-w-xs rounded-card bg-card px-4 py-2.5 text-[15px] text-main shadow-card"
+                  class="glass hairline shadow-card max-w-xs rounded-card rounded-bl-md px-4 py-2.5 text-[15px] text-main"
                 >
                   <div
                     class="mb-1 flex flex-wrap items-center gap-1.5 text-xs font-medium opacity-70"
@@ -219,7 +223,7 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
 
               <div class="flex flex-col items-start gap-1">
                 <div
-                  class="max-w-xs rounded-card bg-card px-4 py-2.5 text-[15px] text-main shadow-card"
+                  class="glass hairline shadow-card max-w-xs rounded-card rounded-bl-md px-4 py-2.5 text-[15px] text-main"
                 >
                   <div
                     class="mb-1 flex flex-wrap items-center gap-1.5 text-xs font-medium opacity-70"
@@ -234,7 +238,7 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
 
               <div class="flex flex-col items-start gap-1">
                 <div
-                  class="max-w-xs rounded-card bg-card px-4 py-2.5 text-[15px] text-main shadow-card"
+                  class="glass hairline shadow-card max-w-xs rounded-card rounded-bl-md px-4 py-2.5 text-[15px] text-main"
                 >
                   <div
                     class="mb-1 flex flex-wrap items-center gap-1.5 text-xs font-medium opacity-70"
@@ -249,7 +253,7 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
 
               <div class="flex flex-col items-start gap-1">
                 <div
-                  class="max-w-xs rounded-card bg-card px-4 py-2.5 text-[15px] text-main shadow-card"
+                  class="glass hairline shadow-card max-w-xs rounded-card rounded-bl-md px-4 py-2.5 text-[15px] text-main"
                 >
                   <div
                     class="mb-1 flex flex-wrap items-center gap-1.5 text-xs font-medium opacity-70"
@@ -263,14 +267,14 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
               </div>
             </div>
 
-            <div class="flex shrink-0 items-center gap-3 border-t border-second/15 px-6 py-4">
+            <div class="glass hairline-t flex shrink-0 items-center gap-3 px-6 py-4">
               <div
-                class="h-12 flex-1 rounded-input border-[1.5px] border-second/30 bg-bg px-4 py-3 text-[15px] text-second"
+                class="glass-field hairline h-12 flex-1 rounded-card px-4 py-3 text-[15px] text-second"
               >
                 Написать сообщение...
               </div>
               <span
-                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-input bg-accent text-bg"
+                class="accent-surface glow-accent flex h-11 w-11 shrink-0 items-center justify-center rounded-input text-bg"
               >
                 <NavIcon name="send" :size="18" />
               </span>

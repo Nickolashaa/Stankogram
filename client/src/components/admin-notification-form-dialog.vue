@@ -47,14 +47,14 @@ function handleSubmit() {
 <template>
   <div
     v-if="open"
-    class="fixed inset-0 z-50 flex animate-appear items-start justify-center bg-black/40 p-4 sm:items-center"
+    class="fixed inset-0 z-50 flex animate-appear items-start justify-center bg-black/45 p-4 backdrop-blur-sm sm:items-center"
     @click.self="handleClose"
   >
     <form
-      class="flex max-h-[calc(100dvh-2rem)] sm:max-h-[85vh] w-full max-w-md flex-col gap-4 overflow-y-auto rounded-card bg-card p-5 shadow-card sm:p-8"
+      class="glass-strong hairline shadow-float flex max-h-[calc(100dvh-2rem)] w-full max-w-md animate-pop flex-col gap-4 overflow-y-auto rounded-card p-5 sm:max-h-[85vh] sm:p-8"
       @submit.prevent="handleSubmit"
     >
-      <h2 class="m-0 text-xl font-semibold text-main">{{ title }}</h2>
+      <h2 class="m-0 text-xl font-semibold tracking-tight text-main">{{ title }}</h2>
 
       <Input placeholder="Заголовок" v-model="notificationTitle" />
 
@@ -62,7 +62,7 @@ function handleSubmit() {
         v-model="text"
         rows="5"
         placeholder="Текст уведомления"
-        class="box-border w-full resize-y rounded-input border-[1.5px] border-second/30 bg-bg px-4 py-3 font-sans text-[15px] text-main outline-none transition-colors duration-150 placeholder:text-second focus:border-accent"
+        class="glass-field hairline box-border w-full resize-y rounded-input px-4 py-3 font-sans text-[15px] text-main outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-second/80 focus-glow"
       />
 
       <div class="mt-2 flex gap-2">

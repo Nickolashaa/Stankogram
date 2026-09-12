@@ -81,17 +81,17 @@ async function startChat(user: UserFieldsFragment) {
 <template>
   <div
     v-if="open"
-    class="fixed inset-0 z-50 flex animate-appear items-start justify-center bg-black/40 p-4 sm:items-center"
+    class="fixed inset-0 z-50 flex animate-appear items-start justify-center bg-black/45 p-4 backdrop-blur-sm sm:items-center"
     @click.self="handleClose"
   >
     <div
-      class="flex max-h-[calc(100dvh-2rem)] sm:max-h-[85vh] w-full max-w-md flex-col gap-5 overflow-y-auto rounded-card bg-card p-5 shadow-card sm:p-8"
+      class="glass-strong hairline shadow-float flex max-h-[calc(100dvh-2rem)] w-full max-w-md animate-pop flex-col gap-5 overflow-y-auto rounded-card p-5 sm:max-h-[85vh] sm:p-8"
     >
       <div class="flex items-center justify-between gap-4">
-        <h2 class="m-0 text-xl font-semibold text-main">Личный чат</h2>
+        <h2 class="m-0 text-xl font-semibold tracking-tight text-main">Личный чат</h2>
         <button
           type="button"
-          class="cursor-pointer text-second transition-colors duration-150 hover:text-main"
+          class="press flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-second hover:bg-main/6 hover:text-main"
           aria-label="Закрыть"
           @click="handleClose"
         >
@@ -104,13 +104,13 @@ async function startChat(user: UserFieldsFragment) {
 
         <div
           v-if="searchQuery.trim() !== ''"
-          class="flex max-h-56 flex-col overflow-y-auto rounded-input border-[1.5px] border-second/20"
+          class="hairline glass-field flex max-h-56 flex-col overflow-y-auto rounded-card"
         >
           <button
             v-for="user in searchResults"
             :key="user.id"
             type="button"
-            class="flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left transition-colors duration-150 hover:bg-accent/5 disabled:cursor-not-allowed disabled:opacity-60"
+            class="press flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left hover:bg-main/5 disabled:cursor-not-allowed disabled:opacity-60"
             :disabled="startingUserId !== null"
             @click="startChat(user)"
           >
@@ -121,7 +121,7 @@ async function startChat(user: UserFieldsFragment) {
             </span>
           </button>
 
-          <div v-if="searchResults.length === 0" class="px-3 py-4 text-center text-sm text-second">
+          <div v-if="searchResults.length === 0" class="px-3 py-5 text-center text-sm text-second">
             Никого не найдено
           </div>
         </div>

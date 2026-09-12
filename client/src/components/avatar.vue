@@ -12,11 +12,11 @@ withDefaults(
 
 <template>
   <span
-    class="flex shrink-0 items-center justify-center rounded-full bg-accent/15 font-semibold text-accent"
+    class="avatar-surface flex shrink-0 items-center justify-center rounded-full font-semibold text-accent"
     :class="{
-      'h-8 w-8 text-xs': size === 'sm',
-      'h-10 w-10 text-sm': size === 'md',
-      'h-12 w-12 text-[15px]': size === 'lg',
+      'h-9 w-9 text-xs': size === 'sm',
+      'h-11 w-11 text-sm': size === 'md',
+      'h-14 w-14 text-base': size === 'lg',
     }"
   >
     {{ label }}

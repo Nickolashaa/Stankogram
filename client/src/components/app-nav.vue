@@ -55,13 +55,13 @@ function openThemePicker() {
 
 <template>
   <nav
-    class="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col justify-between overflow-y-auto border-r border-second/10 bg-card px-4 py-8 lg:flex"
+    class="glass hairline-r sticky top-0 hidden h-dvh w-68 shrink-0 flex-col justify-between overflow-y-auto px-4 py-8 lg:flex"
   >
-    <div class="flex flex-col gap-8">
+    <div class="flex flex-col gap-9">
       <div class="px-1">
         <AppBrand />
       </div>
-      <div class="flex flex-col gap-1">
+      <div class="flex flex-col gap-1.5">
         <RouterLink
           v-for="item in navItems"
           :key="item.to"
@@ -71,18 +71,23 @@ function openThemePicker() {
         >
           <a
             :href="href"
-            class="flex cursor-pointer items-center gap-3 rounded-input px-3 py-2.5 text-[15px] font-medium transition-colors duration-150"
-            :class="isActive ? 'text-main' : 'text-second hover:bg-accent/5 hover:text-main'"
+            class="press group relative flex cursor-pointer items-center gap-3 overflow-hidden rounded-card px-2.5 py-2.5 text-[15px] font-medium"
+            :class="isActive ? 'pill-active' : 'pill-idle'"
             @click="navigate"
           >
             <span
-              class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors duration-200"
-              :class="isActive ? 'bg-accent text-bg' : 'bg-second/10 text-second'"
+              class="flex h-9 w-9 shrink-0 items-center justify-center rounded-input transition-all duration-300"
+              :class="
+                isActive ? 'accent-surface glow-accent text-bg' : 'chip-idle group-hover:text-main'
+              "
             >
               <NavIcon :name="item.icon" :size="18" />
             </span>
             {{ item.label }}
-            <span v-if="item.unread" class="h-2 w-2 shrink-0 rounded-full bg-accent" />
+            <span
+              v-if="item.unread"
+              class="glow-accent ml-auto h-2 w-2 shrink-0 rounded-full bg-accent"
+            />
           </a>
         </RouterLink>
       </div>
@@ -91,7 +96,7 @@ function openThemePicker() {
     <div class="flex flex-col gap-1">
       <div
         v-if="user"
-        class="mb-2 flex items-center gap-3 rounded-input border-t border-second/10 px-3 pt-4"
+        class="mb-3 flex items-center gap-3 rounded-card bg-main/4 px-3 py-3 ring-1 ring-main/6 ring-inset"
       >
         <Avatar :label="initials(user)" size="sm" />
         <div class="flex min-w-0 flex-col">
@@ -102,10 +107,10 @@ function openThemePicker() {
 
       <RouterLink
         to="/support"
-        class="flex cursor-pointer items-center gap-3 rounded-input px-3 py-2.5 text-[15px] font-medium text-second transition-colors duration-150 hover:bg-accent/5 hover:text-main"
+        class="press group flex cursor-pointer items-center gap-3 rounded-card px-2.5 py-2 text-[15px] font-medium text-second hover:bg-main/5 hover:text-main"
       >
         <span
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-second/10 text-second"
+          class="chip-idle flex h-9 w-9 shrink-0 items-center justify-center group-hover:text-main"
         >
           <NavIcon name="support" :size="18" />
         </span>
@@ -113,11 +118,11 @@ function openThemePicker() {
       </RouterLink>
       <button
         type="button"
-        class="flex cursor-pointer items-center gap-3 rounded-input px-3 py-2.5 text-[15px] font-medium text-second transition-colors duration-150 hover:bg-accent/5 hover:text-main"
+        class="press group flex cursor-pointer items-center gap-3 rounded-card px-2.5 py-2 text-[15px] font-medium text-second hover:bg-main/5 hover:text-main"
         @click="themePickerOpen = true"
       >
         <span
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-second/10 text-second"
+          class="chip-idle flex h-9 w-9 shrink-0 items-center justify-center group-hover:text-main"
         >
           <NavIcon name="palette" :size="18" />
         </span>
@@ -125,11 +130,11 @@ function openThemePicker() {
       </button>
       <button
         type="button"
-        class="flex cursor-pointer items-center gap-3 rounded-input px-3 py-2.5 text-[15px] font-medium text-second transition-colors duration-150 hover:bg-accent/5 hover:text-main"
+        class="press group flex cursor-pointer items-center gap-3 rounded-card px-2.5 py-2 text-[15px] font-medium text-second hover:bg-red-500/8 hover:text-red-600 dark:hover:text-red-400"
         @click="handleLogout"
       >
         <span
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-second/10 text-second"
+          class="chip-idle flex h-9 w-9 shrink-0 items-center justify-center group-hover:bg-red-500/12 group-hover:text-red-600 dark:group-hover:text-red-400"
         >
           <NavIcon name="logout" :size="18" />
         </span>
@@ -140,7 +145,7 @@ function openThemePicker() {
 
   <nav
     v-if="!hideMobileNav"
-    class="fixed inset-x-0 bottom-0 z-40 flex h-16 items-center justify-around border-t border-second/10 bg-card px-1 pb-[env(safe-area-inset-bottom)] lg:hidden"
+    class="mobile-bar glass hairline shadow-float z-40 flex h-16 items-center justify-around px-2 lg:hidden"
   >
     <RouterLink
       v-for="item in navItems"
@@ -151,18 +156,18 @@ function openThemePicker() {
     >
       <a
         :href="href"
-        class="flex cursor-pointer flex-col items-center gap-1 rounded-input px-2 py-1.5 text-[10px] font-medium"
+        class="press flex flex-1 cursor-pointer flex-col items-center gap-1 rounded-input px-2 py-1.5 text-[10px] font-medium"
         :class="isActive ? 'text-main' : 'text-second'"
         @click="navigate"
       >
         <span
-          class="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors duration-200"
-          :class="isActive ? 'bg-accent text-bg' : 'text-second'"
+          class="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-input transition-all duration-300"
+          :class="isActive ? 'accent-surface glow-accent text-bg' : 'text-second'"
         >
           <NavIcon :name="item.icon" :size="18" />
           <span
             v-if="item.unread"
-            class="absolute top-0 right-0 h-2 w-2 rounded-full bg-accent ring-2 ring-card"
+            class="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-accent ring-2 ring-card"
           />
         </span>
         {{ item.label }}
@@ -171,7 +176,7 @@ function openThemePicker() {
 
     <button
       type="button"
-      class="flex cursor-pointer flex-col items-center gap-1 rounded-input px-2 py-1.5 text-[10px] font-medium text-second"
+      class="press flex flex-1 cursor-pointer flex-col items-center justify-center rounded-input px-2 py-1.5"
       aria-label="Профиль"
       @click="mobileMenuOpen = true"
     >
@@ -181,14 +186,16 @@ function openThemePicker() {
 
   <div
     v-if="mobileMenuOpen"
-    class="fixed inset-0 z-50 flex animate-appear items-end bg-black/40 lg:hidden"
+    class="fixed inset-0 z-50 flex animate-appear items-end bg-black/45 backdrop-blur-sm lg:hidden"
     @click.self="mobileMenuOpen = false"
   >
     <div
-      class="flex w-full flex-col gap-1 rounded-t-card bg-card px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-card"
+      class="glass-strong hairline shadow-float flex w-full animate-slide-up flex-col gap-1 rounded-t-card px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))]"
     >
-      <div v-if="user" class="mb-2 flex items-center gap-3 border-b border-second/10 px-2 pb-4">
-        <Avatar :label="initials(user)" size="sm" />
+      <span class="mx-auto mb-3 h-1 w-10 shrink-0 rounded-full bg-main/15" />
+
+      <div v-if="user" class="hairline-b mb-2 flex items-center gap-3 px-2 pb-4">
+        <Avatar :label="initials(user)" size="md" />
         <div class="flex min-w-0 flex-col">
           <span class="truncate text-sm font-medium text-main">{{ shortName(user) }}</span>
           <span class="truncate text-xs text-second">{{ roleLabels[user.role] }}</span>
@@ -197,11 +204,11 @@ function openThemePicker() {
 
       <RouterLink
         to="/support"
-        class="flex cursor-pointer items-center gap-3 rounded-input px-3 py-2.5 text-[15px] font-medium text-second transition-colors duration-150 hover:bg-accent/5 hover:text-main"
+        class="press group flex cursor-pointer items-center gap-3 rounded-card px-2.5 py-2.5 text-[15px] font-medium text-second hover:bg-main/5 hover:text-main"
         @click="mobileMenuOpen = false"
       >
         <span
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-second/10 text-second"
+          class="chip-idle flex h-9 w-9 shrink-0 items-center justify-center group-hover:text-main"
         >
           <NavIcon name="support" :size="18" />
         </span>
@@ -209,11 +216,11 @@ function openThemePicker() {
       </RouterLink>
       <button
         type="button"
-        class="flex cursor-pointer items-center gap-3 rounded-input px-3 py-2.5 text-[15px] font-medium text-second transition-colors duration-150 hover:bg-accent/5 hover:text-main"
+        class="press group flex cursor-pointer items-center gap-3 rounded-card px-2.5 py-2.5 text-[15px] font-medium text-second hover:bg-main/5 hover:text-main"
         @click="openThemePicker"
       >
         <span
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-second/10 text-second"
+          class="chip-idle flex h-9 w-9 shrink-0 items-center justify-center group-hover:text-main"
         >
           <NavIcon name="palette" :size="18" />
         </span>
@@ -221,11 +228,11 @@ function openThemePicker() {
       </button>
       <button
         type="button"
-        class="flex cursor-pointer items-center gap-3 rounded-input px-3 py-2.5 text-[15px] font-medium text-second transition-colors duration-150 hover:bg-accent/5 hover:text-main"
+        class="press group flex cursor-pointer items-center gap-3 rounded-card px-2.5 py-2.5 text-[15px] font-medium text-second hover:bg-red-500/8 hover:text-red-600 dark:hover:text-red-400"
         @click="handleLogout"
       >
         <span
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-second/10 text-second"
+          class="chip-idle flex h-9 w-9 shrink-0 items-center justify-center group-hover:bg-red-500/12 group-hover:text-red-600 dark:group-hover:text-red-400"
         >
           <NavIcon name="logout" :size="18" />
         </span>
@@ -233,7 +240,7 @@ function openThemePicker() {
       </button>
       <button
         type="button"
-        class="cursor-pointer rounded-input px-3 py-2.5 text-left text-[15px] font-medium text-second transition-colors duration-150 hover:bg-accent/5 hover:text-main"
+        class="press mt-1 cursor-pointer rounded-card bg-main/5 px-3 py-2.5 text-center text-[15px] font-medium text-second hover:text-main"
         @click="mobileMenuOpen = false"
       >
         Закрыть

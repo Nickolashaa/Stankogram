@@ -99,13 +99,11 @@ function lastMessagePreview(chat: (typeof chats.value)[number]) {
 
 <template>
   <div
-    class="h-full w-full shrink-0 flex-col border-second/15 bg-card lg:flex lg:w-80 lg:border-r"
+    class="glass h-full w-full shrink-0 flex-col lg:flex lg:w-84 lg:hairline-r"
     :class="mobileHidden ? 'hidden' : 'flex'"
   >
-    <div
-      class="flex shrink-0 items-center justify-between gap-2 border-b border-second/15 px-5 py-5"
-    >
-      <h2 class="m-0 text-lg font-semibold text-main">Чаты</h2>
+    <div class="hairline-b flex shrink-0 items-center justify-between gap-2 px-5 py-4">
+      <h2 class="m-0 text-xl font-semibold tracking-tight text-main">Чаты</h2>
 
       <div class="relative">
         <Button
@@ -119,16 +117,14 @@ function lastMessagePreview(chat: (typeof chats.value)[number]) {
 
         <div
           v-if="createMenuOpen"
-          class="absolute top-full right-0 z-50 mt-2 flex w-64 animate-appear flex-col gap-1 rounded-card bg-card p-2 shadow-card"
+          class="glass-strong hairline shadow-float absolute top-full right-0 z-50 mt-2 flex w-68 origin-top-right animate-pop flex-col gap-1 rounded-card p-2"
         >
           <button
             type="button"
-            class="flex cursor-pointer items-center gap-3 rounded-input px-3 py-2.5 text-left transition-colors duration-150 hover:bg-accent/5"
+            class="press flex cursor-pointer items-center gap-3 rounded-input px-3 py-2.5 text-left hover:bg-main/5"
             @click="openPrivateChatDialog"
           >
-            <span
-              class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent"
-            >
+            <span class="chip-accent flex h-9 w-9 shrink-0 items-center justify-center">
               <NavIcon name="users" :size="18" />
             </span>
             <span class="flex min-w-0 flex-col gap-0.5">
@@ -139,12 +135,10 @@ function lastMessagePreview(chat: (typeof chats.value)[number]) {
 
           <button
             type="button"
-            class="flex cursor-pointer items-center gap-3 rounded-input px-3 py-2.5 text-left transition-colors duration-150 hover:bg-accent/5"
+            class="press flex cursor-pointer items-center gap-3 rounded-input px-3 py-2.5 text-left hover:bg-main/5"
             @click="openGroupChatDialog"
           >
-            <span
-              class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent"
-            >
+            <span class="chip-accent flex h-9 w-9 shrink-0 items-center justify-center">
               <NavIcon name="chats" :size="18" />
             </span>
             <span class="flex min-w-0 flex-col gap-0.5">
@@ -156,13 +150,16 @@ function lastMessagePreview(chat: (typeof chats.value)[number]) {
       </div>
     </div>
 
-    <div ref="scrollContainer" class="flex-1 overflow-y-auto px-2 pt-2 pb-20 lg:pb-2">
+    <div
+      ref="scrollContainer"
+      class="flex flex-1 flex-col gap-1 overflow-y-auto px-2.5 pt-2.5 pb-[calc(var(--design-nav-offset)+env(safe-area-inset-bottom))] lg:pb-3"
+    >
       <button
         v-for="chat in chats"
         :key="chat.id"
         type="button"
-        class="flex w-full cursor-pointer items-center gap-3 rounded-input border-l-[3px] border-transparent px-3 py-2.5 text-left transition-colors duration-150 hover:bg-accent/5"
-        :class="chat.id === activeChatId ? 'border-accent bg-accent/10' : ''"
+        class="press flex w-full cursor-pointer items-center gap-3 rounded-card px-3 py-2.5 text-left"
+        :class="chat.id === activeChatId ? 'pill-active' : 'pill-idle'"
         @click="emit('select', chat.id)"
       >
         <Avatar :label="chatInitials(chat.title)" />
@@ -175,7 +172,7 @@ function lastMessagePreview(chat: (typeof chats.value)[number]) {
             >
               {{ chat.title }}
             </span>
-            <span v-if="chat.lastMessage" class="shrink-0 text-xs text-second">
+            <span v-if="chat.lastMessage" class="shrink-0 text-xs text-second/80">
               {{ formatTime(chat.lastMessage.createdAt) }}
             </span>
           </div>
@@ -189,7 +186,10 @@ function lastMessagePreview(chat: (typeof chats.value)[number]) {
               </template>
               <template v-else>{{ lastMessagePreview(chat) }}</template>
             </span>
-            <span v-if="isUnread(chat)" class="h-2 w-2 shrink-0 rounded-full bg-accent" />
+            <span
+              v-if="isUnread(chat)"
+              class="glow-accent h-2 w-2 shrink-0 rounded-full bg-accent"
+            />
           </div>
         </div>
       </button>

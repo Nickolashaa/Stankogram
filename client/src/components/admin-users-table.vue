@@ -65,12 +65,10 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
 </script>
 
 <template>
-  <div class="overflow-x-auto rounded-card bg-card shadow-card">
+  <div class="glass hairline shadow-card overflow-x-auto rounded-card">
     <table class="w-full border-collapse text-left text-[15px]">
       <thead>
-        <tr
-          class="border-b border-second/15 text-xs font-medium uppercase tracking-wide text-second"
-        >
+        <tr class="hairline-b text-xs font-semibold tracking-wider text-second uppercase">
           <th class="px-5 py-3 font-medium">ID</th>
           <th class="px-5 py-3 font-medium">ФИО</th>
           <th class="px-5 py-3 font-medium">Email</th>
@@ -84,7 +82,7 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
         <tr
           v-for="user in props.users"
           :key="user.id"
-          class="cursor-context-menu border-b border-second/10 last:border-0 hover:bg-accent/5"
+          class="hairline-b cursor-context-menu transition-colors duration-200 last:border-0 hover:bg-main/5"
           @contextmenu="openContextMenu($event, user)"
         >
           <td class="px-5 py-3 text-second">{{ user.id }}</td>
@@ -112,16 +110,16 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
 
     <div
       v-if="contextMenu"
-      class="fixed z-50 flex w-52 animate-appear flex-col overflow-hidden rounded-input border-[1.5px] border-second/20 bg-card py-1.5 shadow-card"
+      class="glass-strong hairline shadow-float fixed z-50 flex w-56 origin-top-left animate-pop flex-col gap-0.5 overflow-hidden rounded-card p-1.5"
       :style="{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }"
     >
-      <span class="truncate px-4 pt-1 pb-2 text-xs font-medium text-second">
+      <span class="truncate px-3 pt-1.5 pb-2 text-xs font-semibold text-second">
         {{ fullName(contextMenu.user) }}
       </span>
 
       <button
         type="button"
-        class="cursor-pointer px-4 py-2 text-left text-sm text-main transition-colors duration-150 hover:bg-accent/10"
+        class="press cursor-pointer rounded-input px-3 py-2 text-left text-sm text-main hover:bg-main/6"
         @click="handleEdit"
       >
         Редактировать
@@ -129,7 +127,7 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
 
       <button
         type="button"
-        class="cursor-pointer px-4 py-2 text-left text-sm text-red-600 transition-colors duration-150 hover:bg-red-500/10 dark:text-red-400"
+        class="press cursor-pointer rounded-input px-3 py-2 text-left text-sm text-red-600 hover:bg-red-500/12 dark:text-red-400"
         @click="handleDelete"
       >
         Удалить

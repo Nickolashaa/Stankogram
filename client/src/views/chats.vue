@@ -62,13 +62,13 @@ watch(activeChatId, () => {
 
       <div
         v-if="mobileInfoOpen && activeChat"
-        class="fixed inset-0 z-50 flex animate-appear justify-end bg-black/40 p-3 lg:hidden"
+        class="fixed inset-0 z-50 flex animate-appear justify-end bg-black/45 p-3 backdrop-blur-sm lg:hidden"
         @click.self="mobileInfoOpen = false"
       >
-        <div class="relative flex h-full w-full max-w-sm flex-col">
+        <div class="relative flex h-full w-full max-w-sm animate-pop flex-col">
           <button
             type="button"
-            class="absolute top-4 right-4 z-10 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-card text-second shadow-card"
+            class="press glass-strong hairline shadow-pop absolute top-4 right-4 z-10 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-second hover:text-main"
             aria-label="Закрыть"
             @click="mobileInfoOpen = false"
           >
@@ -78,8 +78,18 @@ watch(activeChatId, () => {
         </div>
       </div>
     </template>
-    <div v-else class="hidden flex-1 items-center justify-center text-second lg:flex">
-      Выберите чат, чтобы начать переписку
+    <div class="hidden flex-1 items-center justify-center p-10 lg:flex" v-else>
+      <div
+        class="glass hairline shadow-card flex animate-rise flex-col items-center gap-3 rounded-card px-10 py-12 text-center"
+      >
+        <span class="chip-accent glow-accent-soft flex h-14 w-14 items-center justify-center">
+          <NavIcon name="chats" :size="26" />
+        </span>
+        <span class="text-[15px] font-medium text-main">Выберите чат</span>
+        <span class="max-w-xs text-sm text-second">
+          Откройте диалог из списка слева или создайте новый, чтобы начать переписку
+        </span>
+      </div>
     </div>
   </div>
 </template>

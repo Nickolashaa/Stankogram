@@ -313,10 +313,10 @@ async function handleSubmit() {
 
 <template>
   <div class="flex h-full w-full flex-1 flex-col">
-    <div class="flex shrink-0 items-center gap-3 border-b border-second/15 px-4 py-3 lg:px-6">
+    <div class="glass hairline-b z-10 flex shrink-0 items-center gap-3 px-3 py-3 lg:px-5">
       <button
         type="button"
-        class="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-second transition-colors duration-150 hover:bg-accent/5 hover:text-main lg:hidden"
+        class="press flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full text-second hover:bg-main/6 hover:text-main lg:hidden"
         aria-label="Назад к чатам"
         @click="emit('back')"
       >
@@ -325,7 +325,7 @@ async function handleSubmit() {
 
       <button
         type="button"
-        class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
+        class="press flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-card px-2 py-1.5 text-left hover:bg-main/5"
         @click="emit('open-info')"
       >
         <Avatar :label="chatInitials(chat?.title ?? '')" />
@@ -357,7 +357,7 @@ async function handleSubmit() {
         >
           <div
             v-if="editingMessageId === message.id"
-            class="flex w-[min(28rem,85%)] flex-col gap-2 rounded-card bg-card px-4 py-2.5 text-[15px] text-main shadow-card"
+            class="glass-strong hairline shadow-pop flex w-[min(28rem,85%)] flex-col gap-2 rounded-card px-4 py-2.5 text-[15px] text-main"
           >
             <textarea
               v-model="editDraft"
@@ -370,14 +370,14 @@ async function handleSubmit() {
             <div class="flex items-center justify-end gap-2">
               <button
                 type="button"
-                class="cursor-pointer text-xs font-medium text-second transition-colors duration-150 hover:text-main"
+                class="press cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium text-second hover:bg-main/6 hover:text-main"
                 @click="cancelEdit"
               >
                 Отмена
               </button>
               <button
                 type="button"
-                class="cursor-pointer text-xs font-medium text-accent transition-colors duration-150 hover:text-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+                class="press cursor-pointer rounded-full bg-accent/12 px-2.5 py-1 text-xs font-medium text-accent hover:bg-accent/22 disabled:cursor-not-allowed disabled:opacity-60"
                 :disabled="savingEdit || editDraft.trim() === ''"
                 @click="saveEdit"
               >
@@ -387,7 +387,7 @@ async function handleSubmit() {
           </div>
           <div
             v-else
-            class="max-w-[min(28rem,85%)] rounded-card"
+            class="max-w-[min(28rem,85%)] rounded-card transition-transform duration-200"
             :class="[
               isLargeEmojiMessage(message.text)
                 ? 'px-1 py-0.5 text-5xl leading-tight'
@@ -395,8 +395,8 @@ async function handleSubmit() {
               isLargeEmojiMessage(message.text)
                 ? 'text-main'
                 : message.user.id === currentUser?.id
-                  ? 'bg-accent text-bg'
-                  : 'bg-card text-main shadow-card',
+                  ? 'accent-surface glow-accent bubble-own text-bg'
+                  : 'glass hairline shadow-card bubble-other text-main',
             ]"
           >
             <div
@@ -428,18 +428,18 @@ async function handleSubmit() {
               </template>
             </div>
           </div>
-          <span class="flex items-center gap-1 px-1 text-xs text-second">
+          <span class="flex items-center gap-1 px-1.5 text-xs text-second/80">
             <template v-if="message.updatedAt !== message.createdAt">изменено · </template>
             {{ formatTime(message.createdAt) }}
           </span>
         </div>
 
-        <div v-if="isFirstMessageOfDay(index)" class="flex items-center gap-3 py-1">
-          <span class="h-px flex-1 bg-second/15" />
-          <span class="shrink-0 text-xs font-medium text-second">
+        <div v-if="isFirstMessageOfDay(index)" class="flex items-center justify-center py-2">
+          <span
+            class="glass hairline rounded-full px-3.5 py-1 text-xs font-medium text-second shadow-card"
+          >
             {{ formatDaySeparator(message.createdAt) }}
           </span>
-          <span class="h-px flex-1 bg-second/15" />
         </div>
       </template>
 
@@ -450,14 +450,14 @@ async function handleSubmit() {
 
     <div
       v-if="isMuted"
-      class="flex shrink-0 items-center justify-center gap-2 border-t border-second/15 px-4 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))] text-sm text-second lg:px-6 lg:py-4"
+      class="glass hairline-t flex shrink-0 items-center justify-center gap-2 px-4 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))] text-sm text-second lg:px-6 lg:py-4"
     >
       <NavIcon name="mute" :size="16" />
       Вы не можете отправлять сообщения в этом чате
     </div>
     <form
       v-else
-      class="relative flex shrink-0 items-end gap-3 border-t border-second/15 px-4 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))] lg:px-6 lg:py-4"
+      class="glass hairline-t relative flex shrink-0 items-end gap-2.5 px-3 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))] lg:px-5 lg:py-4"
       @submit.prevent="handleSubmit"
     >
       <EmojiPicker :open="emojiPickerOpen" @close="emojiPickerOpen = false" @select="insertEmoji" />
@@ -473,14 +473,14 @@ async function handleSubmit() {
         autocorrect="on"
         spellcheck="true"
         :enterkeyhint="sendsOnEnter ? 'send' : 'enter'"
-        class="box-border max-h-40 min-h-12 min-w-0 flex-1 resize-none overflow-y-auto rounded-input border-[1.5px] border-second/30 bg-bg px-4 py-3 font-sans text-[15px] leading-6 text-main outline-none transition-colors duration-150 placeholder:overflow-hidden placeholder:text-ellipsis placeholder:whitespace-nowrap placeholder:text-second focus:border-accent"
+        class="glass-field hairline box-border max-h-40 min-h-12 min-w-0 flex-1 resize-none overflow-y-auto rounded-card px-4 py-3 font-sans text-[15px] leading-6 text-main outline-none transition-[border-color,box-shadow] duration-200 placeholder:overflow-hidden placeholder:text-ellipsis placeholder:whitespace-nowrap placeholder:text-second/80 focus-glow"
         @input="handleComposerInput"
         @keydown="handleComposerKeydown"
       />
       <Button
         variant="ghost"
         icon="smile"
-        class="mb-3.5 shrink-0"
+        class="mb-1 shrink-0"
         title="Эмодзи"
         aria-label="Эмодзи"
         @click="emojiPickerOpen = !emojiPickerOpen"
@@ -503,13 +503,13 @@ async function handleSubmit() {
 
     <div
       v-if="contextMenu"
-      class="fixed z-50 flex w-44 animate-appear flex-col overflow-hidden rounded-input border-[1.5px] border-second/15 bg-card py-1.5 shadow-card"
+      class="glass-strong hairline shadow-float fixed z-50 flex w-48 origin-top-left animate-pop flex-col gap-0.5 overflow-hidden rounded-card p-1.5"
       :style="{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }"
     >
       <button
         v-if="canEditMessage(contextMenu.message)"
         type="button"
-        class="cursor-pointer px-4 py-2 text-left text-sm text-main transition-colors duration-150 hover:bg-accent/10"
+        class="press cursor-pointer rounded-input px-3 py-2 text-left text-sm text-main hover:bg-main/6"
         @click="handleMenuEdit"
       >
         Редактировать
@@ -518,7 +518,7 @@ async function handleSubmit() {
       <button
         v-if="canDeleteMessage(contextMenu.message)"
         type="button"
-        class="cursor-pointer px-4 py-2 text-left text-sm text-red-600 transition-colors duration-150 hover:bg-red-500/10 dark:text-red-400"
+        class="press cursor-pointer rounded-input px-3 py-2 text-left text-sm text-red-600 hover:bg-red-500/12 dark:text-red-400"
         @click="handleMenuDelete"
       >
         Удалить

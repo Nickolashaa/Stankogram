@@ -122,7 +122,7 @@ async function handleDelete(user: UserFieldsFragment) {
 <template>
   <div class="flex animate-appear flex-col gap-6">
     <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <h1 class="m-0 text-2xl font-semibold text-main">Пользователи</h1>
+      <h1 class="m-0 text-2xl font-semibold tracking-tight text-main sm:text-3xl">Пользователи</h1>
       <Button icon="plus" :short-mode="false" class="w-full sm:w-auto" @click="openCreateDialog"
         >Создать пользователя</Button
       >

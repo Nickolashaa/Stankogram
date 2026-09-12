@@ -60,14 +60,14 @@ function handleSubmit() {
 <template>
   <div
     v-if="open"
-    class="fixed inset-0 z-50 flex animate-appear items-start justify-center bg-black/40 p-4 sm:items-center"
+    class="fixed inset-0 z-50 flex animate-appear items-start justify-center bg-black/45 p-4 backdrop-blur-sm sm:items-center"
     @click.self="handleClose"
   >
     <form
-      class="flex max-h-[calc(100dvh-2rem)] sm:max-h-[85vh] w-full max-w-md flex-col gap-4 overflow-y-auto rounded-card bg-card p-5 shadow-card sm:p-8"
+      class="glass-strong hairline shadow-float flex max-h-[calc(100dvh-2rem)] w-full max-w-md animate-pop flex-col gap-4 overflow-y-auto rounded-card p-5 sm:max-h-[85vh] sm:p-8"
       @submit.prevent="handleSubmit"
     >
-      <h2 class="m-0 text-xl font-semibold text-main">{{ title }}</h2>
+      <h2 class="m-0 text-xl font-semibold tracking-tight text-main">{{ title }}</h2>
 
       <Input placeholder="Имя" v-model="name" />
       <Input placeholder="Фамилия" v-model="surname" />
@@ -79,8 +79,10 @@ function handleSubmit() {
         <option value="TEACHER">Преподаватель</option>
       </Select>
 
-      <label class="flex items-center gap-2 text-[15px] text-main">
-        <input type="checkbox" v-model="isAdmin" class="h-4 w-4 accent-accent" />
+      <label
+        class="press glass-field hairline flex cursor-pointer items-center gap-3 rounded-input px-4 py-3 text-[15px] text-main hover:border-accent/40"
+      >
+        <input type="checkbox" v-model="isAdmin" class="h-4.5 w-4.5 accent-accent" />
         Права администратора
       </label>
 

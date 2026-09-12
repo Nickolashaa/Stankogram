@@ -40,7 +40,7 @@ function selectChat(chatId: number) {
       <div class="flex min-h-0 flex-1 flex-col gap-3 lg:contents">
         <button
           type="button"
-          class="flex shrink-0 cursor-pointer items-center gap-2 text-sm font-medium text-second transition-colors duration-150 hover:text-main lg:hidden"
+          class="press glass hairline flex w-fit shrink-0 cursor-pointer items-center gap-2 rounded-full px-3.5 py-2 text-sm font-medium text-second hover:text-main lg:hidden"
           @click="router.push('/admin/chats')"
         >
           <NavIcon name="arrow-right" :size="16" class="rotate-180" />
@@ -57,9 +57,11 @@ function selectChat(chatId: number) {
     </template>
     <div
       v-else
-      class="hidden flex-1 items-center justify-center rounded-card bg-card text-second shadow-card lg:flex"
+      class="glass hairline shadow-card hidden flex-1 items-center justify-center rounded-card p-10 text-center text-second lg:flex"
     >
-      Выберите групповой чат, чтобы посмотреть и отредактировать информацию о нём
+      <span class="max-w-sm">
+        Выберите групповой чат, чтобы посмотреть и отредактировать информацию о нём
+      </span>
     </div>
   </div>
 </template>

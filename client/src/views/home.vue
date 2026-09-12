@@ -44,10 +44,17 @@ function handleSunClick() {
 
 <template>
   <div class="flex min-h-full flex-col items-center justify-center gap-8 p-6 sm:gap-10 sm:p-10">
-    <div class="flex animate-appear flex-col items-center gap-5 text-center">
-      <div class="relative flex h-28 w-28 items-center justify-center" @click="handleSunClick">
+    <div class="flex animate-rise flex-col items-center gap-6 text-center">
+      <div
+        class="relative flex h-32 w-32 cursor-pointer items-center justify-center"
+        @click="handleSunClick"
+      >
         <div
-          class="absolute inset-0 rounded-full bg-accent/10 blur-xl transition-opacity duration-500"
+          class="absolute inset-0 rounded-full bg-accent/25 blur-2xl transition-opacity duration-700"
+          :class="isSunLaunched ? 'opacity-0' : 'opacity-100'"
+        ></div>
+        <div
+          class="glass hairline absolute inset-2 rounded-full transition-opacity duration-700"
           :class="isSunLaunched ? 'opacity-0' : 'opacity-100'"
         ></div>
         <div class="relative h-20 w-20">
@@ -71,9 +78,17 @@ function handleSunClick() {
         </div>
       </div>
 
-      <div class="flex flex-col gap-1.5">
-        <h1 class="m-0 text-xl font-semibold text-balance text-main sm:text-3xl">{{ greeting }}</h1>
-        <span class="text-sm text-second">{{ today }}</span>
+      <div class="flex flex-col gap-2">
+        <h1
+          class="gradient-text m-0 text-2xl font-semibold tracking-tight text-balance sm:text-4xl"
+        >
+          {{ greeting }}
+        </h1>
+        <span
+          class="glass hairline mx-auto rounded-full px-3.5 py-1 text-xs font-medium text-second sm:text-sm"
+        >
+          {{ today }}
+        </span>
       </div>
     </div>
 
@@ -81,22 +96,22 @@ function handleSunClick() {
       <div
         v-for="(notification, index) in unreadNotifications"
         :key="notification.id"
-        class="flex animate-appear items-start gap-4 rounded-card bg-card px-5 py-4 shadow-card"
+        class="glass hairline shadow-card group flex animate-rise items-start gap-4 rounded-card px-5 py-4 transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-float"
         :style="{ animationDelay: `${index * 80}ms` }"
       >
         <span
-          class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent"
+          class="chip-accent glow-accent-soft flex h-11 w-11 shrink-0 items-center justify-center"
         >
           <NavIcon name="bell" />
         </span>
-        <span class="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span class="text-[15px] font-medium text-main">{{ notification.title }}</span>
+        <span class="flex min-w-0 flex-1 flex-col gap-1">
+          <span class="text-[15px] font-semibold text-main">{{ notification.title }}</span>
           <span class="text-sm whitespace-pre-wrap text-second">{{ notification.text }}</span>
-          <span class="text-xs text-second">{{ formatDateTime(notification.createdAt) }}</span>
+          <span class="text-xs text-second/80">{{ formatDateTime(notification.createdAt) }}</span>
         </span>
         <button
           type="button"
-          class="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-second transition-colors duration-150 hover:bg-accent/5 hover:text-main"
+          class="press flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-second opacity-60 hover:bg-main/6 hover:text-main group-hover:opacity-100"
           title="Скрыть"
           aria-label="Скрыть"
           @click="markNotificationRead(notification.id)"

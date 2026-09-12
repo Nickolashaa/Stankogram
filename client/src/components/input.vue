@@ -30,7 +30,7 @@ onMounted(() => {
     :type="props.type"
     :placeholder="props.placeholder"
     :value="model"
-    class="box-border h-12 w-full rounded-input border-[1.5px] border-second/30 bg-bg px-4 font-sans text-[15px] text-main outline-none transition-colors duration-150 placeholder:text-second focus:border-accent"
+    class="glass-field hairline box-border h-12 w-full rounded-input px-4 font-sans text-[15px] text-main outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-second/80 hover:border-main/20 focus-glow"
     @input="model = ($event.target as HTMLInputElement).value"
   />
 </template>

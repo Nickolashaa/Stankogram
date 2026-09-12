@@ -102,18 +102,18 @@ async function handleSubmit() {
 <template>
   <div
     v-if="open"
-    class="fixed inset-0 z-50 flex animate-appear items-start justify-center bg-black/40 p-4 sm:items-center"
+    class="fixed inset-0 z-50 flex animate-appear items-start justify-center bg-black/45 p-4 backdrop-blur-sm sm:items-center"
     @click.self="handleClose"
   >
     <form
-      class="flex max-h-[calc(100dvh-2rem)] sm:max-h-[85vh] w-full max-w-md flex-col gap-5 overflow-y-auto rounded-card bg-card p-5 shadow-card sm:p-8"
+      class="glass-strong hairline shadow-float flex max-h-[calc(100dvh-2rem)] w-full max-w-md animate-pop flex-col gap-5 overflow-y-auto rounded-card p-5 sm:max-h-[85vh] sm:p-8"
       @submit.prevent="handleSubmit"
     >
       <div class="flex items-center justify-between gap-4">
-        <h2 class="m-0 text-xl font-semibold text-main">Групповой чат</h2>
+        <h2 class="m-0 text-xl font-semibold tracking-tight text-main">Групповой чат</h2>
         <button
           type="button"
-          class="cursor-pointer text-second transition-colors duration-150 hover:text-main"
+          class="press flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-second hover:bg-main/6 hover:text-main"
           aria-label="Закрыть"
           @click="handleClose"
         >
@@ -124,7 +124,7 @@ async function handleSubmit() {
       <Input v-model="title" placeholder="Название группы" />
 
       <div class="flex min-h-0 flex-1 flex-col gap-3">
-        <span class="text-xs font-medium uppercase tracking-wide text-second">
+        <span class="text-xs font-semibold tracking-wider text-second uppercase">
           Участники{{ selectedUsers.length > 0 ? ` (${selectedUsers.length})` : "" }}
         </span>
 
@@ -132,17 +132,17 @@ async function handleSubmit() {
           <span
             v-for="user in selectedUsers"
             :key="user.id"
-            class="flex items-center gap-1.5 rounded-full bg-accent/10 py-1 pr-1.5 pl-1 text-sm text-main"
+            class="flex items-center gap-1.5 rounded-full bg-accent/12 py-1 pr-1.5 pl-1 text-sm text-main ring-1 ring-accent/20 ring-inset"
           >
             <span
-              class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-[11px] font-semibold text-bg"
+              class="accent-surface flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-bg"
             >
               {{ initials(user) }}
             </span>
             {{ fullName(user) }}
             <button
               type="button"
-              class="flex h-4 w-4 cursor-pointer items-center justify-center rounded-full text-accent/70 transition-colors duration-150 hover:bg-accent/20 hover:text-accent"
+              class="press flex h-5 w-5 cursor-pointer items-center justify-center rounded-full text-accent/70 hover:bg-accent/25 hover:text-accent"
               aria-label="Убрать участника"
               @click="unselectUser(user)"
             >
@@ -155,13 +155,13 @@ async function handleSubmit() {
 
         <div
           v-if="searchQuery.trim() !== ''"
-          class="flex max-h-48 flex-col overflow-y-auto rounded-input border-[1.5px] border-second/20"
+          class="hairline glass-field flex max-h-48 flex-col overflow-y-auto rounded-card"
         >
           <button
             v-for="user in searchResults"
             :key="user.id"
             type="button"
-            class="flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left transition-colors duration-150 hover:bg-accent/5"
+            class="press flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left hover:bg-main/5"
             @click="selectUser(user)"
           >
             <Avatar :label="initials(user)" size="sm" />
@@ -171,7 +171,7 @@ async function handleSubmit() {
             </span>
           </button>
 
-          <div v-if="searchResults.length === 0" class="px-3 py-4 text-center text-sm text-second">
+          <div v-if="searchResults.length === 0" class="px-3 py-5 text-center text-sm text-second">
             Никого не найдено
           </div>
         </div>
