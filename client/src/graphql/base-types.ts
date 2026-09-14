@@ -371,6 +371,7 @@ export type Subscription = {
 export type SystemNotification = IBaseType & {
   __typename?: "SystemNotification"
   createdAt: Scalars["DateTime"]["output"]
+  expiresAt?: Maybe<Scalars["DateTime"]["output"]>
   id: Scalars["Int"]["output"]
   text: Scalars["String"]["output"]
   title: Scalars["String"]["output"]
@@ -378,10 +379,12 @@ export type SystemNotification = IBaseType & {
 }
 
 export type SystemNotificationFiltersIn = {
+  onlyActive?: InputMaybe<Scalars["Boolean"]["input"]>
   onlyUnread?: InputMaybe<Scalars["Boolean"]["input"]>
 }
 
 export type SystemNotificationIn = {
+  expiresAt?: InputMaybe<Scalars["DateTime"]["input"]>
   text: Scalars["String"]["input"]
   title: Scalars["String"]["input"]
 }

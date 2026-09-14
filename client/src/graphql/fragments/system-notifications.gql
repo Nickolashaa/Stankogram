@@ -4,4 +4,5 @@ fragment SystemNotificationFields on SystemNotification {
   updatedAt
   title
   text
+  expiresAt
 }

@@ -28,6 +28,7 @@ export type SystemNotificationsQuery = {
       updatedAt: string
       title: string
       text: string
+      expiresAt: string | null
     }>
   }
 }

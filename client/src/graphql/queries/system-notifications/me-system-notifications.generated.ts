@@ -16,6 +16,7 @@ export type BasePaginationIn = {
 }
 
 export type SystemNotificationFiltersIn = {
+  onlyActive?: boolean | null | undefined
   onlyUnread?: boolean | null | undefined
 }
 
@@ -33,6 +34,7 @@ export type MeSystemNotificationsQuery = {
       updatedAt: string
       title: string
       text: string
+      expiresAt: string | null
     }>
   }
 }

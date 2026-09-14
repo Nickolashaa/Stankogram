@@ -10,6 +10,7 @@ export type SystemNotificationFieldsFragment = {
   updatedAt: string
   title: string
   text: string
+  expiresAt: string | null
 }
 
 export const SystemNotificationFieldsFragmentDoc = gql`
@@ -19,5 +20,6 @@ export const SystemNotificationFieldsFragmentDoc = gql`
     updatedAt
     title
     text
+    expiresAt
   }
 `
