@@ -21,7 +21,7 @@ class ChatService(BaseService):
 
         stmt = insert(Chat).values(**data).returning(Chat)
 
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
 
         return ChatResponse.model_validate(res.scalar_one())
 
@@ -31,7 +31,7 @@ class ChatService(BaseService):
     ) -> ChatResponse:
         stmt = select(Chat).where(Chat.id == id)
 
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
         instance = res.scalar_one_or_none()
         if instance is None:
             raise ObjectNotFound(f"Chat with id {id} not found")
@@ -49,7 +49,7 @@ class ChatService(BaseService):
 
         stmt = update(Chat).where(Chat.id == id).values(**data).returning(Chat)
 
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
 
         return ChatResponse.model_validate(res.scalar_one())
 
@@ -63,7 +63,7 @@ class ChatService(BaseService):
 
         stmt = delete(Chat).where(Chat.id == id)
 
-        await self._session.execute(stmt)
+        await self._execute(stmt)
 
     @staticmethod
     def _apply_filters(
@@ -104,7 +104,7 @@ class ChatService(BaseService):
 
         stmt = self._apply_pagination(stmt=stmt, pagination=pagination)
 
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
 
         return [
             ChatResponse.model_validate(instance) for instance in res.scalars().all()
@@ -120,6 +120,6 @@ class ChatService(BaseService):
 
         stmt = self._get_count_stmt(stmt)
 
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
 
         return res.scalar_one()

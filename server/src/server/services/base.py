@@ -1,14 +1,20 @@
+import asyncio
 from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import Select, func, select
+from sqlalchemy import Executable, Result, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class BaseService:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
+
+    async def _execute(self, stmt: Executable) -> Result[Any]:
+        lock = self._session.info.setdefault("execute_lock", asyncio.Lock())
+        async with lock:
+            return await self._session.execute(stmt)
 
     @staticmethod
     def _apply_pagination(

@@ -37,7 +37,7 @@ class MessageService(BaseService):
             .returning(Message)
         )
         try:
-            res = await self._session.execute(stmt)
+            res = await self._execute(stmt)
         except IntegrityError as e:
             if "fk_messages_chat_id" in str(e.orig):
                 raise ObjectNotFound(f"Chat with id {values.get('chat_id')} not found")
@@ -50,7 +50,7 @@ class MessageService(BaseService):
     async def get(self, id: int) -> MessageResponse:
         stmt = select(Message).where(Message.id == id)
 
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
         instance = res.scalar_one_or_none()
         if instance is None:
             raise ObjectNotFound(f"Message with id {id} not found")
@@ -60,7 +60,7 @@ class MessageService(BaseService):
     async def get_or_none(self, id: int) -> MessageResponse | None:
         stmt = select(Message).where(Message.id == id)
 
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
         instance = res.scalar_one_or_none()
         if instance is None:
             return None
@@ -82,7 +82,7 @@ class MessageService(BaseService):
             )
             .returning(Message)
         )
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
         instance = res.scalar_one_or_none()
         if instance is None:
             raise ObjectNotFound(f"Message with id {id} not found")
@@ -91,7 +91,7 @@ class MessageService(BaseService):
 
     async def delete(self, id: int) -> None:
         stmt = delete(Message).where(Message.id == id)
-        await self._session.execute(stmt)
+        await self._execute(stmt)
 
     @staticmethod
     def _apply_filters(
@@ -117,7 +117,7 @@ class MessageService(BaseService):
 
         stmt = self._apply_pagination(stmt=stmt, pagination=pagination)
 
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
 
         return [
             MessageResponse.from_ORM(fernet=self._fernet, instance=entity)
@@ -134,6 +134,6 @@ class MessageService(BaseService):
 
         stmt = self._get_count_stmt(stmt)
 
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
 
         return res.scalar_one()

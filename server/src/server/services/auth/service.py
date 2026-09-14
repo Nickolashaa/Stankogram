@@ -95,7 +95,7 @@ class AuthService(BaseService):
     async def cancel_token(self, jti: UUID) -> None:
         stmt = insert(CancelledToken).values(jti=jti)
         try:
-            await self._session.execute(stmt)
+            await self._execute(stmt)
         except IntegrityError:
             raise ObjectAlreadyExists(f"Token with jti {jti} already exists")
 
@@ -118,7 +118,7 @@ class AuthService(BaseService):
         )
 
         try:
-            res = await self._session.execute(stmt)
+            res = await self._execute(stmt)
         except IntegrityError:
             raise ObjectAlreadyExists(
                 f"User with email {values.get('email')} already exists"
@@ -139,7 +139,7 @@ class AuthService(BaseService):
         id: int,
     ) -> UserResponse:
         stmt = select(User).where(User.id == id)
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
         entity = res.scalar_one_or_none()
         if entity is None:
             raise ObjectNotFound(
@@ -184,7 +184,7 @@ class AuthService(BaseService):
 
         stmt = self._apply_pagination(stmt=stmt, pagination=pagination)
 
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
 
         return [UserResponse.model_validate(entity) for entity in res.scalars().all()]
 
@@ -198,7 +198,7 @@ class AuthService(BaseService):
 
         stmt = self._get_count_stmt(stmt)
 
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
 
         return res.scalar_one()
 
@@ -207,7 +207,7 @@ class AuthService(BaseService):
         email: str,
     ) -> UserResponse:
         stmt = select(User).where(User.email == email)
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
         entity = res.scalar_one_or_none()
         if entity is None:
             raise ObjectNotFound(
@@ -236,7 +236,7 @@ class AuthService(BaseService):
         id: int,
     ) -> None:
         stmt = delete(User).where(User.id == id)
-        await self._session.execute(stmt)
+        await self._execute(stmt)
 
     async def update(
         self,
@@ -248,7 +248,7 @@ class AuthService(BaseService):
         stmt = update(User).where(User.id == id).values(**values).returning(User)
 
         try:
-            res = await self._session.execute(stmt)
+            res = await self._execute(stmt)
             return UserResponse.model_validate(res.scalar_one())
         except IntegrityError:
             raise ObjectAlreadyExists(
@@ -271,7 +271,7 @@ class AuthService(BaseService):
             .returning(PasswordResetCode)
         )
 
-        await self._session.execute(stmt)
+        await self._execute(stmt)
 
         await send_email(
             to_email=user.email,
@@ -296,7 +296,7 @@ class AuthService(BaseService):
             >= datetime.now(UTC) - timedelta(minutes=PASSWORD_RESET_CODE_EXP_MINUTES),
         )
 
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
         entity = res.scalar_one_or_none()
         if entity is None:
             raise ObjectNotFound(
@@ -304,7 +304,7 @@ class AuthService(BaseService):
             )
 
         stmt = delete(PasswordResetCode).where(PasswordResetCode.id == entity.id)
-        await self._session.execute(stmt)
+        await self._execute(stmt)
 
         new_password = self._generate_password()
         new_hashed_password = bcrypt.hashpw(
@@ -316,7 +316,7 @@ class AuthService(BaseService):
             .where(User.id == id)
             .values(hashed_password=new_hashed_password)
         )
-        await self._session.execute(stmt)
+        await self._execute(stmt)
 
         await send_email(
             to_email=user.email,

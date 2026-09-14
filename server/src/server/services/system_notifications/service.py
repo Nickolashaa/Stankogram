@@ -24,7 +24,7 @@ class SystemNotificationService(BaseService):
     ) -> SystemNotificationResponse:
         stmt = insert(SystemNotification).values(**data).returning(SystemNotification)
 
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
 
         return SystemNotificationResponse.model_validate(res.scalar_one())
 
@@ -40,7 +40,7 @@ class SystemNotificationService(BaseService):
             .returning(SystemNotification)
         )
 
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
         entity = res.scalar_one_or_none()
         if entity is None:
             raise ObjectNotFound(
@@ -59,7 +59,7 @@ class SystemNotificationService(BaseService):
         )
 
         try:
-            await self._session.execute(stmt)
+            await self._execute(stmt)
         except IntegrityError as e:
             if "uq_user_system_notification" in str(e.orig):
                 raise ObjectAlreadyExists(
@@ -104,7 +104,7 @@ class SystemNotificationService(BaseService):
 
         stmt = self._apply_pagination(stmt=stmt, pagination=pagination)
 
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
 
         return [
             SystemNotificationResponse.model_validate(instance)
@@ -121,6 +121,6 @@ class SystemNotificationService(BaseService):
 
         stmt = self._get_count_stmt(stmt)
 
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
 
         return res.scalar_one()

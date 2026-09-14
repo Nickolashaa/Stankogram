@@ -40,7 +40,7 @@ class ChatParticipantService(BaseService):
         stmt = insert(ChatParticipant).values(**data).returning(ChatParticipant)
 
         try:
-            res = await self._session.execute(stmt)
+            res = await self._execute(stmt)
         except IntegrityError as e:
             if "uq_user_chat" in str(e.orig):
                 raise ObjectAlreadyExists("User already exists in this chat")
@@ -62,7 +62,7 @@ class ChatParticipantService(BaseService):
         stmt = delete(ChatParticipant).where(
             ChatParticipant.chat_id == chat_id, ChatParticipant.user_id == user_id
         )
-        await self._session.execute(stmt)
+        await self._execute(stmt)
 
     async def leave(
         self,
@@ -107,6 +107,9 @@ class ChatParticipantService(BaseService):
         if (chat_id := filters.get("chat_id")) is not None:
             stmt = stmt.where(ChatParticipant.chat_id == chat_id)
 
+        if (chat_ids := filters.get("chat_ids")) is not None:
+            stmt = stmt.where(ChatParticipant.chat_id.in_(chat_ids))
+
         if (user_id := filters.get("user_id")) is not None:
             stmt = stmt.where(ChatParticipant.user_id == user_id)
 
@@ -135,7 +138,7 @@ class ChatParticipantService(BaseService):
 
         stmt = self._apply_pagination(stmt=stmt, pagination=pagination)
 
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
 
         return [
             ChatParticipantResponse.model_validate(entity)
@@ -152,7 +155,7 @@ class ChatParticipantService(BaseService):
 
         stmt = self._get_count_stmt(stmt)
 
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
 
         return res.scalar_one()
 
@@ -164,7 +167,7 @@ class ChatParticipantService(BaseService):
             ChatParticipant.user_id == data.get("user_id"),
             ChatParticipant.chat_id == data.get("chat_id"),
         )
-        select_res = await self._session.execute(select_stmt)
+        select_res = await self._execute(select_stmt)
         instance = select_res.scalar_one_or_none()
         if instance is None:
             raise ObjectNotFound(
@@ -177,7 +180,7 @@ class ChatParticipantService(BaseService):
             .values(**data)
             .returning(ChatParticipant)
         )
-        update_res = await self._session.execute(update_stmt)
+        update_res = await self._execute(update_stmt)
         return ChatParticipantResponse.model_validate(update_res.scalar_one())
 
     async def get_or_none(
@@ -188,7 +191,7 @@ class ChatParticipantService(BaseService):
         stmt = select(ChatParticipant).where(
             ChatParticipant.chat_id == chat_id, ChatParticipant.user_id == user_id
         )
-        res = await self._session.execute(stmt)
+        res = await self._execute(stmt)
         instance = res.scalar_one_or_none()
         if instance is None:
             return None
