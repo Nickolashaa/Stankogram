@@ -10,7 +10,7 @@ from ....config import JWT_REFRESH_EXP_DAYS
 from ....services.auth.schemas import JWTPayload
 from ....services.exceptions import InvalidInput, ObjectAlreadyExists, ObjectNotFound
 from ...context import AppInfo, AuthorizedAppInfo
-from ...permissions.auth import IsAdmin
+from ...permissions.auth import IsAdmin, IsAuthenticated
 from ...types.auth import JWTs, User, UserCredentialsIn, UserIn, UsersImportReport
 from ...types.errors import (
     InvalidInputError,
@@ -109,7 +109,7 @@ class AuthMutation:
         except Exception:
             pass
 
-    @strawberry.mutation(permission_classes=[IsAdmin])
+    @strawberry.mutation(permission_classes=[IsAuthenticated, IsAdmin])
     async def user_create(
         self,
         info: AuthorizedAppInfo,
@@ -125,7 +125,7 @@ class AuthMutation:
             await info.context.session.rollback()
             return ObjectAlreadyExistsError.from_service_exception(e)
 
-    @strawberry.mutation(permission_classes=[IsAdmin])
+    @strawberry.mutation(permission_classes=[IsAuthenticated, IsAdmin])
     async def users_import(
         self,
         info: AuthorizedAppInfo,
@@ -140,7 +140,7 @@ class AuthMutation:
 
         return UsersImportReport.from_schema(report)
 
-    @strawberry.mutation(permission_classes=[IsAdmin])
+    @strawberry.mutation(permission_classes=[IsAuthenticated, IsAdmin])
     async def user_update(
         self,
         info: AuthorizedAppInfo,
@@ -160,7 +160,7 @@ class AuthMutation:
             await info.context.session.rollback()
             return ObjectNotFoundError.from_service_exception(e)
 
-    @strawberry.mutation(permission_classes=[IsAdmin])
+    @strawberry.mutation(permission_classes=[IsAuthenticated, IsAdmin])
     async def user_delete(
         self,
         info: AuthorizedAppInfo,

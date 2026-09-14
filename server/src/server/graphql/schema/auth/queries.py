@@ -41,7 +41,7 @@ class AuthQuery:
             ),
         )
 
-    @strawberry.field(permission_classes=[IsAdmin])
+    @strawberry.field(permission_classes=[IsAuthenticated, IsAdmin])
     async def users_import_template(
         info: AuthorizedAppInfo,
     ) -> XlsxFile:
