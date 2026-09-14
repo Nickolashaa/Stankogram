@@ -146,6 +146,7 @@ type Mutation {
   refresh: JWTsUnauthorizedErrorObjectNotFoundError!
   logout: Void
   userCreate(input: UserIn!): UserObjectAlreadyExistsError!
+  usersImport(file: Upload!): UsersImportReportInvalidInputError!
   userUpdate(id: Int!, input: UserIn!): UserObjectAlreadyExistsErrorObjectNotFoundError!
   userDelete(id: Int!): Void
   userResetPasswordRequest(email: String!): ObjectNotFoundError
@@ -187,6 +188,7 @@ input PublicChatIn {
 type Query {
   me: UserObjectNotFoundError!
   users(pagination: BasePaginationIn = null, filters: UserFiltersIn = null): UsersMeta!
+  usersImportTemplate: XlsxFile!
   meChats(pagination: BasePaginationIn = null, filters: ChatFiltersIn = null): ChatsMetaUnauthorizedError!
   chats(pagination: BasePaginationIn = null, filters: ChatFiltersIn = null): ChatsMeta!
   messages(filters: MessageFiltersIn!, pagination: BasePaginationIn = null): MessagesMeta!
@@ -231,6 +233,9 @@ type UpdateMessage {
   message: Message!
 }
 
+"""Represents a file upload."""
+scalar Upload
+
 type User implements IBaseType {
   id: Int!
   createdAt: DateTime!
@@ -270,6 +275,15 @@ union UserObjectAlreadyExistsErrorObjectNotFoundError = User | ObjectAlreadyExis
 
 union UserObjectNotFoundError = User | ObjectNotFoundError
 
+type UsersImportReport {
+  file: XlsxFile!
+  total: Int!
+  succeeded: Int!
+  failed: Int!
+}
+
+union UsersImportReportInvalidInputError = UsersImportReport | InvalidInputError
+
 type UsersMeta implements IBaseMeta {
   count: Int!
   users: [User!]!
@@ -277,3 +291,8 @@ type UsersMeta implements IBaseMeta {
 
 """Represents NULL values"""
 scalar Void
+
+type XlsxFile {
+  filename: String!
+  content: String!
+}
