@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import strawberry
 
 from ....services.system_notifications.types import (
@@ -10,6 +12,7 @@ from ....services.system_notifications.types import (
 @strawberry.input
 class SystemNotificationFiltersIn:
     only_unread: strawberry.Maybe[bool]
+    only_active: strawberry.Maybe[bool]
 
     def to_service_params(
         self,
@@ -20,6 +23,9 @@ class SystemNotificationFiltersIn:
         if self.only_unread is not None and self.only_unread.value:
             params["unread_by_user_id"] = current_user_id
 
+        if self.only_active is not None and self.only_active.value:
+            params["only_active"] = True
+
         return params
 
 
@@ -27,9 +33,18 @@ class SystemNotificationFiltersIn:
 class SystemNotificationIn:
     title: str
     text: str
+    expires_at: datetime | None
 
     def to_create_service_params(self) -> SystemNotificationCreateParams:
-        return SystemNotificationCreateParams(title=self.title, text=self.text)
+        return SystemNotificationCreateParams(
+            title=self.title,
+            text=self.text,
+            expires_at=self.expires_at,
+        )
 
     def to_update_service_params(self) -> SystemNotificationUpdateParams:
-        return SystemNotificationUpdateParams(title=self.title, text=self.text)
+        return SystemNotificationUpdateParams(
+            title=self.title,
+            text=self.text,
+            expires_at=self.expires_at,
+        )

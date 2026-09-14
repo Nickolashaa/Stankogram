@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Self
 
 import strawberry
@@ -10,6 +11,7 @@ from ..base import IBaseMeta, IBaseType
 class SystemNotification(IBaseType):
     title: str
     text: str
+    expires_at: datetime | None
 
     @classmethod
     def from_schema(cls, instance: SystemNotificationResponse) -> Self:
@@ -17,6 +19,7 @@ class SystemNotification(IBaseType):
             id=instance.id,
             title=instance.title,
             text=instance.text,
+            expires_at=instance.expires_at,
             created_at=instance.created_at,
             updated_at=instance.updated_at,
         )
