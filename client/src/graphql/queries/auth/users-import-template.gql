@@ -1,0 +1,6 @@
+query UsersImportTemplate {
+  usersImportTemplate {
+    filename
+    content
+  }
+}

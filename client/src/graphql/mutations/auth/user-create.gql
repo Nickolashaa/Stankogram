@@ -1,8 +1,11 @@
 mutation UserCreate($input: UserIn!) {
   userCreate(input: $input) {
     __typename
-    ... on User {
-      ...UserFields
+    ... on CreatedUser {
+      password
+      user {
+        ...UserFields
+      }
     }
     ... on ObjectAlreadyExistsError {
       message

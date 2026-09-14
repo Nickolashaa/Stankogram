@@ -1,0 +1,17 @@
+mutation UsersImport($file: Upload!) {
+  usersImport(file: $file) {
+    __typename
+    ... on UsersImportReport {
+      total
+      succeeded
+      failed
+      file {
+        filename
+        content
+      }
+    }
+    ... on InvalidInputError {
+      message
+    }
+  }
+}
