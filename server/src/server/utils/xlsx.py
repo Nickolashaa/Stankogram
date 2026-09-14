@@ -1,5 +1,5 @@
 from io import BytesIO
-from typing import Any, Iterator, Sequence
+from typing import Any, Generator, Sequence
 
 from openpyxl import Workbook, load_workbook
 from openpyxl.cell.cell import Cell
@@ -24,6 +24,7 @@ _HEADING_FONT = Font(name="Calibri", size=16, bold=True, color=_ACCENT_DARK)
 _TEXT_FONT = Font(name="Calibri", size=11, color=_TEXT)
 _MUTED_FONT = Font(name="Calibri", size=11, color=_MUTED)
 _BOLD_FONT = Font(name="Calibri", size=11, bold=True, color=_TEXT)
+_CODE_FONT = Font(name="Consolas", size=11, bold=True, color=_TEXT)
 _SUCCESS_FONT = Font(name="Calibri", size=11, bold=True, color=_SUCCESS_TEXT)
 _FAILURE_FONT = Font(name="Calibri", size=11, bold=True, color=_FAILURE_TEXT)
 
@@ -82,7 +83,7 @@ def _write_heading(sheet: Worksheet, heading: str) -> None:
     sheet.row_dimensions[1].height = _HEADING_ROW_HEIGHT
 
 
-def read_rows(content: bytes, columns: int) -> Iterator[list[str]]:
+def read_rows(content: bytes, columns: int) -> Generator[list[str], None, None]:
     workbook = load_workbook(BytesIO(content), read_only=True, data_only=True)
     try:
         for values in workbook.worksheets[0].iter_rows(values_only=True):
@@ -186,16 +187,24 @@ def add_column_choices(
     column: int,
     choices: Sequence[str],
     rows: int,
+    prompt: str | None = None,
 ) -> None:
     validation = DataValidation(
         type="list",
         formula1='"' + ",".join(choices) + '"',
         allow_blank=True,
+        showInputMessage=prompt is not None,
+        prompt=prompt,
     )
     sheet.add_data_validation(validation)
 
     letter = get_column_letter(column)
     validation.add(f"{letter}2:{letter}{rows + 1}")
+
+
+def apply_code_style(cell: Cell) -> None:
+    cell.font = _CODE_FONT
+    cell.alignment = _CENTER_ALIGNMENT
 
 
 def apply_success_style(cell: Cell) -> None:

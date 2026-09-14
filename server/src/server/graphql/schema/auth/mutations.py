@@ -11,7 +11,14 @@ from ....services.auth.schemas import JWTPayload
 from ....services.exceptions import InvalidInput, ObjectAlreadyExists, ObjectNotFound
 from ...context import AppInfo, AuthorizedAppInfo
 from ...permissions.auth import IsAdmin, IsAuthenticated
-from ...types.auth import JWTs, User, UserCredentialsIn, UserIn, UsersImportReport
+from ...types.auth import (
+    CreatedUser,
+    JWTs,
+    User,
+    UserCredentialsIn,
+    UserIn,
+    UsersImportReport,
+)
 from ...types.errors import (
     InvalidInputError,
     ObjectAlreadyExistsError,
@@ -114,13 +121,13 @@ class AuthMutation:
         self,
         info: AuthorizedAppInfo,
         input: UserIn,
-    ) -> User | ObjectAlreadyExistsError:
+    ) -> CreatedUser | ObjectAlreadyExistsError:
         try:
             instance = await info.context.services.auth_service.create(
                 **input.to_create_service_params()
             )
             await info.context.session.commit()
-            return User.from_schema(instance)
+            return CreatedUser.from_schema(instance)
         except ObjectAlreadyExists as e:
             await info.context.session.rollback()
             return ObjectAlreadyExistsError.from_service_exception(e)

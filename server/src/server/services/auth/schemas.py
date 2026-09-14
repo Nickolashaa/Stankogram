@@ -62,6 +62,12 @@ class UserImportResultSchema(Schema):
     row: UserImportRowSchema
     is_success: bool
     reason: str | None
+    password: str | None = None
+
+
+class CreatedUserSchema(Schema):
+    user: UserResponse
+    password: str
 
 
 class UsersImportReportSchema(Schema):

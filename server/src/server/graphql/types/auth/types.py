@@ -3,6 +3,7 @@ from typing import Self
 import strawberry
 
 from ....services.auth.schemas import (
+    CreatedUserSchema,
     JWTsSchema,
     UserResponse,
     UsersImportReportSchema,
@@ -38,6 +39,19 @@ class User(IBaseType):
             full_name=instance.full_name,
             created_at=instance.created_at,
             updated_at=instance.updated_at,
+        )
+
+
+@strawberry.type
+class CreatedUser:
+    user: User
+    password: str
+
+    @classmethod
+    def from_schema(cls, instance: CreatedUserSchema) -> Self:
+        return cls(
+            user=User.from_schema(instance.user),
+            password=instance.password,
         )
 
 
