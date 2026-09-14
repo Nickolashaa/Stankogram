@@ -58,55 +58,57 @@ function handleSubmit() {
 </script>
 
 <template>
-  <div
-    v-if="open"
-    class="fixed inset-0 z-50 flex animate-appear items-start justify-center bg-black/45 p-4 backdrop-blur-sm sm:items-center"
-    @click.self="handleClose"
-  >
-    <form
-      class="glass-strong hairline shadow-float flex max-h-[calc(100dvh-2rem)] w-full max-w-md animate-pop flex-col gap-4 overflow-y-auto rounded-card p-5 sm:max-h-[85vh] sm:p-8"
-      @submit.prevent="handleSubmit"
+  <Teleport to="body">
+    <div
+      v-if="open"
+      class="fixed inset-0 z-50 flex animate-appear items-start justify-center bg-black/45 p-4 backdrop-blur-sm sm:items-center"
+      @click.self="handleClose"
     >
-      <h2 class="m-0 text-xl font-semibold tracking-tight text-main">{{ title }}</h2>
-
-      <Input placeholder="Имя" v-model="name" />
-      <Input placeholder="Фамилия" v-model="surname" />
-      <Input placeholder="Отчество" v-model="patronymic" />
-      <Input placeholder="Email" type="email" v-model="email" />
-
-      <Select v-model="role">
-        <option value="STUDENT">Студент</option>
-        <option value="TEACHER">Преподаватель</option>
-      </Select>
-
-      <label
-        class="press glass-field hairline flex cursor-pointer items-center gap-3 rounded-input px-4 py-3 text-[15px] text-main hover:border-accent/40"
+      <form
+        class="glass-strong hairline shadow-float flex max-h-[calc(100dvh-2rem)] w-full max-w-md animate-pop flex-col gap-4 overflow-y-auto rounded-card p-5 sm:max-h-[85vh] sm:p-8"
+        @submit.prevent="handleSubmit"
       >
-        <input type="checkbox" v-model="isAdmin" class="h-4.5 w-4.5 accent-accent" />
-        Права администратора
-      </label>
+        <h2 class="m-0 text-xl font-semibold tracking-tight text-main">{{ title }}</h2>
 
-      <div class="mt-2 flex gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          class="flex-1"
-          icon="cancel"
-          :short-mode="false"
-          @click="handleClose"
+        <Input placeholder="Имя" v-model="name" />
+        <Input placeholder="Фамилия" v-model="surname" />
+        <Input placeholder="Отчество" v-model="patronymic" />
+        <Input placeholder="Email" type="email" v-model="email" />
+
+        <Select v-model="role">
+          <option value="STUDENT">Студент</option>
+          <option value="TEACHER">Преподаватель</option>
+        </Select>
+
+        <label
+          class="press glass-field hairline flex cursor-pointer items-center gap-3 rounded-input px-4 py-3 text-[15px] text-main hover:border-accent/40"
         >
-          Отмена
-        </Button>
-        <Button
-          type="submit"
-          class="flex-[2]"
-          icon="save"
-          :short-mode="false"
-          :disabled="submitting"
-        >
-          Сохранить
-        </Button>
-      </div>
-    </form>
-  </div>
+          <input type="checkbox" v-model="isAdmin" class="h-4.5 w-4.5 accent-accent" />
+          Права администратора
+        </label>
+
+        <div class="mt-2 flex gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            class="flex-1"
+            icon="cancel"
+            :short-mode="false"
+            @click="handleClose"
+          >
+            Отмена
+          </Button>
+          <Button
+            type="submit"
+            class="flex-[2]"
+            icon="save"
+            :short-mode="false"
+            :disabled="submitting"
+          >
+            Сохранить
+          </Button>
+        </div>
+      </form>
+    </div>
+  </Teleport>
 </template>

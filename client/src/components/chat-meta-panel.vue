@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from "vue"
+import { computed, ref, watch } from "vue"
 import { storeToRefs } from "pinia"
 import type { ChatSummary, ChatParticipantItem } from "@/stores/chats"
 import { useAuthStore } from "@/stores/auth"
@@ -13,6 +13,7 @@ import Button from "@/components/button.vue"
 import NavIcon from "@/components/nav-icon.vue"
 import Avatar from "@/components/avatar.vue"
 import AddParticipantsDialog from "@/components/add-participants-dialog.vue"
+import ContextMenu from "@/components/context-menu.vue"
 
 const props = withDefaults(
   defineProps<{
@@ -169,9 +170,6 @@ type ParticipantContextMenu = {
   participant: ChatParticipantItem
 }
 
-const MENU_WIDTH = 224
-const MENU_HEIGHT = 140
-
 const contextMenu = ref<ParticipantContextMenu | null>(null)
 
 function closeContextMenu() {
@@ -184,8 +182,8 @@ function handleContextMenu(event: MouseEvent, participant: ChatParticipantItem) 
   }
   event.preventDefault()
   contextMenu.value = {
-    x: Math.min(event.clientX, window.innerWidth - MENU_WIDTH - 8),
-    y: Math.min(event.clientY, window.innerHeight - MENU_HEIGHT - 8),
+    x: event.clientX,
+    y: event.clientY,
     participant,
   }
 }
@@ -218,15 +216,6 @@ watch(
   () => props.chat.id,
   () => closeContextMenu(),
 )
-
-function handleEscape(event: KeyboardEvent) {
-  if (event.key === "Escape") {
-    closeContextMenu()
-  }
-}
-
-onMounted(() => window.addEventListener("keydown", handleEscape))
-onUnmounted(() => window.removeEventListener("keydown", handleEscape))
 </script>
 
 <template>
@@ -364,17 +353,12 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
       @added="addParticipantsOpen = false"
     />
 
-    <div
+    <ContextMenu
       v-if="contextMenu"
-      class="fixed inset-0 z-40"
-      @click="closeContextMenu"
-      @contextmenu.prevent="closeContextMenu"
-    />
-
-    <div
-      v-if="contextMenu"
-      class="glass-strong hairline shadow-float fixed z-50 flex w-60 origin-top-left animate-pop flex-col gap-0.5 overflow-hidden rounded-card p-1.5"
-      :style="{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }"
+      :x="contextMenu.x"
+      :y="contextMenu.y"
+      class="w-60"
+      @close="closeContextMenu"
     >
       <span class="truncate px-3 pt-1.5 pb-2 text-xs font-semibold text-second">
         {{ fullName(contextMenu.participant.user) }}
@@ -403,6 +387,6 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
       >
         Удалить из чата
       </button>
-    </div>
+    </ContextMenu>
   </div>
 </template>

@@ -18,6 +18,7 @@ import Badge from "@/components/badge.vue"
 import NavIcon from "@/components/nav-icon.vue"
 import Avatar from "@/components/avatar.vue"
 import EmojiPicker from "@/components/emoji-picker.vue"
+import ContextMenu from "@/components/context-menu.vue"
 
 const PAGE_SIZE = 30
 
@@ -85,9 +86,6 @@ type MessageContextMenu = {
   message: MessageItem
 }
 
-const MESSAGE_MENU_WIDTH = 180
-const MESSAGE_MENU_HEIGHT = 90
-
 const contextMenu = ref<MessageContextMenu | null>(null)
 
 function closeContextMenu() {
@@ -100,20 +98,11 @@ function handleMessageContextMenu(event: MouseEvent, message: MessageItem) {
   }
   event.preventDefault()
   contextMenu.value = {
-    x: Math.min(event.clientX, window.innerWidth - MESSAGE_MENU_WIDTH - 8),
-    y: Math.min(event.clientY, window.innerHeight - MESSAGE_MENU_HEIGHT - 8),
+    x: event.clientX,
+    y: event.clientY,
     message,
   }
 }
-
-function handleMessageMenuEscape(event: KeyboardEvent) {
-  if (event.key === "Escape") {
-    closeContextMenu()
-  }
-}
-
-onMounted(() => window.addEventListener("keydown", handleMessageMenuEscape))
-onUnmounted(() => window.removeEventListener("keydown", handleMessageMenuEscape))
 
 const editingMessageId = ref<number | null>(null)
 const editDraft = ref("")
@@ -494,17 +483,12 @@ async function handleSubmit() {
       />
     </form>
 
-    <div
+    <ContextMenu
       v-if="contextMenu"
-      class="fixed inset-0 z-40"
-      @click="closeContextMenu"
-      @contextmenu.prevent="closeContextMenu"
-    />
-
-    <div
-      v-if="contextMenu"
-      class="glass-strong hairline shadow-float fixed z-50 flex w-48 origin-top-left animate-pop flex-col gap-0.5 overflow-hidden rounded-card p-1.5"
-      :style="{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }"
+      :x="contextMenu.x"
+      :y="contextMenu.y"
+      class="w-48"
+      @close="closeContextMenu"
     >
       <button
         v-if="canEditMessage(contextMenu.message)"
@@ -523,6 +507,6 @@ async function handleSubmit() {
       >
         Удалить
       </button>
-    </div>
+    </ContextMenu>
   </div>
 </template>

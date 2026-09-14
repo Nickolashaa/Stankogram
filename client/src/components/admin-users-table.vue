@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue"
+import { ref } from "vue"
 import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
 import { roleLabels } from "@/lib/roles"
 import { formatDateTime, fullName } from "@/lib/format"
 import Badge from "@/components/badge.vue"
+import ContextMenu from "@/components/context-menu.vue"
 
 const props = defineProps<{
   users: UserFieldsFragment[]
@@ -20,9 +21,6 @@ type UserContextMenu = {
   user: UserFieldsFragment
 }
 
-const MENU_WIDTH = 208
-const MENU_HEIGHT = 96
-
 const contextMenu = ref<UserContextMenu | null>(null)
 
 function closeContextMenu() {
@@ -32,8 +30,8 @@ function closeContextMenu() {
 function openContextMenu(event: MouseEvent, user: UserFieldsFragment) {
   event.preventDefault()
   contextMenu.value = {
-    x: Math.min(event.clientX, window.innerWidth - MENU_WIDTH - 8),
-    y: Math.min(event.clientY, window.innerHeight - MENU_HEIGHT - 8),
+    x: event.clientX,
+    y: event.clientY,
     user,
   }
 }
@@ -53,15 +51,6 @@ function handleDelete() {
     emit("delete", user)
   }
 }
-
-function handleEscape(event: KeyboardEvent) {
-  if (event.key === "Escape") {
-    closeContextMenu()
-  }
-}
-
-onMounted(() => window.addEventListener("keydown", handleEscape))
-onUnmounted(() => window.removeEventListener("keydown", handleEscape))
 </script>
 
 <template>
@@ -101,17 +90,12 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
       </tbody>
     </table>
 
-    <div
+    <ContextMenu
       v-if="contextMenu"
-      class="fixed inset-0 z-40"
-      @click="closeContextMenu"
-      @contextmenu.prevent="closeContextMenu"
-    />
-
-    <div
-      v-if="contextMenu"
-      class="glass-strong hairline shadow-float fixed z-50 flex w-56 origin-top-left animate-pop flex-col gap-0.5 overflow-hidden rounded-card p-1.5"
-      :style="{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }"
+      :x="contextMenu.x"
+      :y="contextMenu.y"
+      class="w-56"
+      @close="closeContextMenu"
     >
       <span class="truncate px-3 pt-1.5 pb-2 text-xs font-semibold text-second">
         {{ fullName(contextMenu.user) }}
@@ -132,6 +116,6 @@ onUnmounted(() => window.removeEventListener("keydown", handleEscape))
       >
         Удалить
       </button>
-    </div>
+    </ContextMenu>
   </div>
 </template>

@@ -79,57 +79,62 @@ async function startChat(user: UserFieldsFragment) {
 </script>
 
 <template>
-  <div
-    v-if="open"
-    class="fixed inset-0 z-50 flex animate-appear items-start justify-center bg-black/45 p-4 backdrop-blur-sm sm:items-center"
-    @click.self="handleClose"
-  >
+  <Teleport to="body">
     <div
-      class="glass-strong hairline shadow-float flex max-h-[calc(100dvh-2rem)] w-full max-w-md animate-pop flex-col gap-5 overflow-y-auto rounded-card p-5 sm:max-h-[85vh] sm:p-8"
+      v-if="open"
+      class="fixed inset-0 z-50 flex animate-appear items-start justify-center bg-black/45 p-4 backdrop-blur-sm sm:items-center"
+      @click.self="handleClose"
     >
-      <div class="flex items-center justify-between gap-4">
-        <h2 class="m-0 text-xl font-semibold tracking-tight text-main">Личный чат</h2>
-        <button
-          type="button"
-          class="press flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-second hover:bg-main/6 hover:text-main"
-          aria-label="Закрыть"
-          @click="handleClose"
-        >
-          <NavIcon name="cancel" />
-        </button>
-      </div>
-
-      <div class="flex min-h-0 flex-1 flex-col gap-3">
-        <Input v-model="searchQuery" placeholder="Имя, фамилия, email..." autofocus />
-
-        <div
-          v-if="searchQuery.trim() !== ''"
-          class="hairline glass-field flex max-h-56 flex-col overflow-y-auto rounded-card"
-        >
+      <div
+        class="glass-strong hairline shadow-float flex max-h-[calc(100dvh-2rem)] w-full max-w-md animate-pop flex-col gap-5 overflow-y-auto rounded-card p-5 sm:max-h-[85vh] sm:p-8"
+      >
+        <div class="flex items-center justify-between gap-4">
+          <h2 class="m-0 text-xl font-semibold tracking-tight text-main">Личный чат</h2>
           <button
-            v-for="user in searchResults"
-            :key="user.id"
             type="button"
-            class="press flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left hover:bg-main/5 disabled:cursor-not-allowed disabled:opacity-60"
-            :disabled="startingUserId !== null"
-            @click="startChat(user)"
+            class="press flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-second hover:bg-main/6 hover:text-main"
+            aria-label="Закрыть"
+            @click="handleClose"
           >
-            <Avatar :label="initials(user)" size="sm" />
-            <span class="flex flex-col gap-0.5 overflow-hidden">
-              <span class="truncate text-[15px] font-medium text-main">{{ fullName(user) }}</span>
-              <span class="truncate text-xs text-second">{{ user.email }}</span>
-            </span>
+            <NavIcon name="cancel" />
           </button>
+        </div>
 
-          <div v-if="searchResults.length === 0" class="px-3 py-5 text-center text-sm text-second">
-            Никого не найдено
+        <div class="flex min-h-0 flex-1 flex-col gap-3">
+          <Input v-model="searchQuery" placeholder="Имя, фамилия, email..." autofocus />
+
+          <div
+            v-if="searchQuery.trim() !== ''"
+            class="hairline glass-field flex max-h-56 flex-col overflow-y-auto rounded-card"
+          >
+            <button
+              v-for="user in searchResults"
+              :key="user.id"
+              type="button"
+              class="press flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left hover:bg-main/5 disabled:cursor-not-allowed disabled:opacity-60"
+              :disabled="startingUserId !== null"
+              @click="startChat(user)"
+            >
+              <Avatar :label="initials(user)" size="sm" />
+              <span class="flex flex-col gap-0.5 overflow-hidden">
+                <span class="truncate text-[15px] font-medium text-main">{{ fullName(user) }}</span>
+                <span class="truncate text-xs text-second">{{ user.email }}</span>
+              </span>
+            </button>
+
+            <div
+              v-if="searchResults.length === 0"
+              class="px-3 py-5 text-center text-sm text-second"
+            >
+              Никого не найдено
+            </div>
           </div>
         </div>
-      </div>
 
-      <Button variant="ghost" icon="cancel" :short-mode="false" @click="handleClose">
-        Отмена
-      </Button>
+        <Button variant="ghost" icon="cancel" :short-mode="false" @click="handleClose">
+          Отмена
+        </Button>
+      </div>
     </div>
-  </div>
+  </Teleport>
 </template>
