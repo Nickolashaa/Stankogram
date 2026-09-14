@@ -60,6 +60,13 @@ type CreateMessage {
 
 union CreateMessageUpdateMessageDeleteMessage = CreateMessage | UpdateMessage | DeleteMessage
 
+type CreatedUser {
+  user: User!
+  password: String!
+}
+
+union CreatedUserObjectAlreadyExistsError = CreatedUser | ObjectAlreadyExistsError
+
 """Date with time (isoformat)"""
 scalar DateTime
 
@@ -145,7 +152,7 @@ type Mutation {
   login(input: UserCredentialsIn!): JWTsObjectNotFoundError!
   refresh: JWTsUnauthorizedErrorObjectNotFoundError!
   logout: Void
-  userCreate(input: UserIn!): UserObjectAlreadyExistsError!
+  userCreate(input: UserIn!): CreatedUserObjectAlreadyExistsError!
   usersImport(file: Upload!): UsersImportReportInvalidInputError!
   userUpdate(id: Int!, input: UserIn!): UserObjectAlreadyExistsErrorObjectNotFoundError!
   userDelete(id: Int!): Void
@@ -268,8 +275,6 @@ input UserIn {
   role: EUserRole!
   isAdmin: Boolean!
 }
-
-union UserObjectAlreadyExistsError = User | ObjectAlreadyExistsError
 
 union UserObjectAlreadyExistsErrorObjectNotFoundError = User | ObjectAlreadyExistsError | ObjectNotFoundError
 
