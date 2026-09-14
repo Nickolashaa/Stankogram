@@ -214,15 +214,18 @@ type SystemNotification implements IBaseType {
   updatedAt: DateTime!
   title: String!
   text: String!
+  expiresAt: DateTime
 }
 
 input SystemNotificationFiltersIn {
   onlyUnread: Boolean
+  onlyActive: Boolean
 }
 
 input SystemNotificationIn {
   title: String!
   text: String!
+  expiresAt: DateTime
 }
 
 union SystemNotificationObjectNotFoundError = SystemNotification | ObjectNotFoundError
