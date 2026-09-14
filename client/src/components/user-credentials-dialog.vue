@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useClipboard } from "@vueuse/core"
 import Button from "@/components/button.vue"
+import { buildInviteText } from "@/lib/invite"
 import { notify } from "@/lib/notify"
 
 const props = defineProps<{
@@ -15,9 +16,9 @@ const emit = defineEmits<{
 
 const { copy, isSupported } = useClipboard()
 
-async function copyCredentials() {
-  await copy(`${props.email}\n${props.password}`)
-  notify.success("Данные для входа скопированы")
+async function copyInvite() {
+  await copy(buildInviteText(props.email, props.password))
+  notify.success("Приглашение скопировано")
 }
 </script>
 
@@ -34,8 +35,8 @@ async function copyCredentials() {
         <h2 class="m-0 text-xl font-semibold tracking-tight text-main">Пользователь создан</h2>
 
         <p class="m-0 text-sm text-second">
-          Пароль показывается один раз — передайте данные сотруднику. Забытый пароль
-          восстанавливается через «Забыли пароль?» на странице входа.
+          Пароль показывается один раз. Кнопка ниже копирует готовое приглашение со ссылкой на сайт
+          — отправьте его сотруднику.
         </p>
 
         <div class="glass-field hairline flex flex-col gap-3 rounded-input px-4 py-3">
@@ -56,9 +57,9 @@ async function copyCredentials() {
             icon="save"
             :short-mode="false"
             class="flex-1"
-            @click="copyCredentials"
+            @click="copyInvite"
           >
-            Скопировать
+            Скопировать приглашение
           </Button>
           <Button icon="cancel" :short-mode="false" class="flex-1" @click="emit('close')">
             Готово
