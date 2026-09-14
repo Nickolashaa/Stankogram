@@ -2,6 +2,7 @@
 import { ref, watch } from "vue"
 import Input from "@/components/input.vue"
 import Button from "@/components/button.vue"
+import { fromDateTimeInput, toDateTimeInput } from "@/lib/format"
 import type { SystemNotificationIn } from "@/graphql/base-types"
 import type { SystemNotificationFieldsFragment } from "@/graphql/fragments/system-notifications.generated"
 
@@ -19,6 +20,7 @@ const emit = defineEmits<{
 
 const notificationTitle = ref("")
 const text = ref("")
+const expiresAt = ref("")
 
 watch(
   () => props.open,
@@ -28,6 +30,9 @@ watch(
     }
     notificationTitle.value = props.initialNotification?.title ?? ""
     text.value = props.initialNotification?.text ?? ""
+
+    const initialExpiresAt = props.initialNotification?.expiresAt
+    expiresAt.value = initialExpiresAt == null ? "" : toDateTimeInput(initialExpiresAt)
   },
   { immediate: true },
 )
@@ -40,7 +45,11 @@ function handleSubmit() {
   if (notificationTitle.value.trim() === "" || text.value.trim() === "") {
     return
   }
-  emit("submit", { title: notificationTitle.value.trim(), text: text.value.trim() })
+  emit("submit", {
+    title: notificationTitle.value.trim(),
+    text: text.value.trim(),
+    expiresAt: expiresAt.value === "" ? null : fromDateTimeInput(expiresAt.value),
+  })
 }
 </script>
 
@@ -65,6 +74,20 @@ function handleSubmit() {
           placeholder="Текст уведомления"
           class="glass-field hairline box-border w-full resize-y rounded-input px-4 py-3 font-sans text-[15px] text-main outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-second/80 focus-glow"
         />
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-semibold tracking-wider text-second uppercase">
+            Показывать до
+          </label>
+          <input
+            v-model="expiresAt"
+            type="datetime-local"
+            class="glass-field hairline box-border h-12 w-full rounded-input px-4 font-sans text-[15px] text-main outline-none transition-[border-color,box-shadow] duration-200 focus-glow"
+          />
+          <span class="text-xs text-second">
+            Пустое поле — уведомление висит бессрочно, пока пользователь его не скроет
+          </span>
+        </div>
 
         <div class="mt-2 flex gap-2">
           <Button

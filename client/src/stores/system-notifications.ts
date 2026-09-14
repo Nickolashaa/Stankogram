@@ -20,7 +20,10 @@ export const useSystemNotificationStore = defineStore("systemNotifications", () 
   async function fetchUnreadNotifications(limit: number, offset: number) {
     const { data } = await apolloClient.query({
       query: MeSystemNotificationsDocument,
-      variables: { filters: { onlyUnread: true }, pagination: { limit, offset } },
+      variables: {
+        filters: { onlyUnread: true, onlyActive: true },
+        pagination: { limit, offset },
+      },
       fetchPolicy: "network-only",
     })
 
