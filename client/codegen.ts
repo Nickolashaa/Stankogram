@@ -3,6 +3,7 @@ import type { CodegenConfig } from "@graphql-codegen/cli"
 const scalars = {
   DateTime: { input: "string", output: "string" },
   Void: { input: "null", output: "null" },
+  Upload: { input: "File", output: "File" },
 }
 
 const config: CodegenConfig = {

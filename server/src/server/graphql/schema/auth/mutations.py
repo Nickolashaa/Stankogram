@@ -1,16 +1,26 @@
-from typing import Union
+from typing import Union, cast
 from uuid import UUID
 
 import jwt
 import strawberry
+from fastapi import UploadFile
+from strawberry.file_uploads import Upload
 
 from ....config import JWT_REFRESH_EXP_DAYS
 from ....services.auth.schemas import JWTPayload
-from ....services.exceptions import ObjectAlreadyExists, ObjectNotFound
+from ....services.exceptions import InvalidInput, ObjectAlreadyExists, ObjectNotFound
 from ...context import AppInfo, AuthorizedAppInfo
-from ...permissions.auth import IsAdmin
-from ...types.auth import JWTs, User, UserCredentialsIn, UserIn
+from ...permissions.auth import IsAdmin, IsAuthenticated
+from ...types.auth import (
+    CreatedUser,
+    JWTs,
+    User,
+    UserCredentialsIn,
+    UserIn,
+    UsersImportReport,
+)
 from ...types.errors import (
+    InvalidInputError,
     ObjectAlreadyExistsError,
     ObjectNotFoundError,
     UnauthorizedError,
@@ -106,23 +116,38 @@ class AuthMutation:
         except Exception:
             pass
 
-    @strawberry.mutation(permission_classes=[IsAdmin])
+    @strawberry.mutation(permission_classes=[IsAuthenticated, IsAdmin])
     async def user_create(
         self,
         info: AuthorizedAppInfo,
         input: UserIn,
-    ) -> User | ObjectAlreadyExistsError:
+    ) -> CreatedUser | ObjectAlreadyExistsError:
         try:
             instance = await info.context.services.auth_service.create(
                 **input.to_create_service_params()
             )
             await info.context.session.commit()
-            return User.from_schema(instance)
+            return CreatedUser.from_schema(instance)
         except ObjectAlreadyExists as e:
             await info.context.session.rollback()
             return ObjectAlreadyExistsError.from_service_exception(e)
 
-    @strawberry.mutation(permission_classes=[IsAdmin])
+    @strawberry.mutation(permission_classes=[IsAuthenticated, IsAdmin])
+    async def users_import(
+        self,
+        info: AuthorizedAppInfo,
+        file: Upload,
+    ) -> UsersImportReport | InvalidInputError:
+        try:
+            report = await info.context.services.auth_service.import_users(
+                content=await cast(UploadFile, file).read(),
+            )
+        except InvalidInput as e:
+            return InvalidInputError.from_service_exception(e)
+
+        return UsersImportReport.from_schema(report)
+
+    @strawberry.mutation(permission_classes=[IsAuthenticated, IsAdmin])
     async def user_update(
         self,
         info: AuthorizedAppInfo,
@@ -142,7 +167,7 @@ class AuthMutation:
             await info.context.session.rollback()
             return ObjectNotFoundError.from_service_exception(e)
 
-    @strawberry.mutation(permission_classes=[IsAdmin])
+    @strawberry.mutation(permission_classes=[IsAuthenticated, IsAdmin])
     async def user_delete(
         self,
         info: AuthorizedAppInfo,

@@ -22,6 +22,8 @@ export type IconName =
   | "palette"
   | "bell"
   | "smile"
+  | "upload"
+  | "download"
 
 const props = withDefaults(
   defineProps<{
@@ -165,6 +167,18 @@ const props = withDefaults(
       <path d="M8.5 14.5a4.5 4.5 0 0 0 7 0" />
       <circle cx="9" cy="9.5" r="1" fill="currentColor" stroke="none" />
       <circle cx="15" cy="9.5" r="1" fill="currentColor" stroke="none" />
+    </template>
+
+    <template v-else-if="name === 'upload'">
+      <path d="M12 16V4" />
+      <path d="m7 9 5-5 5 5" />
+      <path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
+    </template>
+
+    <template v-else-if="name === 'download'">
+      <path d="M12 4v12" />
+      <path d="m7 11 5 5 5-5" />
+      <path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
     </template>
   </svg>
 </template>

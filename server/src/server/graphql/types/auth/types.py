@@ -2,8 +2,13 @@ from typing import Self
 
 import strawberry
 
-from ....services.auth.schemas import JWTsSchema, UserResponse
-from ..base import IBaseMeta, IBaseType
+from ....services.auth.schemas import (
+    CreatedUserSchema,
+    JWTsSchema,
+    UserResponse,
+    UsersImportReportSchema,
+)
+from ..base import IBaseMeta, IBaseType, XlsxFile
 from .enums import EUserRole
 
 
@@ -38,6 +43,19 @@ class User(IBaseType):
 
 
 @strawberry.type
+class CreatedUser:
+    user: User
+    password: str
+
+    @classmethod
+    def from_schema(cls, instance: CreatedUserSchema) -> Self:
+        return cls(
+            user=User.from_schema(instance.user),
+            password=instance.password,
+        )
+
+
+@strawberry.type
 class JWTs:
     access_token: str
     refresh_token: str
@@ -56,3 +74,20 @@ class JWTs:
 @strawberry.type
 class UsersMeta(IBaseMeta):
     users: list[User]
+
+
+@strawberry.type
+class UsersImportReport:
+    file: XlsxFile
+    total: int
+    succeeded: int
+    failed: int
+
+    @classmethod
+    def from_schema(cls, instance: UsersImportReportSchema) -> Self:
+        return cls(
+            file=XlsxFile.from_schema(instance.file),
+            total=instance.total,
+            succeeded=instance.succeeded,
+            failed=instance.failed,
+        )

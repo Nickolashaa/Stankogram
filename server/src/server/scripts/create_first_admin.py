@@ -16,7 +16,7 @@ async def _create_first_admin() -> None:
             return
 
         service = AuthService(session)
-        await service.create(
+        created = await service.create(
             name=input("Name: "),
             surname=input("Surname: "),
             patronymic=input("Patronymic: "),
@@ -26,7 +26,7 @@ async def _create_first_admin() -> None:
         )
         await session.commit()
 
-    print("Success, credentials sended in your email.")
+    print(f"Success. Email: {created.user.email}, password: {created.password}")
 
 
 def main() -> None:

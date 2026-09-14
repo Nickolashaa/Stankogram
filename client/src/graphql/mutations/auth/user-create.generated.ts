@@ -27,27 +27,33 @@ export type UserCreateMutationVariables = Exact<{
 
 export type UserCreateMutation = {
   userCreate:
-    | { __typename: "ObjectAlreadyExistsError"; message: string }
     | {
-        __typename: "User"
-        id: number
-        createdAt: string
-        updatedAt: string
-        name: string
-        surname: string
-        patronymic: string | null
-        email: string
-        role: Types.EUserRole
-        isAdmin: boolean
+        __typename: "CreatedUser"
+        password: string
+        user: {
+          id: number
+          createdAt: string
+          updatedAt: string
+          name: string
+          surname: string
+          patronymic: string | null
+          email: string
+          role: Types.EUserRole
+          isAdmin: boolean
+        }
       }
+    | { __typename: "ObjectAlreadyExistsError"; message: string }
 }
 
 export const UserCreateDocument = gql`
   mutation UserCreate($input: UserIn!) {
     userCreate(input: $input) {
       __typename
-      ... on User {
-        ...UserFields
+      ... on CreatedUser {
+        password
+        user {
+          ...UserFields
+        }
       }
       ... on ObjectAlreadyExistsError {
         message

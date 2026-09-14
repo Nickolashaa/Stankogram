@@ -5,5 +5,7 @@ from .context_getter import context_getter
 from .schema import schema
 
 graphql_router = GraphQLRouter[Context, None](
-    schema=schema, context_getter=context_getter
+    schema=schema,
+    context_getter=context_getter,
+    multipart_uploads_enabled=True,
 )

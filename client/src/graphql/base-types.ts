@@ -9,6 +9,8 @@ export type Scalars = {
   Float: { input: number; output: number }
   /** Date with time (isoformat) */
   DateTime: { input: string; output: string }
+  /** Represents a file upload. */
+  Upload: { input: File; output: File }
   /** Represents NULL values */
   Void: { input: null; output: null }
 }
@@ -83,6 +85,14 @@ export type CreateMessage = {
 }
 
 export type CreateMessageUpdateMessageDeleteMessage = CreateMessage | DeleteMessage | UpdateMessage
+
+export type CreatedUser = {
+  __typename?: "CreatedUser"
+  password: Scalars["String"]["output"]
+  user: User
+}
+
+export type CreatedUserObjectAlreadyExistsError = CreatedUser | ObjectAlreadyExistsError
 
 export type DeleteMessage = {
   __typename?: "DeleteMessage"
@@ -190,11 +200,12 @@ export type Mutation = {
   updateChatParticipantPermissions: ChatParticipantObjectNotFoundError
   updateMessage: MessageObjectNotFoundError
   updateSystemNotification: SystemNotificationObjectNotFoundError
-  userCreate: UserObjectAlreadyExistsError
+  userCreate: CreatedUserObjectAlreadyExistsError
   userDelete?: Maybe<Scalars["Void"]["output"]>
   userResetPasswordConfirm?: Maybe<ObjectNotFoundError>
   userResetPasswordRequest?: Maybe<ObjectNotFoundError>
   userUpdate: UserObjectAlreadyExistsErrorObjectNotFoundError
+  usersImport: UsersImportReportInvalidInputError
 }
 
 export type MutationAddParticipantToChatArgs = {
@@ -287,6 +298,10 @@ export type MutationUserUpdateArgs = {
   input: UserIn
 }
 
+export type MutationUsersImportArgs = {
+  file: Scalars["Upload"]["input"]
+}
+
 export type ObjectAlreadyExistsError = IAppError & {
   __typename?: "ObjectAlreadyExistsError"
   message: Scalars["String"]["output"]
@@ -316,6 +331,7 @@ export type Query = {
   messages: MessagesMeta
   systemNotifications: SystemNotificationsMeta
   users: UsersMeta
+  usersImportTemplate: XlsxFile
 }
 
 export type QueryChatsArgs = {
@@ -422,15 +438,29 @@ export type UserIn = {
   surname: Scalars["String"]["input"]
 }
 
-export type UserObjectAlreadyExistsError = ObjectAlreadyExistsError | User
-
 export type UserObjectAlreadyExistsErrorObjectNotFoundError =
   ObjectAlreadyExistsError | ObjectNotFoundError | User
 
 export type UserObjectNotFoundError = ObjectNotFoundError | User
 
+export type UsersImportReport = {
+  __typename?: "UsersImportReport"
+  failed: Scalars["Int"]["output"]
+  file: XlsxFile
+  succeeded: Scalars["Int"]["output"]
+  total: Scalars["Int"]["output"]
+}
+
+export type UsersImportReportInvalidInputError = InvalidInputError | UsersImportReport
+
 export type UsersMeta = IBaseMeta & {
   __typename?: "UsersMeta"
   count: Scalars["Int"]["output"]
   users: Array<User>
+}
+
+export type XlsxFile = {
+  __typename?: "XlsxFile"
+  content: Scalars["String"]["output"]
+  filename: Scalars["String"]["output"]
 }

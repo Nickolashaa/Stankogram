@@ -3,9 +3,9 @@ from typing import Union
 import strawberry
 
 from ...context import AuthorizedAppInfo
-from ...permissions.auth import IsAuthenticated
+from ...permissions.auth import IsAdmin, IsAuthenticated
 from ...types.auth import User, UserFiltersIn, UsersMeta
-from ...types.base import BasePaginationIn, default_pagination
+from ...types.base import BasePaginationIn, XlsxFile, default_pagination
 from ...types.errors import ObjectNotFoundError
 
 
@@ -39,4 +39,12 @@ class AuthQuery:
             count=await info.context.services.auth_service.count(
                 **filters.to_service_params() if filters is not None else {}
             ),
+        )
+
+    @strawberry.field(permission_classes=[IsAuthenticated, IsAdmin])
+    async def users_import_template(
+        info: AuthorizedAppInfo,
+    ) -> XlsxFile:
+        return XlsxFile.from_schema(
+            info.context.services.auth_service.build_import_template()
         )
