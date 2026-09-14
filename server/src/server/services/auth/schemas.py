@@ -8,7 +8,7 @@ from ...config import (
     JWT_SECRET_KEY,
 )
 from ...enums.users import UserRole
-from ..base import BaseResponse, Schema
+from ..base import BaseResponse, Schema, XlsxFileSchema
 
 
 class JWTsSchema(Schema):
@@ -48,3 +48,24 @@ class UserResponse(BaseResponse):
     role: UserRole
     is_admin: bool
     full_name: str
+
+
+class UserImportRowSchema(Schema):
+    name: str
+    surname: str
+    patronymic: str | None
+    email: str
+    role: str
+
+
+class UserImportResultSchema(Schema):
+    row: UserImportRowSchema
+    is_success: bool
+    reason: str | None
+
+
+class UsersImportReportSchema(Schema):
+    file: XlsxFileSchema
+    total: int
+    succeeded: int
+    failed: int

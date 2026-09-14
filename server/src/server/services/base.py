@@ -47,3 +47,8 @@ class BaseResponse(Schema):
     id: int
     created_at: datetime
     updated_at: datetime
+
+
+class XlsxFileSchema(Schema):
+    filename: str
+    content: bytes

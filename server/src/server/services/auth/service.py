@@ -1,12 +1,15 @@
+import asyncio
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from secrets import choice
 from string import Template, ascii_letters, digits
-from typing import Unpack
+from typing import Sequence, Unpack
 from uuid import UUID, uuid4
 
 import bcrypt
 import jwt
+from pydantic import TypeAdapter, ValidationError
+from pydantic.networks import EmailStr
 from sqlalchemy import Select, delete, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError
 
@@ -17,12 +20,39 @@ from ...config import (
     PASSWORD_LEN,
     PASSWORD_RESET_CODE_EXP_MINUTES,
     PASSWORD_RESET_CODE_LEN,
+    USERS_IMPORT_EMAIL_CONCURRENCY,
+    USERS_IMPORT_MAX_ROWS,
 )
 from ...database.models.auth import CancelledToken, PasswordResetCode, User
+from ...enums.users import UserRole
 from ...utils.smtp import send_email
+from ...utils.xlsx import (
+    add_column_choices,
+    add_fields_sheet,
+    add_table_sheet,
+    add_text_sheet,
+    apply_failure_style,
+    apply_success_style,
+    create_workbook,
+    read_rows,
+    to_bytes,
+)
 from ..base import BasePagination, BaseService
-from ..exceptions import ObjectAlreadyExists, ObjectNotFound, Unauthorized
-from .schemas import JWTPayload, JWTsSchema, UserResponse
+from ..exceptions import (
+    InvalidInput,
+    ObjectAlreadyExists,
+    ObjectNotFound,
+    Unauthorized,
+)
+from .schemas import (
+    JWTPayload,
+    JWTsSchema,
+    UserImportResultSchema,
+    UserImportRowSchema,
+    UserResponse,
+    UsersImportReportSchema,
+    XlsxFileSchema,
+)
 from .types import (
     UserCreateParams,
     UserCredentials,
@@ -46,11 +76,54 @@ _PASSWORD_RESET_CONFIRM_EMAIL_TEMPLATE = Template(
     )
 )
 
+_EMAIL_ADAPTER = TypeAdapter(EmailStr)
+
+_CREATE_EMAIL_SUBJECT = "Stankogram:Данные для входа"
+
+_IMPORT_TEMPLATE_FILENAME = "Шаблон импорта сотрудников.xlsx"
+_IMPORT_REPORT_FILENAME = "Результат импорта сотрудников.xlsx"
+
+_IMPORT_HEADERS = ("Имя", "Фамилия", "Отчество", "Почта", "Роль")
+_IMPORT_RESULT_HEADERS = ("Результат", "Причина")
+_IMPORT_SUCCESS = "ОК"
+_IMPORT_FAILURE = "Ошибка"
+
+_IMPORT_ROLE_LABELS = {
+    UserRole.STUDENT: "Студент",
+    UserRole.TEACHER: "Преподаватель",
+}
+_IMPORT_ROLES = {
+    label.casefold(): role for role, label in _IMPORT_ROLE_LABELS.items()
+} | {role.value.casefold(): role for role in UserRole}
+
+_IMPORT_SHEET_TITLE = "Сотрудники"
+_IMPORT_SUMMARY_SHEET_TITLE = "Итоги"
+_IMPORT_GUIDE_SHEET_TITLE = "Инструкция"
+
+_IMPORT_TEMPLATE_WIDTHS = (22, 22, 24, 38, 20)
+
+_IMPORT_GUIDE_LINES = (
+    f"Заполните лист «{_IMPORT_SHEET_TITLE}», начиная со второй строки.",
+    "Имя, Фамилия, Почта и Роль обязательны, Отчество можно оставить пустым.",
+    "Почта должна быть корректной и не должна повторяться.",
+    "Роль выбирается из списка в ячейке: "
+    + " или ".join(f"«{label}»" for label in _IMPORT_ROLE_LABELS.values())
+    + ".",
+    "Строки без данных пропускаются.",
+    f"За один раз можно загрузить не больше {USERS_IMPORT_MAX_ROWS} строк.",
+    "Каждому сотруднику создаётся аккаунт, данные для входа уходят на его почту.",
+    "В ответ вернётся тот же файл с колонками «Результат» и «Причина».",
+)
+
 
 class AuthService(BaseService):
     @staticmethod
     def _generate_password() -> str:
         return "".join(choice(ascii_letters + digits) for _ in range(PASSWORD_LEN))
+
+    @staticmethod
+    def _hash_password(password: str) -> str:
+        return bcrypt.hashpw(password=password.encode(), salt=bcrypt.gensalt()).decode()
 
     @staticmethod
     def _generate_password_reset_code() -> str:
@@ -104,9 +177,7 @@ class AuthService(BaseService):
         **values: Unpack[UserCreateParams],
     ) -> UserResponse:
         password = self._generate_password()
-        hashed_password = bcrypt.hashpw(
-            password=password.encode(), salt=bcrypt.gensalt()
-        ).decode()
+        hashed_password = self._hash_password(password)
 
         stmt = (
             insert(User)
@@ -126,7 +197,7 @@ class AuthService(BaseService):
 
         await send_email(
             to_email=values.get("email"),
-            subject="Stankogram:Данные для входа",
+            subject=_CREATE_EMAIL_SUBJECT,
             body=self._generate_create_email(
                 email=values.get("email"), password=password
             ),
@@ -307,9 +378,7 @@ class AuthService(BaseService):
         await self._execute(stmt)
 
         new_password = self._generate_password()
-        new_hashed_password = bcrypt.hashpw(
-            password=new_password.encode(), salt=bcrypt.gensalt()
-        ).decode()
+        new_hashed_password = self._hash_password(new_password)
 
         stmt = (
             update(User)
@@ -342,3 +411,267 @@ class AuthService(BaseService):
             raise Unauthorized("Invalid token type")
 
         return await self.get(payload.id)
+
+    @staticmethod
+    def _parse_import_role(value: str) -> UserRole | None:
+        return _IMPORT_ROLES.get(value.casefold())
+
+    @classmethod
+    def _validate_import_row(cls, row: UserImportRowSchema) -> str | None:
+        if not row.name:
+            return "Не указано имя"
+        if not row.surname:
+            return "Не указана фамилия"
+        if not row.email:
+            return "Не указана почта"
+        try:
+            _EMAIL_ADAPTER.validate_python(row.email)
+        except ValidationError:
+            return "Некорректный формат почты"
+        if not row.role:
+            return "Не указана роль"
+        if cls._parse_import_role(row.role) is None:
+            return "Неизвестная роль, допустимо: " + ", ".join(
+                _IMPORT_ROLE_LABELS.values()
+            )
+        return None
+
+    async def _send_import_emails(
+        self,
+        created: Sequence[tuple[int, int, str, str]],
+        results: list[UserImportResultSchema],
+    ) -> None:
+        if not created:
+            return
+
+        semaphore = asyncio.Semaphore(USERS_IMPORT_EMAIL_CONCURRENCY)
+
+        async def send(email: str, password: str) -> bool:
+            async with semaphore:
+                try:
+                    await send_email(
+                        to_email=email,
+                        subject=_CREATE_EMAIL_SUBJECT,
+                        body=self._generate_create_email(
+                            email=email, password=password
+                        ),
+                    )
+                    return True
+                except Exception:
+                    return False
+
+        sent = await asyncio.gather(
+            *(send(email, password) for _, _, email, password in created)
+        )
+
+        failed = [item for item, is_sent in zip(created, sent) if not is_sent]
+        if not failed:
+            return
+
+        stmt = delete(User).where(User.id.in_([user_id for _, user_id, _, _ in failed]))
+        await self._execute(stmt)
+        await self._session.commit()
+
+        for index, _, _, _ in failed:
+            results[index] = UserImportResultSchema(
+                row=results[index].row,
+                is_success=False,
+                reason="Не удалось отправить письмо с данными для входа",
+            )
+
+    @staticmethod
+    def _is_import_header_valid(cells: Sequence[str]) -> bool:
+        return [cell.casefold() for cell in cells] == [
+            title.casefold() for title in _IMPORT_HEADERS
+        ]
+
+    @classmethod
+    def _read_import_rows(cls, content: bytes) -> list[UserImportRowSchema]:
+        try:
+            cells_rows = list(read_rows(content, len(_IMPORT_HEADERS)))
+        except Exception:
+            raise InvalidInput(
+                "Не удалось прочитать файл, ожидается таблица формата xlsx"
+            )
+
+        if not cells_rows or not cls._is_import_header_valid(cells_rows[0]):
+            raise InvalidInput(
+                "Первая строка файла должна содержать колонки: "
+                + ", ".join(_IMPORT_HEADERS)
+            )
+
+        rows: list[UserImportRowSchema] = []
+        for name, surname, patronymic, email, role in cells_rows[1:]:
+            if not any((name, surname, patronymic, email, role)):
+                continue
+
+            if len(rows) == USERS_IMPORT_MAX_ROWS:
+                raise InvalidInput(
+                    f"В файле больше {USERS_IMPORT_MAX_ROWS} строк с сотрудниками"
+                )
+
+            rows.append(
+                UserImportRowSchema(
+                    name=name,
+                    surname=surname,
+                    patronymic=patronymic or None,
+                    email=email,
+                    role=role,
+                )
+            )
+
+        if not rows:
+            raise InvalidInput("В файле нет ни одного сотрудника")
+
+        return rows
+
+    @staticmethod
+    def _build_import_report(results: Sequence[UserImportResultSchema]) -> bytes:
+        workbook = create_workbook()
+
+        sheet = add_table_sheet(
+            workbook,
+            title=_IMPORT_SHEET_TITLE,
+            headers=_IMPORT_HEADERS + _IMPORT_RESULT_HEADERS,
+            rows=[
+                (
+                    result.row.name,
+                    result.row.surname,
+                    result.row.patronymic or "",
+                    result.row.email,
+                    result.row.role,
+                    _IMPORT_SUCCESS if result.is_success else _IMPORT_FAILURE,
+                    result.reason or "",
+                )
+                for result in results
+            ],
+        )
+
+        for number, result in enumerate(results, start=2):
+            cell = sheet.cell(row=number, column=len(_IMPORT_HEADERS) + 1)
+            if result.is_success:
+                apply_success_style(cell)
+            else:
+                apply_failure_style(cell)
+
+        succeeded = sum(1 for result in results if result.is_success)
+        summary = add_fields_sheet(
+            workbook,
+            title=_IMPORT_SUMMARY_SHEET_TITLE,
+            heading="Итоги импорта",
+            fields=(
+                ("Всего строк", len(results)),
+                ("Зарегистрировано", succeeded),
+                ("С ошибками", len(results) - succeeded),
+            ),
+        )
+        apply_success_style(summary.cell(row=4, column=2))
+        apply_failure_style(summary.cell(row=5, column=2))
+
+        return to_bytes(workbook)
+
+    @staticmethod
+    def build_import_template() -> XlsxFileSchema:
+        workbook = create_workbook()
+
+        sheet = add_table_sheet(
+            workbook,
+            title=_IMPORT_SHEET_TITLE,
+            headers=_IMPORT_HEADERS,
+            widths=_IMPORT_TEMPLATE_WIDTHS,
+        )
+        add_column_choices(
+            sheet,
+            column=len(_IMPORT_HEADERS),
+            choices=list(_IMPORT_ROLE_LABELS.values()),
+            rows=USERS_IMPORT_MAX_ROWS,
+        )
+        add_text_sheet(
+            workbook,
+            title=_IMPORT_GUIDE_SHEET_TITLE,
+            heading="Импорт сотрудников",
+            lines=_IMPORT_GUIDE_LINES,
+        )
+
+        return XlsxFileSchema(
+            filename=_IMPORT_TEMPLATE_FILENAME,
+            content=to_bytes(workbook),
+        )
+
+    async def import_users(
+        self,
+        content: bytes,
+    ) -> UsersImportReportSchema:
+        results = await self._register_import_rows(self._read_import_rows(content))
+        succeeded = sum(1 for result in results if result.is_success)
+
+        return UsersImportReportSchema(
+            file=XlsxFileSchema(
+                filename=_IMPORT_REPORT_FILENAME,
+                content=self._build_import_report(results),
+            ),
+            total=len(results),
+            succeeded=succeeded,
+            failed=len(results) - succeeded,
+        )
+
+    async def _register_import_rows(
+        self,
+        rows: Sequence[UserImportRowSchema],
+    ) -> list[UserImportResultSchema]:
+        results: list[UserImportResultSchema] = []
+        created: list[tuple[int, int, str, str]] = []
+        emails: set[str] = set()
+
+        for row in rows:
+            reason = self._validate_import_row(row)
+            if reason is None and row.email.casefold() in emails:
+                reason = "Почта повторяется в файле"
+
+            if reason is not None:
+                results.append(
+                    UserImportResultSchema(row=row, is_success=False, reason=reason)
+                )
+                continue
+
+            emails.add(row.email.casefold())
+
+            password = self._generate_password()
+            hashed_password = await asyncio.to_thread(self._hash_password, password)
+
+            stmt = (
+                insert(User)
+                .values(
+                    name=row.name,
+                    surname=row.surname,
+                    patronymic=row.patronymic,
+                    email=row.email,
+                    hashed_password=hashed_password,
+                    role=self._parse_import_role(row.role),
+                )
+                .returning(User.id)
+            )
+
+            try:
+                res = await self._execute(stmt)
+                user_id = res.scalar_one()
+                await self._session.commit()
+            except IntegrityError:
+                await self._session.rollback()
+                results.append(
+                    UserImportResultSchema(
+                        row=row,
+                        is_success=False,
+                        reason="Пользователь с такой почтой уже зарегистрирован",
+                    )
+                )
+                continue
+
+            created.append((len(results), user_id, row.email, password))
+            results.append(
+                UserImportResultSchema(row=row, is_success=True, reason=None)
+            )
+
+        await self._send_import_emails(created, results)
+
+        return results
