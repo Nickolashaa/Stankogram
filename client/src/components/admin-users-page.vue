@@ -10,6 +10,8 @@ import Button from "@/components/button.vue"
 import AdminUserFilters from "@/components/admin-user-filters.vue"
 import AdminUsersTable from "@/components/admin-users-table.vue"
 import AdminUserFormDialog from "@/components/admin-user-form-dialog.vue"
+import AdminUsersImport from "@/components/admin-users-import.vue"
+import UserCredentialsDialog from "@/components/user-credentials-dialog.vue"
 import { notify } from "@/lib/notify"
 
 const PAGE_SIZE = 20
@@ -58,6 +60,8 @@ watch(filterQuery, () => {
 
 onMounted(fetchUsers)
 
+const credentials = ref<{ email: string; password: string } | null>(null)
+
 const dialogOpen = ref(false)
 const dialogMode = ref<"create" | "edit">("create")
 const editingUser = ref<UserFieldsFragment | null>(null)
@@ -83,8 +87,8 @@ async function handleSubmit(data: UserIn) {
   saving.value = true
   try {
     if (dialogMode.value === "create") {
-      await userStore.createUser(data)
-      notify.success("Пользователь создан, данные для входа отправлены на почту")
+      const created = await userStore.createUser(data)
+      credentials.value = { email: created.user.email, password: created.password }
     } else if (editingUser.value !== null) {
       await userStore.updateUser(editingUser.value.id, data)
       notify.success("Данные пользователя обновлены")
@@ -97,6 +101,11 @@ async function handleSubmit(data: UserIn) {
   }
 
   dialogOpen.value = false
+  await fetchUsers()
+  infiniteScroll.reset()
+}
+
+async function handleImported() {
   await fetchUsers()
   infiniteScroll.reset()
 }
@@ -123,9 +132,12 @@ async function handleDelete(user: UserFieldsFragment) {
   <div class="flex animate-appear flex-col gap-6">
     <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
       <h1 class="m-0 text-2xl font-semibold tracking-tight text-main sm:text-3xl">Пользователи</h1>
-      <Button icon="plus" :short-mode="false" class="w-full sm:w-auto" @click="openCreateDialog"
-        >Создать пользователя</Button
-      >
+      <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+        <AdminUsersImport @imported="handleImported" />
+        <Button icon="plus" :short-mode="false" class="w-full sm:w-auto" @click="openCreateDialog"
+          >Создать пользователя</Button
+        >
+      </div>
     </div>
 
     <AdminUserFilters
@@ -140,6 +152,13 @@ async function handleDelete(user: UserFieldsFragment) {
       <span>Всего: {{ totalCount }}</span>
       <span v-if="infiniteScroll.isLoading.value">Загрузка...</span>
     </div>
+
+    <UserCredentialsDialog
+      :open="credentials !== null"
+      :email="credentials?.email ?? ''"
+      :password="credentials?.password ?? ''"
+      @close="credentials = null"
+    />
 
     <AdminUserFormDialog
       :open="dialogOpen"

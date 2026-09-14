@@ -13,14 +13,16 @@ function toWebSocketUrl(url: string): string {
   return resolved.toString()
 }
 
+export const API_URL = `${import.meta.env.VITE_API_URL}api`
+
 const httpLink = new HttpLink({
-  uri: `${import.meta.env.VITE_API_URL}api`,
+  uri: API_URL,
   credentials: "include",
 })
 
 const wsLink = new GraphQLWsLink(
   createClient({
-    url: `${toWebSocketUrl(import.meta.env.VITE_API_URL)}api`,
+    url: toWebSocketUrl(API_URL),
     connectionParams: () => {
       const { accessToken } = useAuthStore()
       return accessToken !== undefined ? { Authorization: `Bearer ${accessToken}` } : {}
@@ -38,7 +40,7 @@ const authLink = setContext((_operation, prevContext) => {
   }
 })
 
-const UNAUTHORIZED_MESSAGES = new Set(["User is not authenticated", "User is not admin"])
+export const UNAUTHORIZED_MESSAGES = new Set(["User is not authenticated", "User is not admin"])
 
 const errorLink = onError(({ graphQLErrors, operation, forward }) => {
   if (
