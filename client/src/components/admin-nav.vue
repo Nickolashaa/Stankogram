@@ -4,13 +4,13 @@ import NavIcon from "@/components/nav-icon.vue"
 const navItems: { to: string; label: string; icon: "users" | "chats" | "bell" }[] = [
   { to: "/admin/users", label: "Пользователи", icon: "users" },
   { to: "/admin/chats", label: "Групповые чаты", icon: "chats" },
-  { to: "/admin/notifications", label: "Уведомления", icon: "bell" },
+  { to: "/admin/notifications", label: "Системные уведомления", icon: "bell" },
 ]
 </script>
 
 <template>
   <nav
-    class="glass hairline-b flex shrink-0 gap-1.5 overflow-x-auto px-3 py-3 lg:w-60 lg:flex-col lg:overflow-visible lg:border-b-0 lg:py-8 lg:hairline-r"
+    class="glass hairline-b flex shrink-0 gap-1.5 overflow-x-auto px-3 py-3 lg:w-72 lg:flex-col lg:overflow-visible lg:border-b-0 lg:py-8 lg:hairline-r"
   >
     <RouterLink
       v-for="item in navItems"
@@ -33,7 +33,7 @@ const navItems: { to: string; label: string; icon: "users" | "chats" | "bell" }[
         >
           <NavIcon :name="item.icon" :size="18" />
         </span>
-        {{ item.label }}
+        <span class="whitespace-nowrap lg:whitespace-normal">{{ item.label }}</span>
       </a>
     </RouterLink>
   </nav>
