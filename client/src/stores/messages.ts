@@ -5,6 +5,7 @@ import { CreateMessageDocument } from "@/graphql/mutations/messages/create-messa
 import { UpdateMessageDocument } from "@/graphql/mutations/messages/update-message.generated"
 import { DeleteMessageDocument } from "@/graphql/mutations/messages/delete-message.generated"
 import { MessagesDocument } from "@/graphql/queries/messages/messages.generated"
+import { MessagePositionDocument } from "@/graphql/queries/messages/message-position.generated"
 import type { MessageFieldsFragment } from "@/graphql/fragments/messages.generated"
 import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
 
@@ -43,14 +44,24 @@ export const useMessageStore = defineStore("messages", () => {
     totalCount.value = data.messages.count
   }
 
-  async function sendMessage(text: string) {
+  async function fetchMessagePosition(messageId: number) {
+    const { data } = await apolloClient.query({
+      query: MessagePositionDocument,
+      variables: { messageId },
+      fetchPolicy: "network-only",
+    })
+
+    return data.messagePosition
+  }
+
+  async function sendMessage(text: string, mentionedUserIds: number[]) {
     if (chatId.value === null) {
       return
     }
 
     const { data } = await apolloClient.mutate({
       mutation: CreateMessageDocument,
-      variables: { input: { chatId: chatId.value, text } },
+      variables: { input: { chatId: chatId.value, text, mentionedUserIds } },
     })
 
     if (data === undefined || data === null || data.createMessage.__typename !== "Message") {
@@ -58,10 +69,10 @@ export const useMessageStore = defineStore("messages", () => {
     }
   }
 
-  async function updateMessage(messageId: number, text: string) {
+  async function updateMessage(messageId: number, text: string, mentionedUserIds: number[]) {
     const { data } = await apolloClient.mutate({
       mutation: UpdateMessageDocument,
-      variables: { messageId, input: { text } },
+      variables: { messageId, input: { text, mentionedUserIds } },
     })
 
     if (data === undefined || data === null || data.updateMessage.__typename !== "Message") {
@@ -117,6 +128,7 @@ export const useMessageStore = defineStore("messages", () => {
     totalCount,
     openChat,
     fetchMessages,
+    fetchMessagePosition,
     sendMessage,
     updateMessage,
     deleteMessage,
