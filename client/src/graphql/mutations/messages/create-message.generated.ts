@@ -15,6 +15,7 @@ export type EUserRole = "STUDENT" | "TEACHER"
 
 export type MessageIn = {
   chatId: number
+  mentionedUserIds: Array<number>
   text: string
 }
 

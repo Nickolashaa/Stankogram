@@ -14,6 +14,7 @@ export type ReactiveFunction<TParam> = () => TParam
 export type EUserRole = "STUDENT" | "TEACHER"
 
 export type MessageUpdateIn = {
+  mentionedUserIds: Array<number>
   text: string
 }
 
