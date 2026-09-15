@@ -16,6 +16,27 @@ from ...types.messages import (
 )
 
 
+async def _sync_mentions(
+    info: AuthorizedAppInfo,
+    message_id: int,
+    chat_id: int,
+    mentioned_user_ids: list[int],
+) -> None:
+    participants = await info.context.services.chat_participant_service.get_list(
+        chat_id=chat_id
+    )
+    participant_ids = {participant.user_id for participant in participants}
+
+    await info.context.services.notification_service.sync_for_message(
+        message_id=message_id,
+        user_ids=[
+            user_id
+            for user_id in dict.fromkeys(mentioned_user_ids)
+            if user_id in participant_ids and user_id != info.context.current_user.id
+        ],
+    )
+
+
 @strawberry.type
 class MessageMutation:
     @strawberry.mutation(permission_classes=[IsAuthenticated, CanCreateMessage])
@@ -29,6 +50,12 @@ class MessageMutation:
                 user_id=info.context.current_user.id,
                 chat_id=input.chat_id,
                 text=input.text,
+            )
+            await _sync_mentions(
+                info=info,
+                message_id=instance.id,
+                chat_id=instance.chat_id,
+                mentioned_user_ids=input.mentioned_user_ids,
             )
             await info.context.session.commit()
 
@@ -58,6 +85,12 @@ class MessageMutation:
             instance = await info.context.services.message_service.update(
                 id=message_id,
                 text=input.text,
+            )
+            await _sync_mentions(
+                info=info,
+                message_id=instance.id,
+                chat_id=instance.chat_id,
+                mentioned_user_ids=input.mentioned_user_ids,
             )
             await info.context.session.commit()
 

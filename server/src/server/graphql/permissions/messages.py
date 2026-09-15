@@ -68,3 +68,23 @@ class CanDeleteMessage(BasePermission):
             return False
 
         return link.is_admin
+
+
+class CanReadMessage(BasePermission):
+    message = "User can`t read this message"
+
+    async def has_permission(
+        self, source: Any, info: AuthorizedAppInfo, **kwargs: Any
+    ) -> bool:
+        message_id: int = kwargs["message_id"]
+
+        message = await info.context.services.message_service.get_or_none(message_id)
+        if message is None:
+            return False
+
+        link = await info.context.services.chat_participant_service.get_or_none(
+            chat_id=message.chat_id,
+            user_id=info.context.current_user.id,
+        )
+
+        return link is not None
