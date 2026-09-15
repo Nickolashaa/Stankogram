@@ -1,4 +1,6 @@
-from sqlalchemy import ForeignKey, UniqueConstraint
+from datetime import datetime
+
+from sqlalchemy import DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..connection import Base
@@ -10,6 +12,7 @@ class SystemNotification(Base):
 
     title: Mapped[str]
     text: Mapped[str]
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class ReadSystemNotification(Base):

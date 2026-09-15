@@ -7,6 +7,8 @@ from .chats.queries import ChatQuery
 from .events import EventSubscription
 from .messages.mutations import MessageMutation
 from .messages.queries import MessageQuery
+from .notifications.mutations import NotificationMutation
+from .notifications.queries import NotificationQuery
 from .system_notifications.mutations import SystemNotificationMutation
 from .system_notifications.queries import SystemNotificationQuery
 
@@ -16,6 +18,7 @@ class Query(
     AuthQuery,
     ChatQuery,
     MessageQuery,
+    NotificationQuery,
     SystemNotificationQuery,
 ):
     @strawberry.field
@@ -28,6 +31,7 @@ class Mutation(
     AuthMutation,
     ChatMutation,
     MessageMutation,
+    NotificationMutation,
     SystemNotificationMutation,
 ):
     pass

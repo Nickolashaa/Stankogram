@@ -1,9 +1,10 @@
-from typing import NotRequired, Required, TypedDict
+from typing import NotRequired, Required, Sequence, TypedDict
 
 
 class MessageGetListFilters(TypedDict):
     chat_id: NotRequired[int]
     chat_ids: NotRequired[list[int]]
+    ids: NotRequired[Sequence[int]]
 
 
 class MessageCreateParams(TypedDict):

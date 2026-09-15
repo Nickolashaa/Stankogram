@@ -3,7 +3,7 @@ import { onMounted, ref } from "vue"
 import { storeToRefs } from "pinia"
 import { useInfiniteScroll } from "@vueuse/core"
 import { useSystemNotificationStore } from "@/stores/system-notifications"
-import { formatDateTime } from "@/lib/format"
+import { formatDateTime, isExpired } from "@/lib/format"
 import { notify } from "@/lib/notify"
 import type { SystemNotificationIn } from "@/graphql/base-types"
 import type { SystemNotificationFieldsFragment } from "@/graphql/fragments/system-notifications.generated"
@@ -107,7 +107,24 @@ async function handleSubmit(data: SystemNotificationIn) {
         <div class="flex min-w-0 flex-1 flex-col gap-1">
           <span class="text-[15px] font-semibold text-main">{{ notification.title }}</span>
           <span class="text-sm whitespace-pre-wrap text-second">{{ notification.text }}</span>
-          <span class="text-xs text-second">{{ formatDateTime(notification.createdAt) }}</span>
+          <span class="flex flex-wrap items-center gap-2 text-xs text-second">
+            {{ formatDateTime(notification.createdAt) }}
+            <span
+              v-if="notification.expiresAt !== null && notification.expiresAt !== undefined"
+              class="inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap"
+              :class="
+                isExpired(notification.expiresAt)
+                  ? 'bg-red-500/12 text-red-600 ring-1 ring-red-500/25 ring-inset dark:text-red-400'
+                  : 'bg-accent/15 text-accent ring-1 ring-accent/25 ring-inset'
+              "
+            >
+              {{
+                isExpired(notification.expiresAt)
+                  ? `Истекло ${formatDateTime(notification.expiresAt)}`
+                  : `До ${formatDateTime(notification.expiresAt)}`
+              }}
+            </span>
+          </span>
         </div>
         <Button
           icon="edit"

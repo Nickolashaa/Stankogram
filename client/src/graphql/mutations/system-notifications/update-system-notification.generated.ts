@@ -11,6 +11,7 @@ import * as VueApolloComposable from "@vue/apollo-composable"
 import * as VueCompositionApi from "vue"
 export type ReactiveFunction<TParam> = () => TParam
 export type SystemNotificationIn = {
+  expiresAt?: string | null | undefined
   text: string
   title: string
 }
@@ -30,6 +31,7 @@ export type UpdateSystemNotificationMutation = {
         updatedAt: string
         title: string
         text: string
+        expiresAt: string | null
       }
 }
 

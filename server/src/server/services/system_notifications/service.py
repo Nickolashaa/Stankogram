@@ -1,6 +1,7 @@
+from datetime import UTC, datetime
 from typing import Unpack
 
-from sqlalchemy import Select, insert, select, update
+from sqlalchemy import Select, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError
 
 from ...database.models.system_notifications import (
@@ -91,6 +92,14 @@ class SystemNotificationService(BaseService):
                 .exists()
             )
 
+        if filters.get("only_active"):
+            stmt = stmt.where(
+                or_(
+                    SystemNotification.expires_at.is_(None),
+                    SystemNotification.expires_at > datetime.now(UTC),
+                )
+            )
+
         return stmt
 
     async def get_list(
@@ -98,7 +107,7 @@ class SystemNotificationService(BaseService):
         pagination: BasePagination | None = None,
         **filters: Unpack[SystemNotificationGetListFilters],
     ) -> list[SystemNotificationResponse]:
-        stmt = select(SystemNotification).order_by(SystemNotification.created_at)
+        stmt = select(SystemNotification).order_by(SystemNotification.created_at.desc())
 
         stmt = self._apply_filters(stmt=stmt, **filters)
 

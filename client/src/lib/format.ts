@@ -76,3 +76,17 @@ export function formatDaySeparator(value: string) {
 
   return formatted.charAt(0).toUpperCase() + formatted.slice(1)
 }
+
+export function toDateTimeInput(value: string) {
+  const date = new Date(value)
+  const offset = date.getTimezoneOffset() * 60 * 1000
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16)
+}
+
+export function fromDateTimeInput(value: string) {
+  return new Date(value).toISOString()
+}
+
+export function isExpired(value: string) {
+  return new Date(value).getTime() <= Date.now()
+}

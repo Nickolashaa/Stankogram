@@ -102,6 +102,10 @@ interface IChat {
   chat: Chat!
 }
 
+interface IMessage {
+  message: Message!
+}
+
 interface IUser {
   user: User!
 }
@@ -135,12 +139,14 @@ input MessageFiltersIn {
 input MessageIn {
   chatId: Int!
   text: String!
+  mentionedUserIds: [Int!]!
 }
 
 union MessageObjectNotFoundError = Message | ObjectNotFoundError
 
 input MessageUpdateIn {
   text: String!
+  mentionedUserIds: [Int!]!
 }
 
 type MessagesMeta implements IBaseMeta {
@@ -170,9 +176,23 @@ type Mutation {
   createMessage(input: MessageIn!): MessageObjectNotFoundError!
   updateMessage(messageId: Int!, input: MessageUpdateIn!): MessageObjectNotFoundError!
   deleteMessage(messageId: Int!): MessageObjectNotFoundError!
+  hideNotification(id: Int!): ObjectNotFoundError
   createSystemNotification(input: SystemNotificationIn!): SystemNotification!
   updateSystemNotification(id: Int!, input: SystemNotificationIn!): SystemNotificationObjectNotFoundError!
   markSystemNotificationRead(id: Int!): ObjectNotFoundError
+}
+
+type Notification implements IBaseType & IMessage {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  message: Message!
+  isHidden: Boolean!
+}
+
+type NotificationsMeta implements IBaseMeta {
+  count: Int!
+  notifications: [Notification!]!
 }
 
 type ObjectAlreadyExistsError implements IAppError {
@@ -199,6 +219,8 @@ type Query {
   meChats(pagination: BasePaginationIn = null, filters: ChatFiltersIn = null): ChatsMetaUnauthorizedError!
   chats(pagination: BasePaginationIn = null, filters: ChatFiltersIn = null): ChatsMeta!
   messages(filters: MessageFiltersIn!, pagination: BasePaginationIn = null): MessagesMeta!
+  messagePosition(messageId: Int!): Int!
+  meNotifications(pagination: BasePaginationIn = null): NotificationsMeta!
   meSystemNotifications(pagination: BasePaginationIn = null, filters: SystemNotificationFiltersIn = null): SystemNotificationsMeta!
   systemNotifications(pagination: BasePaginationIn = null): SystemNotificationsMeta!
   health: Int!
@@ -214,15 +236,18 @@ type SystemNotification implements IBaseType {
   updatedAt: DateTime!
   title: String!
   text: String!
+  expiresAt: DateTime
 }
 
 input SystemNotificationFiltersIn {
   onlyUnread: Boolean
+  onlyActive: Boolean
 }
 
 input SystemNotificationIn {
   title: String!
   text: String!
+  expiresAt: DateTime
 }
 
 union SystemNotificationObjectNotFoundError = SystemNotification | ObjectNotFoundError

@@ -1,0 +1,3 @@
+query MessagePosition($messageId: Int!) {
+  messagePosition(messageId: $messageId)
+}

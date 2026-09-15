@@ -127,6 +127,10 @@ export type IChat = {
   chat: Chat
 }
 
+export type IMessage = {
+  message: Message
+}
+
 export type IUser = {
   user: User
 }
@@ -165,12 +169,14 @@ export type MessageFiltersIn = {
 
 export type MessageIn = {
   chatId: Scalars["Int"]["input"]
+  mentionedUserIds: Array<Scalars["Int"]["input"]>
   text: Scalars["String"]["input"]
 }
 
 export type MessageObjectNotFoundError = Message | ObjectNotFoundError
 
 export type MessageUpdateIn = {
+  mentionedUserIds: Array<Scalars["Int"]["input"]>
   text: Scalars["String"]["input"]
 }
 
@@ -189,6 +195,7 @@ export type Mutation = {
   createSystemNotification: SystemNotification
   deleteChat: ChatInvalidInputErrorObjectNotFoundError
   deleteMessage: MessageObjectNotFoundError
+  hideNotification?: Maybe<ObjectNotFoundError>
   leaveChat: ChatInvalidInputErrorObjectNotFoundError
   login: JwTsObjectNotFoundError
   logout?: Maybe<Scalars["Void"]["output"]>
@@ -234,6 +241,10 @@ export type MutationDeleteChatArgs = {
 
 export type MutationDeleteMessageArgs = {
   messageId: Scalars["Int"]["input"]
+}
+
+export type MutationHideNotificationArgs = {
+  id: Scalars["Int"]["input"]
 }
 
 export type MutationLeaveChatArgs = {
@@ -302,6 +313,22 @@ export type MutationUsersImportArgs = {
   file: Scalars["Upload"]["input"]
 }
 
+export type Notification = IBaseType &
+  IMessage & {
+    __typename?: "Notification"
+    createdAt: Scalars["DateTime"]["output"]
+    id: Scalars["Int"]["output"]
+    isHidden: Scalars["Boolean"]["output"]
+    message: Message
+    updatedAt: Scalars["DateTime"]["output"]
+  }
+
+export type NotificationsMeta = IBaseMeta & {
+  __typename?: "NotificationsMeta"
+  count: Scalars["Int"]["output"]
+  notifications: Array<Notification>
+}
+
 export type ObjectAlreadyExistsError = IAppError & {
   __typename?: "ObjectAlreadyExistsError"
   message: Scalars["String"]["output"]
@@ -327,7 +354,9 @@ export type Query = {
   health: Scalars["Int"]["output"]
   me: UserObjectNotFoundError
   meChats: ChatsMetaUnauthorizedError
+  meNotifications: NotificationsMeta
   meSystemNotifications: SystemNotificationsMeta
+  messagePosition: Scalars["Int"]["output"]
   messages: MessagesMeta
   systemNotifications: SystemNotificationsMeta
   users: UsersMeta
@@ -344,9 +373,17 @@ export type QueryMeChatsArgs = {
   pagination?: InputMaybe<BasePaginationIn>
 }
 
+export type QueryMeNotificationsArgs = {
+  pagination?: InputMaybe<BasePaginationIn>
+}
+
 export type QueryMeSystemNotificationsArgs = {
   filters?: InputMaybe<SystemNotificationFiltersIn>
   pagination?: InputMaybe<BasePaginationIn>
+}
+
+export type QueryMessagePositionArgs = {
+  messageId: Scalars["Int"]["input"]
 }
 
 export type QueryMessagesArgs = {
@@ -371,6 +408,7 @@ export type Subscription = {
 export type SystemNotification = IBaseType & {
   __typename?: "SystemNotification"
   createdAt: Scalars["DateTime"]["output"]
+  expiresAt?: Maybe<Scalars["DateTime"]["output"]>
   id: Scalars["Int"]["output"]
   text: Scalars["String"]["output"]
   title: Scalars["String"]["output"]
@@ -378,10 +416,12 @@ export type SystemNotification = IBaseType & {
 }
 
 export type SystemNotificationFiltersIn = {
+  onlyActive?: InputMaybe<Scalars["Boolean"]["input"]>
   onlyUnread?: InputMaybe<Scalars["Boolean"]["input"]>
 }
 
 export type SystemNotificationIn = {
+  expiresAt?: InputMaybe<Scalars["DateTime"]["input"]>
   text: Scalars["String"]["input"]
   title: Scalars["String"]["input"]
 }

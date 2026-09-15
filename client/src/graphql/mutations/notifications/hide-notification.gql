@@ -1,0 +1,5 @@
+mutation HideNotification($id: Int!) {
+  hideNotification(id: $id) {
+    message
+  }
+}

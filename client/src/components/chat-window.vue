@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue"
+import { useRoute } from "vue-router"
 import { storeToRefs } from "pinia"
 import { useDebounceFn, useInfiniteScroll } from "@vueuse/core"
 import { useMessageStore, type MessageItem } from "@/stores/messages"
@@ -8,10 +9,19 @@ import { useChatStore, type ChatParticipantItem, type ChatSummary } from "@/stor
 import { useDraftStore } from "@/stores/drafts"
 import { EChatType } from "@/graphql/base-types"
 import { notify } from "@/lib/notify"
-import { shortName, formatTime, chatInitials, isSameDay, formatDaySeparator } from "@/lib/format"
+import {
+  shortName,
+  fullName,
+  initials,
+  formatTime,
+  chatInitials,
+  isSameDay,
+  formatDaySeparator,
+} from "@/lib/format"
 import { linkify } from "@/lib/linkify"
 import { isLargeEmojiMessage } from "@/lib/emoji"
 import { participantBadges, userBadges } from "@/lib/badges"
+import { roleLabels } from "@/lib/roles"
 import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
 import Button from "@/components/button.vue"
 import Badge from "@/components/badge.vue"
@@ -32,6 +42,8 @@ const emit = defineEmits<{
   "open-info": []
 }>()
 
+const route = useRoute()
+
 const messageStore = useMessageStore()
 const { messages, totalCount } = storeToRefs(messageStore)
 
@@ -47,6 +59,24 @@ const participantsByUserId = computed(() => {
   chat?.participants.forEach((participant) => map.set(participant.user.id, participant))
   return map
 })
+
+const participants = computed(() => {
+  const chat = chats.value.find((item) => item.id === props.chatId)
+  return chat?.participants ?? []
+})
+
+const MENTION_PATTERN = /(?:^|\s)@([^\s@]*(?:\s[^\s@]*)?)$/
+
+function mentionLabel(user: UserFieldsFragment) {
+  return `@${shortName(user)}`
+}
+
+function collectMentionedUserIds(value: string) {
+  return participants.value
+    .map((participant) => participant.user)
+    .filter((user) => user.id !== currentUser.value?.id && value.includes(mentionLabel(user)))
+    .map((user) => user.id)
+}
 
 function badgesForSender(user: UserFieldsFragment) {
   const participant = participantsByUserId.value.get(user.id)
@@ -130,7 +160,7 @@ async function saveEdit() {
 
   savingEdit.value = true
   try {
-    await messageStore.updateMessage(messageId, value)
+    await messageStore.updateMessage(messageId, value, collectMentionedUserIds(value))
     cancelEdit()
   } catch {
     notify.error("Не удалось изменить сообщение")
@@ -190,6 +220,101 @@ onUnmounted(() => {
 const composerEl = ref<HTMLTextAreaElement | null>(null)
 const sendsOnEnter = window.matchMedia("(pointer: fine)").matches
 
+const caret = ref(0)
+const mentionDismissed = ref(false)
+const activeMentionIndex = ref(0)
+
+const mentionQuery = computed(() => {
+  if (mentionDismissed.value) {
+    return null
+  }
+  const match = MENTION_PATTERN.exec(text.value.slice(0, caret.value))
+  return match === null ? null : (match[1] ?? "")
+})
+
+const mentionCandidates = computed(() => {
+  const query = mentionQuery.value
+  if (query === null) {
+    return []
+  }
+
+  const normalized = query.trim().toLowerCase()
+
+  return participants.value
+    .map((participant) => participant.user)
+    .filter((user) => user.id !== currentUser.value?.id)
+    .filter((user) => normalized === "" || fullName(user).toLowerCase().includes(normalized))
+    .slice(0, 6)
+})
+
+function syncCaret() {
+  caret.value = composerEl.value?.selectionStart ?? text.value.length
+}
+
+function applyMention(user: UserFieldsFragment) {
+  const before = text.value.slice(0, caret.value)
+  const match = MENTION_PATTERN.exec(before)
+  if (match === null) {
+    return
+  }
+
+  const start = before.length - match[0].length + (match[0].startsWith("@") ? 0 : 1)
+  const label = `${mentionLabel(user)} `
+
+  text.value = `${text.value.slice(0, start)}${label}${text.value.slice(caret.value)}`
+  mentionDismissed.value = true
+
+  const nextCaret = start + label.length
+  nextTick(() => {
+    resizeComposer()
+    composerEl.value?.focus()
+    composerEl.value?.setSelectionRange(nextCaret, nextCaret)
+    caret.value = nextCaret
+  })
+}
+
+function handleMentionKeydown(event: KeyboardEvent) {
+  const candidates = mentionCandidates.value
+  if (candidates.length === 0) {
+    return false
+  }
+
+  if (event.key === "ArrowDown") {
+    event.preventDefault()
+    activeMentionIndex.value = (activeMentionIndex.value + 1) % candidates.length
+    return true
+  }
+
+  if (event.key === "ArrowUp") {
+    event.preventDefault()
+    activeMentionIndex.value =
+      (activeMentionIndex.value - 1 + candidates.length) % candidates.length
+    return true
+  }
+
+  if (event.key === "Enter" || event.key === "Tab") {
+    const user = candidates[activeMentionIndex.value] ?? candidates[0]
+    if (user === undefined) {
+      return false
+    }
+    event.preventDefault()
+    applyMention(user)
+    return true
+  }
+
+  if (event.key === "Escape") {
+    event.preventDefault()
+    mentionDismissed.value = true
+    return true
+  }
+
+  return false
+}
+
+watch(mentionQuery, () => {
+  activeMentionIndex.value = 0
+})
+
 function resizeComposer() {
   const el = composerEl.value
   if (!el) {
@@ -201,6 +326,8 @@ function resizeComposer() {
 
 function handleComposerInput(event: Event) {
   text.value = (event.target as HTMLTextAreaElement).value
+  mentionDismissed.value = false
+  syncCaret()
   resizeComposer()
 }
 
@@ -225,6 +352,10 @@ function insertEmoji(emoji: string) {
 }
 
 function handleComposerKeydown(event: KeyboardEvent) {
+  if (!event.isComposing && handleMentionKeydown(event)) {
+    return
+  }
+
   if (!sendsOnEnter || event.key !== "Enter" || event.shiftKey || event.isComposing) {
     return
   }
@@ -259,6 +390,57 @@ const infiniteScroll = useInfiniteScroll(
   },
 )
 
+const highlightedMessageId = ref<number | null>(null)
+
+async function jumpToMessage(messageId: number) {
+  if (!messages.value.some((message) => message.id === messageId)) {
+    const position = await messageStore.fetchMessagePosition(messageId)
+    if (messages.value.length <= position) {
+      await messageStore.fetchMessages(position + 1, 0)
+      infiniteScroll.reset()
+    }
+  }
+
+  await nextTick()
+
+  scrollContainer.value
+    ?.querySelector(`[data-message-id="${messageId}"]`)
+    ?.scrollIntoView({ block: "center", behavior: "smooth" })
+
+  highlightedMessageId.value = messageId
+  setTimeout(() => {
+    if (highlightedMessageId.value === messageId) {
+      highlightedMessageId.value = null
+    }
+  }, 2500)
+}
+
+function targetMessageId() {
+  const raw = route.query.message
+  const value = Number(Array.isArray(raw) ? raw[0] : raw)
+  return Number.isInteger(value) && value > 0 ? value : null
+}
+
+async function openTargetMessage() {
+  const messageId = targetMessageId()
+  if (messageId === null) {
+    return
+  }
+
+  try {
+    await jumpToMessage(messageId)
+  } catch {
+    notify.error("Не удалось открыть сообщение")
+  }
+}
+
+watch(
+  () => route.query.message,
+  () => {
+    openTargetMessage()
+  },
+)
+
 onMounted(async () => {
   resizeComposer()
   if (sendsOnEnter) {
@@ -268,6 +450,7 @@ onMounted(async () => {
   messageStore.openChat(props.chatId)
   await messageStore.fetchMessages(PAGE_SIZE, 0)
   infiniteScroll.reset()
+  await openTargetMessage()
 })
 
 watch(
@@ -287,8 +470,9 @@ async function handleSubmit() {
 
   sending.value = true
   try {
-    await messageStore.sendMessage(value)
+    await messageStore.sendMessage(value, collectMentionedUserIds(value))
     text.value = ""
+    mentionDismissed.value = false
     draftStore.setDraft(props.chatId, "")
     await nextTick()
     resizeComposer()
@@ -337,8 +521,10 @@ async function handleSubmit() {
     >
       <template v-for="(message, index) in messages" :key="message.id">
         <div
-          class="flex flex-col gap-1"
+          :data-message-id="message.id"
+          class="flex flex-col gap-1 rounded-card transition-colors duration-500"
           :class="[
+            highlightedMessageId === message.id ? 'bg-accent/10 ring-1 ring-accent/30' : '',
             message.user.id === currentUser?.id ? 'items-end' : 'items-start',
             canEditMessage(message) || canDeleteMessage(message) ? 'cursor-context-menu' : '',
           ]"
@@ -451,6 +637,30 @@ async function handleSubmit() {
     >
       <EmojiPicker :open="emojiPickerOpen" @close="emojiPickerOpen = false" @select="insertEmoji" />
 
+      <div
+        v-if="mentionCandidates.length > 0"
+        class="glass-strong hairline shadow-float absolute bottom-[calc(100%-0.5rem)] left-3 z-20 flex w-[min(20rem,calc(100%-1.5rem))] flex-col gap-0.5 rounded-card p-1.5 lg:left-5"
+      >
+        <button
+          v-for="(candidate, candidateIndex) in mentionCandidates"
+          :key="candidate.id"
+          type="button"
+          class="press flex cursor-pointer items-center gap-2.5 rounded-input px-2.5 py-2 text-left"
+          :class="
+            candidateIndex === activeMentionIndex
+              ? 'bg-accent/12 text-main'
+              : 'text-second hover:bg-main/6 hover:text-main'
+          "
+          @mousedown.prevent="applyMention(candidate)"
+        >
+          <Avatar :label="initials(candidate)" size="sm" />
+          <span class="flex min-w-0 flex-col">
+            <span class="truncate text-sm font-medium text-main">{{ shortName(candidate) }}</span>
+            <span class="truncate text-xs text-second">{{ roleLabels[candidate.role] }}</span>
+          </span>
+        </button>
+      </div>
+
       <textarea
         ref="composerEl"
         :value="text"
@@ -465,6 +675,8 @@ async function handleSubmit() {
         class="glass-field hairline box-border max-h-40 min-h-12 min-w-0 flex-1 resize-none overflow-y-auto rounded-card px-4 py-3 font-sans text-[15px] leading-6 text-main outline-none transition-[border-color,box-shadow] duration-200 placeholder:overflow-hidden placeholder:text-ellipsis placeholder:whitespace-nowrap placeholder:text-second/80 focus-glow"
         @input="handleComposerInput"
         @keydown="handleComposerKeydown"
+        @keyup="syncCaret"
+        @click="syncCaret"
       />
       <Button
         variant="ghost"

@@ -1,7 +1,7 @@
 from typing import Unpack
 
 from cryptography.fernet import Fernet
-from sqlalchemy import Select, delete, insert, select, update
+from sqlalchemy import Select, and_, delete, func, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -89,6 +89,28 @@ class MessageService(BaseService):
 
         return MessageResponse.from_ORM(fernet=self._fernet, instance=instance)
 
+    async def get_position(self, id: int) -> int:
+        message = await self.get(id)
+
+        stmt = (
+            select(func.count())
+            .select_from(Message)
+            .where(
+                Message.chat_id == message.chat_id,
+                or_(
+                    Message.created_at > message.created_at,
+                    and_(
+                        Message.created_at == message.created_at,
+                        Message.id > message.id,
+                    ),
+                ),
+            )
+        )
+
+        res = await self._execute(stmt)
+
+        return res.scalar_one()
+
     async def delete(self, id: int) -> None:
         stmt = delete(Message).where(Message.id == id)
         await self._execute(stmt)
@@ -104,6 +126,9 @@ class MessageService(BaseService):
         if (chat_ids := filters.get("chat_ids")) is not None:
             stmt = stmt.where(Message.chat_id.in_(chat_ids))
 
+        if (ids := filters.get("ids")) is not None:
+            stmt = stmt.where(Message.id.in_(ids))
+
         return stmt
 
     async def get_list(
@@ -111,7 +136,7 @@ class MessageService(BaseService):
         pagination: BasePagination | None = None,
         **filters: Unpack[MessageGetListFilters],
     ) -> list[MessageResponse]:
-        stmt = select(Message).order_by(Message.created_at.desc())
+        stmt = select(Message).order_by(Message.created_at.desc(), Message.id.desc())
 
         stmt = self._apply_filters(stmt=stmt, **filters)
 

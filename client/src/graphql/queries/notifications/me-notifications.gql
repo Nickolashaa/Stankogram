@@ -1,0 +1,18 @@
+query MeNotifications($pagination: BasePaginationIn) {
+  meNotifications(pagination: $pagination) {
+    count
+    notifications {
+      id
+      createdAt
+      message {
+        ...MessageFields
+        user {
+          ...UserFields
+        }
+        chat {
+          ...ChatFields
+        }
+      }
+    }
+  }
+}

@@ -1,4 +1,5 @@
 from .inputs import MessageFiltersIn, MessageIn, MessageUpdateIn
+from .interfaces import IMessage
 from .types import CreateMessage, DeleteMessage, Message, MessagesMeta, UpdateMessage
 
 __all__ = (
@@ -7,6 +8,7 @@ __all__ = (
     "MessageFiltersIn",
     "MessageIn",
     "MessageUpdateIn",
+    "IMessage",
     "CreateMessage",
     "UpdateMessage",
     "DeleteMessage",

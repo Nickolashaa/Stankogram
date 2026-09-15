@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue"
+import { useRouter } from "vue-router"
 import { storeToRefs } from "pinia"
 import { useAuthStore } from "@/stores/auth"
 import { useSystemNotificationStore } from "@/stores/system-notifications"
+import { useNotificationStore } from "@/stores/notifications"
 import { shortName, formatFullDate, formatDateTime } from "@/lib/format"
 import { getGreeting, getDayPeriod } from "@/lib/greeting"
 import { notify } from "@/lib/notify"
@@ -11,21 +13,38 @@ import NavIcon from "@/components/nav-icon.vue"
 
 const NOTIFICATIONS_PAGE_SIZE = 20
 
+const router = useRouter()
+
 const authStore = useAuthStore()
-const notificationStore = useSystemNotificationStore()
+const systemNotificationStore = useSystemNotificationStore()
+const notificationStore = useNotificationStore()
 const { user } = storeToRefs(authStore)
-const { unreadNotifications } = storeToRefs(notificationStore)
+const { unreadNotifications } = storeToRefs(systemNotificationStore)
+const { notifications: mentions } = storeToRefs(notificationStore)
 
 onMounted(() => {
-  notificationStore.fetchUnreadNotifications(NOTIFICATIONS_PAGE_SIZE, 0)
+  systemNotificationStore.fetchUnreadNotifications(NOTIFICATIONS_PAGE_SIZE, 0)
+  notificationStore.fetchNotifications(NOTIFICATIONS_PAGE_SIZE, 0)
 })
 
 async function markNotificationRead(id: number) {
   try {
-    await notificationStore.markNotificationRead(id)
+    await systemNotificationStore.markNotificationRead(id)
   } catch {
     notify.error("Не удалось скрыть уведомление")
   }
+}
+
+async function hideMention(id: number) {
+  try {
+    await notificationStore.hideNotification(id)
+  } catch {
+    notify.error("Не удалось скрыть уведомление")
+  }
+}
+
+function openMention(chatId: number, messageId: number) {
+  router.push({ path: `/chats/${chatId}`, query: { message: String(messageId) } })
 }
 
 const now = new Date()
@@ -89,6 +108,42 @@ function handleSunClick() {
         >
           {{ today }}
         </span>
+      </div>
+    </div>
+
+    <div v-if="mentions.length > 0" class="flex w-full max-w-3xl flex-col gap-3">
+      <div
+        v-for="(mention, index) in mentions"
+        :key="mention.id"
+        class="glass hairline shadow-card group flex animate-rise cursor-pointer items-start gap-4 rounded-card px-5 py-4 text-left transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-float"
+        :style="{ animationDelay: `${index * 80}ms` }"
+        @click="openMention(mention.message.chat.id, mention.message.id)"
+      >
+        <span
+          class="chip-accent glow-accent-soft flex h-11 w-11 shrink-0 items-center justify-center"
+        >
+          <NavIcon name="chats" />
+        </span>
+        <span class="flex min-w-0 flex-1 flex-col gap-1">
+          <span class="text-[15px] font-semibold text-main">
+            {{ shortName(mention.message.user) }} упомянул вас
+          </span>
+          <span class="truncate text-sm text-second">{{ mention.message.text }}</span>
+          <span class="flex flex-wrap items-center gap-2 text-xs text-second/80">
+            {{ mention.message.chat.title }}
+            <span>·</span>
+            {{ formatDateTime(mention.message.createdAt) }}
+          </span>
+        </span>
+        <button
+          type="button"
+          class="press flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-second opacity-60 hover:bg-main/6 hover:text-main group-hover:opacity-100"
+          title="Скрыть"
+          aria-label="Скрыть"
+          @click.stop="hideMention(mention.id)"
+        >
+          <NavIcon name="cancel" :size="16" />
+        </button>
       </div>
     </div>
 

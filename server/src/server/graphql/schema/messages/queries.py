@@ -3,6 +3,7 @@ import strawberry
 from ...context import AuthorizedAppInfo
 from ...permissions.auth import IsAuthenticated
 from ...permissions.chats import IsChatParticipant
+from ...permissions.messages import CanReadMessage
 from ...types.base import BasePaginationIn, default_pagination
 from ...types.messages import Message, MessageFiltersIn, MessagesMeta
 
@@ -30,3 +31,11 @@ class MessageQuery:
                 **filters.to_service_params(),
             ),
         )
+
+    @strawberry.field(permission_classes=[IsAuthenticated, CanReadMessage])
+    async def message_position(
+        self,
+        info: AuthorizedAppInfo,
+        message_id: int,
+    ) -> int:
+        return await info.context.services.message_service.get_position(message_id)
