@@ -19,6 +19,7 @@ class UserUpdateParams(TypedDict):
     email: NotRequired[str]
     role: NotRequired[UserRole]
     is_admin: NotRequired[bool]
+    hide_last_online: NotRequired[bool]
 
 
 class UserCredentials(TypedDict):

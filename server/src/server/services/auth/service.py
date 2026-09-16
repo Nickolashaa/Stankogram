@@ -326,6 +326,25 @@ class AuthService(BaseService):
                 f"User with email {values.get('email')} already exists"
             )
 
+    async def mark_last_online(
+        self,
+        id: int,
+    ) -> UserResponse:
+        stmt = (
+            update(User)
+            .where(User.id == id)
+            .values(last_online_at=datetime.now(UTC))
+            .returning(User)
+        )
+
+        res = await self._execute(stmt)
+        entity = res.scalar_one_or_none()
+        if entity is None:
+            raise ObjectNotFound(
+                f"User with id {id} not found",
+            )
+        return UserResponse.model_validate(entity)
+
     async def reset_password_request(
         self,
         email: str,
