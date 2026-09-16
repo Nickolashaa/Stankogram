@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
-      - name: Render .env
+      - name: Render envs
         env:
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
@@ -30,7 +30,7 @@ jobs:
           SMTP_LOGIN: ${{ secrets.SMTP_LOGIN }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
-        run: envsubst < ./.env.template > ./.env
+        run: envsubst < ./docker-compose.yaml > ./docker-compose.yaml
       - name: Poweroff
         uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1
         with:
