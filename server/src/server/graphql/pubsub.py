@@ -1,26 +1,26 @@
 from asyncio.queues import Queue
-
-from .types.messages import CreateMessage, DeleteMessage, UpdateMessage
-
-Event = CreateMessage | UpdateMessage | DeleteMessage
+from typing import Any
 
 
 class PubSub:
     def __init__(self) -> None:
-        self._connections: dict[int, Queue[Event | None]] = {}
+        self._connections: dict[int, Queue[Any]] = {}
 
-    def connect(self, user_id: int) -> Queue[Event | None]:
+    def is_exists(self, user_id: int) -> bool:
+        return self._connections.get(user_id) is not None
+
+    def connect(self, user_id: int) -> Queue[Any]:
         if (existing := self._connections.get(user_id)) is not None:
             existing.put_nowait(None)
-        queue: Queue[Event | None] = Queue()
+        queue: Queue[Any] = Queue()
         self._connections[user_id] = queue
         return queue
 
-    def disconnect(self, user_id: int, queue: Queue[Event | None]) -> None:
+    def disconnect(self, user_id: int, queue: Queue[Any]) -> None:
         if self._connections.get(user_id) is queue:
             del self._connections[user_id]
 
-    def publish(self, user_id: int, event: Event) -> None:
+    def publish(self, user_id: int, event: Any) -> None:
         if (queue := self._connections.get(user_id)) is not None:
             queue.put_nowait(event)
 

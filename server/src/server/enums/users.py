@@ -6,8 +6,7 @@ class UserRole(StrEnum):
     TEACHER = "TEACHER"
 
 
-class UserPresenceStatus(StrEnum):
+class UserOnlineStatus(StrEnum):
     ONLINE = "ONLINE"
-    LAST_ONLINE = "LAST_ONLINE"
-    RECENTLY = "RECENTLY"
+    RECENTLY_ONLINE = "RECENTLY_ONLINE"
     LONG_AGO = "LONG_AGO"

@@ -4,7 +4,10 @@ import strawberry
 
 from ...dependencies.auth import get_user_from_authorization
 from ..context import AppInfo
-from ..pubsub import Event, pub_sub
+from ..pubsub import pub_sub
+from ..types.messages import CreateMessage, DeleteMessage, UpdateMessage
+
+Event = CreateMessage | UpdateMessage | DeleteMessage
 
 
 @strawberry.type
