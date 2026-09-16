@@ -1,6 +1,7 @@
+from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, func
+from sqlalchemy import DateTime, ForeignKey, func
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import expression
@@ -27,6 +28,13 @@ class User(Base):
 
     role: Mapped[UserRole]
     is_admin: Mapped[bool] = mapped_column(
+        server_default=expression.false(),
+    )
+
+    last_online_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+    )
+    hide_last_online: Mapped[bool] = mapped_column(
         server_default=expression.false(),
     )
 
