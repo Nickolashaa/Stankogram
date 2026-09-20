@@ -19,10 +19,12 @@ class IsChatAdmin(BasePermission):
         if info.context.current_user.is_admin:
             return True
 
-        try:
-            chat_id: int = kwargs["input"].chat_id
-        except KeyError:
-            chat_id: int = kwargs["chat_id"]
+        explicit_chat_id = kwargs.get("chat_id")
+        chat_id: int = (
+            explicit_chat_id
+            if explicit_chat_id is not None
+            else kwargs["input"].chat_id
+        )
 
         link = await info.context.services.chat_participant_service.get_or_none(
             chat_id=chat_id, user_id=info.context.current_user.id
