@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import NotRequired, Required, Sequence, TypedDict
 
 from ...enums.users import UserRole
@@ -19,6 +20,7 @@ class UserUpdateParams(TypedDict):
     email: NotRequired[str]
     role: NotRequired[UserRole]
     is_admin: NotRequired[bool]
+    last_online_at: NotRequired[datetime]
 
 
 class UserCredentials(TypedDict):

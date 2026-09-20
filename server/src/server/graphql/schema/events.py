@@ -1,10 +1,25 @@
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
+from datetime import UTC, datetime
 
 import strawberry
 
+from ...database.connection import session_maker
 from ...dependencies.auth import get_user_from_authorization
+from ...services.auth import AuthService
 from ..context import AppInfo
-from ..pubsub import Event, pub_sub
+from ..pubsub import pub_sub
+from ..types.messages import CreateMessage, DeleteMessage, UpdateMessage
+
+Event = CreateMessage | UpdateMessage | DeleteMessage
+
+
+async def _save_last_online(user_id: int) -> None:
+    async with session_maker() as session:
+        await AuthService(session).update(
+            id=user_id,
+            last_online_at=datetime.now(UTC),
+        )
+        await session.commit()
 
 
 @strawberry.type
@@ -27,4 +42,5 @@ class EventSubscription:
                     return
                 yield event
         finally:
-            pub_sub.disconnect(user.id, queue)
+            if pub_sub.disconnect(user.id, queue):
+                await _save_last_online(user.id)

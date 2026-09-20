@@ -451,6 +451,8 @@ export type User = IBaseType & {
   fullName: Scalars["String"]["output"]
   id: Scalars["Int"]["output"]
   isAdmin: Scalars["Boolean"]["output"]
+  isOnline: Scalars["Boolean"]["output"]
+  lastOnlineAt?: Maybe<Scalars["DateTime"]["output"]>
   name: Scalars["String"]["output"]
   patronymic?: Maybe<Scalars["String"]["output"]>
   role: EUserRole

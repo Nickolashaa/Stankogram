@@ -77,6 +77,10 @@ export function formatDaySeparator(value: string) {
   return formatted.charAt(0).toUpperCase() + formatted.slice(1)
 }
 
+export function formatLastOnline(value: string) {
+  return `${formatDaySeparator(value).toLowerCase()} в ${formatTime(value)}`
+}
+
 export function toDateTimeInput(value: string) {
   const date = new Date(value)
   const offset = date.getTimezoneOffset() * 60 * 1000

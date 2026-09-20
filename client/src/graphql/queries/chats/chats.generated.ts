@@ -52,6 +52,8 @@ export type ChatsQuery = {
           email: string
           role: Types.EUserRole
           isAdmin: boolean
+          isOnline: boolean
+          lastOnlineAt: string | null
         }
       }>
     }>

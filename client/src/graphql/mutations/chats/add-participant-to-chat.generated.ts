@@ -41,6 +41,8 @@ export type AddParticipantToChatMutation = {
           email: string
           role: Types.EUserRole
           isAdmin: boolean
+          isOnline: boolean
+          lastOnlineAt: string | null
         }
       }
     | { __typename: "InvalidInputError"; message: string }

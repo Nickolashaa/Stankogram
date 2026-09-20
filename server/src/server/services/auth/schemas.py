@@ -48,6 +48,7 @@ class UserResponse(BaseResponse):
     role: UserRole
     is_admin: bool
     full_name: str
+    last_online_at: datetime | None
 
 
 class UserImportRowSchema(Schema):

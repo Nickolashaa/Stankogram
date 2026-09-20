@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Self
 
 import strawberry
@@ -8,6 +9,7 @@ from ....services.auth.schemas import (
     UserResponse,
     UsersImportReportSchema,
 )
+from ...pubsub import pub_sub
 from ..base import IBaseMeta, IBaseType, XlsxFile
 from .enums import EUserRole
 
@@ -22,6 +24,8 @@ class User(IBaseType):
     role: EUserRole
     is_admin: bool
     full_name: str
+    is_online: bool
+    last_online_at: datetime | None
 
     @classmethod
     def from_schema(
@@ -39,6 +43,8 @@ class User(IBaseType):
             full_name=instance.full_name,
             created_at=instance.created_at,
             updated_at=instance.updated_at,
+            is_online=pub_sub.is_connected(instance.id),
+            last_online_at=instance.last_online_at,
         )
 
 

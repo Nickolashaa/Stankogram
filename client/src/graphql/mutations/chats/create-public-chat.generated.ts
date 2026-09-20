@@ -48,6 +48,8 @@ export type CreatePublicChatMutation = {
             email: string
             role: Types.EUserRole
             isAdmin: boolean
+            isOnline: boolean
+            lastOnlineAt: string | null
           }
         }>
         lastMessage: {
@@ -65,6 +67,8 @@ export type CreatePublicChatMutation = {
             email: string
             role: Types.EUserRole
             isAdmin: boolean
+            isOnline: boolean
+            lastOnlineAt: string | null
           }
         } | null
       }

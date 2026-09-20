@@ -5,7 +5,12 @@ import { storeToRefs } from "pinia"
 import { useDebounceFn, useInfiniteScroll } from "@vueuse/core"
 import { useMessageStore, type MessageItem } from "@/stores/messages"
 import { useAuthStore } from "@/stores/auth"
-import { useChatStore, type ChatParticipantItem, type ChatSummary } from "@/stores/chats"
+import {
+  useChatStore,
+  privatePeer,
+  type ChatParticipantItem,
+  type ChatSummary,
+} from "@/stores/chats"
 import { useDraftStore } from "@/stores/drafts"
 import { EChatType } from "@/graphql/base-types"
 import { notify } from "@/lib/notify"
@@ -21,6 +26,7 @@ import {
 import { linkify } from "@/lib/linkify"
 import { isLargeEmojiMessage } from "@/lib/emoji"
 import { participantBadges, userBadges } from "@/lib/badges"
+import { presenceLabel } from "@/lib/presence"
 import { roleLabels } from "@/lib/roles"
 import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
 import Button from "@/components/button.vue"
@@ -52,6 +58,12 @@ const { user: currentUser } = storeToRefs(authStore)
 
 const chatStore = useChatStore()
 const { chats } = storeToRefs(chatStore)
+
+const peer = computed(() =>
+  props.chat && currentUser.value ? privatePeer(props.chat, currentUser.value.id) : null,
+)
+
+const peerPresence = computed(() => peer.value?.user ?? null)
 
 const participantsByUserId = computed(() => {
   const chat = chats.value.find((item) => item.id === props.chatId)
@@ -501,14 +513,22 @@ async function handleSubmit() {
         class="press flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-card px-2 py-1.5 text-left hover:bg-main/5"
         @click="emit('open-info')"
       >
-        <Avatar :label="chatInitials(chat?.title ?? '')" />
+        <Avatar
+          :label="chatInitials(chat?.title ?? '')"
+          :online="peerPresence?.isOnline ?? false"
+        />
         <span class="flex min-w-0 flex-col">
           <span class="truncate text-[15px] font-semibold text-main">{{ chat?.title }}</span>
-          <span class="truncate text-xs text-second">
+          <span
+            class="truncate text-xs"
+            :class="peerPresence?.isOnline ? 'text-green-600 dark:text-green-400' : 'text-second'"
+          >
             {{
               chat?.type === EChatType.Public
                 ? `${chat.participants.length} участников`
-                : "Личный чат"
+                : peerPresence !== null
+                  ? presenceLabel(peerPresence)
+                  : "Личный чат"
             }}
           </span>
         </span>

@@ -40,6 +40,8 @@ export type UserCreateMutation = {
           email: string
           role: Types.EUserRole
           isAdmin: boolean
+          isOnline: boolean
+          lastOnlineAt: string | null
         }
       }
     | { __typename: "ObjectAlreadyExistsError"; message: string }
