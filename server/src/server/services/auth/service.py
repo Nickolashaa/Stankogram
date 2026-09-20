@@ -200,8 +200,10 @@ class AuthService(BaseService):
                 f"User with email {values.get('email')} already exists"
             )
 
+        instance = res.scalar_one()
+
         return CreatedUserSchema(
-            user=UserResponse.model_validate(res.scalar_one()),
+            user=UserResponse.model_validate(instance),
             password=password,
         )
 
@@ -211,12 +213,12 @@ class AuthService(BaseService):
     ) -> UserResponse:
         stmt = select(User).where(User.id == id)
         res = await self._execute(stmt)
-        entity = res.scalar_one_or_none()
-        if entity is None:
+        instance = res.scalar_one_or_none()
+        if instance is None:
             raise ObjectNotFound(
                 f"User with id {id} not found",
             )
-        return UserResponse.model_validate(entity)
+        return UserResponse.model_validate(instance)
 
     @staticmethod
     def _apply_filters(
@@ -257,7 +259,9 @@ class AuthService(BaseService):
 
         res = await self._execute(stmt)
 
-        return [UserResponse.model_validate(entity) for entity in res.scalars().all()]
+        return [
+            UserResponse.model_validate(instance) for instance in res.scalars().all()
+        ]
 
     async def count(
         self,
@@ -279,12 +283,12 @@ class AuthService(BaseService):
     ) -> UserResponse:
         stmt = select(User).where(User.email == email)
         res = await self._execute(stmt)
-        entity = res.scalar_one_or_none()
-        if entity is None:
+        instance = res.scalar_one_or_none()
+        if instance is None:
             raise ObjectNotFound(
                 f"User with email {email} not found",
             )
-        return UserResponse.model_validate(entity)
+        return UserResponse.model_validate(instance)
 
     async def login(
         self,
@@ -320,11 +324,14 @@ class AuthService(BaseService):
 
         try:
             res = await self._execute(stmt)
-            return UserResponse.model_validate(res.scalar_one())
         except IntegrityError:
             raise ObjectAlreadyExists(
                 f"User with email {values.get('email')} already exists"
             )
+
+        instance = res.scalar_one()
+
+        return UserResponse.model_validate(instance)
 
     async def reset_password_request(
         self,
@@ -368,13 +375,13 @@ class AuthService(BaseService):
         )
 
         res = await self._execute(stmt)
-        entity = res.scalar_one_or_none()
-        if entity is None:
+        instance = res.scalar_one_or_none()
+        if instance is None:
             raise ObjectNotFound(
                 f"Valid password reset code for user {user.id} not found"
             )
 
-        stmt = delete(PasswordResetCode).where(PasswordResetCode.id == entity.id)
+        stmt = delete(PasswordResetCode).where(PasswordResetCode.id == instance.id)
         await self._execute(stmt)
 
         new_password = self._generate_password()

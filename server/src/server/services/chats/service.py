@@ -12,18 +12,19 @@ from .types import ChatCreateParams, ChatGetListFilters, ChatUpdateParams
 
 
 class ChatService(BaseService):
-    async def create(self, **data: Unpack[ChatCreateParams]) -> ChatResponse:
-        if data.get("type") == ChatType.PRIVATE and data.get("title") is not None:
+    async def create(self, **values: Unpack[ChatCreateParams]) -> ChatResponse:
+        if values.get("type") == ChatType.PRIVATE and values.get("title") is not None:
             raise InvalidInput("Private chat cannot have title")
 
-        if data.get("type") == ChatType.PUBLIC and data.get("title") is None:
+        if values.get("type") == ChatType.PUBLIC and values.get("title") is None:
             raise InvalidInput("Public chat must have title")
 
-        stmt = insert(Chat).values(**data).returning(Chat)
+        stmt = insert(Chat).values(**values).returning(Chat)
 
         res = await self._execute(stmt)
+        instance = res.scalar_one()
 
-        return ChatResponse.model_validate(res.scalar_one())
+        return ChatResponse.model_validate(instance)
 
     async def get(
         self,
@@ -41,17 +42,18 @@ class ChatService(BaseService):
     async def update(
         self,
         id: int,
-        **data: Unpack[ChatUpdateParams],
+        **values: Unpack[ChatUpdateParams],
     ) -> ChatResponse:
         chat = await self.get(id)
         if chat.type == ChatType.PRIVATE:
             raise InvalidInput("Private chat cannot have title")
 
-        stmt = update(Chat).where(Chat.id == id).values(**data).returning(Chat)
+        stmt = update(Chat).where(Chat.id == id).values(**values).returning(Chat)
 
         res = await self._execute(stmt)
+        instance = res.scalar_one()
 
-        return ChatResponse.model_validate(res.scalar_one())
+        return ChatResponse.model_validate(instance)
 
     async def delete(
         self,

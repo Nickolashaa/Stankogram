@@ -88,8 +88,8 @@ class NotificationService(BaseService):
         res = await self._execute(stmt)
 
         return [
-            NotificationResponse.model_validate(entity)
-            for entity in res.scalars().all()
+            NotificationResponse.model_validate(instance)
+            for instance in res.scalars().all()
         ]
 
     async def count(

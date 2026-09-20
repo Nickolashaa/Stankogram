@@ -45,7 +45,9 @@ class MessageService(BaseService):
                 raise ObjectNotFound(f"User with id {values.get('user_id')} not found")
             raise
 
-        return MessageResponse.from_ORM(fernet=self._fernet, instance=res.scalar_one())
+        instance = res.scalar_one()
+
+        return MessageResponse.from_ORM(fernet=self._fernet, instance=instance)
 
     async def get(self, id: int) -> MessageResponse:
         stmt = select(Message).where(Message.id == id)
@@ -145,8 +147,8 @@ class MessageService(BaseService):
         res = await self._execute(stmt)
 
         return [
-            MessageResponse.from_ORM(fernet=self._fernet, instance=entity)
-            for entity in res.scalars().all()
+            MessageResponse.from_ORM(fernet=self._fernet, instance=instance)
+            for instance in res.scalars().all()
         ]
 
     async def count(

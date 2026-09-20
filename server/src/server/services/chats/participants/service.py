@@ -27,9 +27,9 @@ class ChatParticipantService(BaseService):
 
     async def create(
         self,
-        **data: Unpack[ChatParticipantCreateParams],
+        **values: Unpack[ChatParticipantCreateParams],
     ) -> ChatParticipantResponse:
-        chat = await self._chat_service.get(data.get("chat_id"))
+        chat = await self._chat_service.get(values.get("chat_id"))
         if chat.type == ChatType.PRIVATE:
             participants_count = await self.count(chat_id=chat.id)
             if participants_count >= 2:
@@ -37,7 +37,7 @@ class ChatParticipantService(BaseService):
                     "You cannot change the participants of a private chat"
                 )
 
-        stmt = insert(ChatParticipant).values(**data).returning(ChatParticipant)
+        stmt = insert(ChatParticipant).values(**values).returning(ChatParticipant)
 
         try:
             res = await self._execute(stmt)
@@ -45,10 +45,12 @@ class ChatParticipantService(BaseService):
             if "uq_user_chat" in str(e.orig):
                 raise ObjectAlreadyExists("User already exists in this chat")
             if "fk_chat_participants_user_id" in str(e.orig):
-                raise ObjectNotFound(f"User with id {data.get('user_id')} not found")
+                raise ObjectNotFound(f"User with id {values.get('user_id')} not found")
             raise
 
-        return ChatParticipantResponse.model_validate(res.scalar_one())
+        instance = res.scalar_one()
+
+        return ChatParticipantResponse.model_validate(instance)
 
     async def delete(
         self,
@@ -141,8 +143,8 @@ class ChatParticipantService(BaseService):
         res = await self._execute(stmt)
 
         return [
-            ChatParticipantResponse.model_validate(entity)
-            for entity in res.scalars().all()
+            ChatParticipantResponse.model_validate(instance)
+            for instance in res.scalars().all()
         ]
 
     async def count(
@@ -161,27 +163,30 @@ class ChatParticipantService(BaseService):
 
     async def update(
         self,
-        **data: Unpack[ChatParticipantCreateParams],
+        **values: Unpack[ChatParticipantCreateParams],
     ) -> ChatParticipantResponse:
-        select_stmt = select(ChatParticipant).where(
-            ChatParticipant.user_id == data.get("user_id"),
-            ChatParticipant.chat_id == data.get("chat_id"),
+        stmt = select(ChatParticipant).where(
+            ChatParticipant.user_id == values.get("user_id"),
+            ChatParticipant.chat_id == values.get("chat_id"),
         )
-        select_res = await self._execute(select_stmt)
-        instance = select_res.scalar_one_or_none()
+        res = await self._execute(stmt)
+        instance = res.scalar_one_or_none()
         if instance is None:
             raise ObjectNotFound(
-                f"User {data.get('user_id')} not recipient chat {data.get('chat_id')}"
+                f"User {values.get('user_id')} not recipient chat "
+                f"{values.get('chat_id')}"
             )
 
-        update_stmt = (
+        stmt = (
             update(ChatParticipant)
             .where(ChatParticipant.id == instance.id)
-            .values(**data)
+            .values(**values)
             .returning(ChatParticipant)
         )
-        update_res = await self._execute(update_stmt)
-        return ChatParticipantResponse.model_validate(update_res.scalar_one())
+        res = await self._execute(stmt)
+        instance = res.scalar_one()
+
+        return ChatParticipantResponse.model_validate(instance)
 
     async def get_or_none(
         self,

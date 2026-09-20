@@ -21,13 +21,14 @@ from .types import (
 class SystemNotificationService(BaseService):
     async def create(
         self,
-        **data: Unpack[SystemNotificationCreateParams],
+        **values: Unpack[SystemNotificationCreateParams],
     ) -> SystemNotificationResponse:
-        stmt = insert(SystemNotification).values(**data).returning(SystemNotification)
+        stmt = insert(SystemNotification).values(**values).returning(SystemNotification)
 
         res = await self._execute(stmt)
+        instance = res.scalar_one()
 
-        return SystemNotificationResponse.model_validate(res.scalar_one())
+        return SystemNotificationResponse.model_validate(instance)
 
     async def update(
         self,
@@ -42,12 +43,12 @@ class SystemNotificationService(BaseService):
         )
 
         res = await self._execute(stmt)
-        entity = res.scalar_one_or_none()
-        if entity is None:
+        instance = res.scalar_one_or_none()
+        if instance is None:
             raise ObjectNotFound(
                 f"System notification with id {id} not found",
             )
-        return SystemNotificationResponse.model_validate(entity)
+        return SystemNotificationResponse.model_validate(instance)
 
     async def mark_as_read(
         self,
