@@ -79,12 +79,6 @@ enum EChatType {
   PUBLIC
 }
 
-enum EUserOnlineStatus {
-  ONLINE
-  RECENTLY_ONLINE
-  LONG_AGO
-}
-
 enum EUserRole {
   STUDENT
   TEACHER
@@ -168,7 +162,6 @@ type Mutation {
   usersImport(file: Upload!): UsersImportReportInvalidInputError!
   userUpdate(id: Int!, input: UserIn!): UserObjectAlreadyExistsErrorObjectNotFoundError!
   userDelete(id: Int!): Void
-  meUpdateHideLastOnline(hideLastOnline: Boolean!): UserObjectNotFoundError!
   userResetPasswordRequest(email: String!): ObjectNotFoundError
   userResetPasswordConfirm(id: Int!, code: String!): ObjectNotFoundError
   createPrivateChat(input: PrivateChatIn!): ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError!
@@ -286,9 +279,8 @@ type User implements IBaseType {
   role: EUserRole!
   isAdmin: Boolean!
   fullName: String!
-  onlineStatus: EUserOnlineStatus!
+  isOnline: Boolean!
   lastOnlineAt: DateTime
-  hideLastOnline: Boolean!
 }
 
 input UserCredentialsIn {
@@ -309,7 +301,6 @@ input UserIn {
   email: String!
   role: EUserRole!
   isAdmin: Boolean!
-  hideLastOnline: Boolean!
 }
 
 union UserObjectAlreadyExistsErrorObjectNotFoundError = User | ObjectAlreadyExistsError | ObjectNotFoundError
