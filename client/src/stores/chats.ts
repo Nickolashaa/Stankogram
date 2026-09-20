@@ -47,6 +47,15 @@ export function hasUnreadMessages(chat: ChatSummary, currentUserId: number): boo
   return new Date(chat.lastMessage.createdAt) > new Date(participant.lastReadAt)
 }
 
+export function privatePeer(chat: ChatSummary, currentUserId: number): ChatParticipantItem | null {
+  if (chat.type !== EChatType.Private) {
+    return null
+  }
+  return (
+    chat.participants.find((item) => item.user.id !== currentUserId) ?? chat.participants[0] ?? null
+  )
+}
+
 export const useChatStore = defineStore("chats", () => {
   const authStore = useAuthStore()
 

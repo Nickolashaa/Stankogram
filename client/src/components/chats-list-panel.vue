@@ -3,7 +3,7 @@ import { onMounted, ref, watch } from "vue"
 import { storeToRefs } from "pinia"
 import { useRouter } from "vue-router"
 import { useInfiniteScroll } from "@vueuse/core"
-import { useChatStore, hasUnreadMessages } from "@/stores/chats"
+import { useChatStore, hasUnreadMessages, privatePeer, type ChatSummary } from "@/stores/chats"
 import { useAuthStore } from "@/stores/auth"
 import { useDraftStore } from "@/stores/drafts"
 import { shortName, formatTime, chatInitials } from "@/lib/format"
@@ -33,6 +33,14 @@ const { user: currentUser } = storeToRefs(authStore)
 
 function isUnread(chat: (typeof chats.value)[number]) {
   return currentUser.value !== undefined && hasUnreadMessages(chat, currentUser.value.id)
+}
+
+function isPeerOnline(chat: ChatSummary) {
+  if (currentUser.value === undefined) {
+    return false
+  }
+  const peer = privatePeer(chat, currentUser.value.id)
+  return peer?.user.isOnline ?? false
 }
 
 const createGroupOpen = ref(false)
@@ -162,7 +170,7 @@ function lastMessagePreview(chat: (typeof chats.value)[number]) {
         :class="chat.id === activeChatId ? 'pill-active' : 'pill-idle'"
         @click="emit('select', chat.id)"
       >
-        <Avatar :label="chatInitials(chat.title)" />
+        <Avatar :label="chatInitials(chat.title)" :online="isPeerOnline(chat)" />
 
         <div class="flex min-w-0 flex-1 flex-col gap-0.5">
           <div class="flex items-center justify-between gap-2">

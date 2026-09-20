@@ -3,10 +3,11 @@ import { computed, ref, watch } from "vue"
 import { storeToRefs } from "pinia"
 import type { ChatSummary, ChatParticipantItem } from "@/stores/chats"
 import { useAuthStore } from "@/stores/auth"
-import { useChatStore } from "@/stores/chats"
+import { useChatStore, privatePeer } from "@/stores/chats"
 import { EChatType } from "@/graphql/base-types"
 import { fullName, chatInitials, initials } from "@/lib/format"
 import { participantBadges } from "@/lib/badges"
+import { presenceLabel } from "@/lib/presence"
 import { notify } from "@/lib/notify"
 import Badge from "@/components/badge.vue"
 import Button from "@/components/button.vue"
@@ -39,6 +40,12 @@ const chatStore = useChatStore()
 const { user: currentUser } = storeToRefs(authStore)
 
 const isGroupChat = computed(() => props.chat.type === EChatType.Public)
+
+const peer = computed(() =>
+  currentUser.value ? privatePeer(props.chat, currentUser.value.id) : null,
+)
+
+const peerPresence = computed(() => peer.value?.user ?? null)
 
 const currentParticipant = computed(
   () => props.chat.participants.find((item) => item.user.id === currentUser.value?.id) ?? null,
@@ -228,7 +235,11 @@ watch(
     "
   >
     <div class="hairline-b flex items-center gap-3 px-4 py-5 lg:px-6 lg:py-6">
-      <Avatar :label="chatInitials(chat.title)" size="lg" />
+      <Avatar
+        :label="chatInitials(chat.title)"
+        size="lg"
+        :online="peerPresence?.isOnline ?? false"
+      />
 
       <div class="flex min-w-0 flex-1 flex-col gap-1">
         <div class="flex items-center gap-2">
@@ -271,7 +282,12 @@ watch(
             />
           </template>
         </div>
-        <span class="text-sm text-second">{{ chatTypeLabels[chat.type] }}</span>
+        <span
+          class="text-sm"
+          :class="peerPresence?.isOnline ? 'text-green-600 dark:text-green-400' : 'text-second'"
+        >
+          {{ peerPresence !== null ? presenceLabel(peerPresence) : chatTypeLabels[chat.type] }}
+        </span>
       </div>
     </div>
 
@@ -299,10 +315,22 @@ watch(
           :class="isCurrentUserAdmin ? 'cursor-context-menu hover:bg-main/5' : ''"
           @contextmenu="handleContextMenu($event, participant)"
         >
-          <Avatar :label="initials(participant.user)" size="sm" />
+          <Avatar
+            :label="initials(participant.user)"
+            size="sm"
+            :online="participant.user.isOnline"
+          />
           <div class="flex min-w-0 flex-1 flex-col gap-1.5">
             <span class="truncate text-[15px] font-medium text-main">
               {{ fullName(participant.user) }}
+            </span>
+            <span
+              class="truncate text-xs"
+              :class="
+                participant.user.isOnline ? 'text-green-600 dark:text-green-400' : 'text-second'
+              "
+            >
+              {{ presenceLabel(participant.user) }}
             </span>
             <div class="flex flex-wrap gap-1.5">
               <Badge
