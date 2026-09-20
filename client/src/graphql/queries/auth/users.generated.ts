@@ -41,6 +41,8 @@ export type UsersQuery = {
       email: string
       role: Types.EUserRole
       isAdmin: boolean
+      isOnline: boolean
+      lastOnlineAt: string | null
     }>
   }
 }

@@ -16,6 +16,8 @@ export type UserFieldsFragment = {
   email: string
   role: Types.EUserRole
   isAdmin: boolean
+  isOnline: boolean
+  lastOnlineAt: string | null
 }
 
 export const UserFieldsFragmentDoc = gql`
@@ -29,5 +31,7 @@ export const UserFieldsFragmentDoc = gql`
     email
     role
     isAdmin
+    isOnline
+    lastOnlineAt
   }
 `

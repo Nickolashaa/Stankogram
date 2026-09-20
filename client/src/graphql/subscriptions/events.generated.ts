@@ -34,6 +34,8 @@ export type EventsSubscription = {
             email: string
             role: Types.EUserRole
             isAdmin: boolean
+            isOnline: boolean
+            lastOnlineAt: string | null
           }
           chat: { id: number }
         }
@@ -56,6 +58,8 @@ export type EventsSubscription = {
             email: string
             role: Types.EUserRole
             isAdmin: boolean
+            isOnline: boolean
+            lastOnlineAt: string | null
           }
           chat: { id: number }
         }

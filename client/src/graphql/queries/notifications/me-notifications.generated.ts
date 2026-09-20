@@ -46,6 +46,8 @@ export type MeNotificationsQuery = {
           email: string
           role: Types.EUserRole
           isAdmin: boolean
+          isOnline: boolean
+          lastOnlineAt: string | null
         }
         chat: { id: number; createdAt: string; type: Types.EChatType; title: string }
       }

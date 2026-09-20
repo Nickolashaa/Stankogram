@@ -8,4 +8,6 @@ fragment UserFields on User {
   email
   role
   isAdmin
+  isOnline
+  lastOnlineAt
 }

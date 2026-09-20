@@ -41,6 +41,8 @@ export type UserUpdateMutation = {
         email: string
         role: Types.EUserRole
         isAdmin: boolean
+        isOnline: boolean
+        lastOnlineAt: string | null
       }
 }
 

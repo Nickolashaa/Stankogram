@@ -41,6 +41,8 @@ export type UpdateMessageMutation = {
           email: string
           role: Types.EUserRole
           isAdmin: boolean
+          isOnline: boolean
+          lastOnlineAt: string | null
         }
       }
     | { __typename: "ObjectNotFoundError"; message: string }
