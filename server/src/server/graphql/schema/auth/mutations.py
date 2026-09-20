@@ -176,23 +176,6 @@ class AuthMutation:
         await info.context.services.auth_service.delete(id)
         await info.context.session.commit()
 
-    @strawberry.mutation(permission_classes=[IsAuthenticated])
-    async def me_update_hide_last_online(
-        self,
-        info: AuthorizedAppInfo,
-        hide_last_online: bool,
-    ) -> User | ObjectNotFoundError:
-        try:
-            instance = await info.context.services.auth_service.update(
-                id=info.context.current_user.id,
-                hide_last_online=hide_last_online,
-            )
-            await info.context.session.commit()
-            return User.from_schema(instance)
-        except ObjectNotFound as e:
-            await info.context.session.rollback()
-            return ObjectNotFoundError.from_service_exception(e)
-
     @strawberry.mutation
     async def user_reset_password_request(
         self, info: AppInfo, email: str

@@ -6,7 +6,7 @@ class PubSub:
     def __init__(self) -> None:
         self._connections: dict[int, Queue[Any]] = {}
 
-    def is_exists(self, user_id: int) -> bool:
+    def is_connected(self, user_id: int) -> bool:
         return self._connections.get(user_id) is not None
 
     def connect(self, user_id: int) -> Queue[Any]:
@@ -16,9 +16,11 @@ class PubSub:
         self._connections[user_id] = queue
         return queue
 
-    def disconnect(self, user_id: int, queue: Queue[Any]) -> None:
-        if self._connections.get(user_id) is queue:
-            del self._connections[user_id]
+    def disconnect(self, user_id: int, queue: Queue[Any]) -> bool:
+        if self._connections.get(user_id) is not queue:
+            return False
+        del self._connections[user_id]
+        return True
 
     def publish(self, user_id: int, event: Any) -> None:
         if (queue := self._connections.get(user_id)) is not None:

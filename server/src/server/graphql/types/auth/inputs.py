@@ -17,7 +17,6 @@ class UserIn:
     email: str
     role: EUserRole
     is_admin: bool
-    hide_last_online: bool
 
     def to_create_service_params(self) -> UserCreateParams:
         return UserCreateParams(
@@ -27,7 +26,6 @@ class UserIn:
             email=self.email,
             role=self.role,
             is_admin=self.is_admin,
-            hide_last_online=self.hide_last_online,
         )
 
     def to_update_service_params(self) -> UserUpdateParams:
@@ -38,7 +36,6 @@ class UserIn:
             email=self.email,
             role=self.role,
             is_admin=self.is_admin,
-            hide_last_online=self.hide_last_online,
         )
 
 

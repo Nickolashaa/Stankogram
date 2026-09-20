@@ -34,9 +34,6 @@ class User(Base):
     last_online_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
     )
-    hide_last_online: Mapped[bool] = mapped_column(
-        server_default=expression.false(),
-    )
 
     @hybrid_property
     def full_name(self) -> str:
