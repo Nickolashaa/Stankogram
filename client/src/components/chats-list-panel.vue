@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue"
+import { computed, onMounted, ref, watch } from "vue"
 import { storeToRefs } from "pinia"
 import { useRouter } from "vue-router"
 import { useInfiniteScroll } from "@vueuse/core"
@@ -7,7 +7,9 @@ import { useChatStore, hasUnreadMessages, privatePeer, type ChatSummary } from "
 import { useAuthStore } from "@/stores/auth"
 import { useDraftStore } from "@/stores/drafts"
 import { shortName, formatTime, chatInitials } from "@/lib/format"
+import type { ChatFiltersIn } from "@/graphql/base-types"
 import Button from "@/components/button.vue"
+import Input from "@/components/input.vue"
 import Avatar from "@/components/avatar.vue"
 import NavIcon from "@/components/nav-icon.vue"
 import CreateGroupChatDialog from "@/components/create-group-chat-dialog.vue"
@@ -69,10 +71,17 @@ function handleGroupCreated(chatId: number) {
 
 const scrollContainer = ref<HTMLElement | null>(null)
 
+const searchQuery = ref("")
+
+const filters = computed<ChatFiltersIn | undefined>(() => {
+  const trimmed = searchQuery.value.trim()
+  return trimmed === "" ? undefined : { searchQuery: trimmed }
+})
+
 const infiniteScroll = useInfiniteScroll(
   scrollContainer,
   async () => {
-    await chatStore.fetchChats(undefined, PAGE_SIZE, chats.value.length, { append: true })
+    await chatStore.fetchChats(filters.value, PAGE_SIZE, chats.value.length, { append: true })
   },
   {
     distance: 100,
@@ -81,11 +90,13 @@ const infiniteScroll = useInfiniteScroll(
 )
 
 async function refreshChats() {
-  await chatStore.fetchChats(undefined, PAGE_SIZE, 0)
+  await chatStore.fetchChats(filters.value, PAGE_SIZE, 0)
   infiniteScroll.reset()
 }
 
 onMounted(refreshChats)
+
+watch(filters, refreshChats)
 
 watch(
   () => props.activeChatId,
@@ -158,6 +169,10 @@ function lastMessagePreview(chat: (typeof chats.value)[number]) {
       </div>
     </div>
 
+    <div class="hairline-b shrink-0 px-4 py-3">
+      <Input v-model="searchQuery" placeholder="Поиск по чатам..." />
+    </div>
+
     <div
       ref="scrollContainer"
       class="flex flex-1 flex-col gap-1 overflow-y-auto px-2.5 pt-2.5 pb-[calc(var(--design-nav-offset)+env(safe-area-inset-bottom))] lg:pb-3"
@@ -203,7 +218,7 @@ function lastMessagePreview(chat: (typeof chats.value)[number]) {
       </button>
 
       <div v-if="chats.length === 0" class="px-5 py-8 text-center text-sm text-second">
-        Чатов пока нет
+        {{ filters === undefined ? "Чатов пока нет" : "Ничего не найдено" }}
       </div>
 
       <div v-if="infiniteScroll.isLoading.value" class="py-4 text-center text-sm text-second">

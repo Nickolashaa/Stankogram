@@ -61,6 +61,7 @@ export const useChatStore = defineStore("chats", () => {
 
   const chats = ref<ChatSummary[]>([])
   const totalCount = ref(0)
+  const activeFilters = ref<ChatFiltersIn | undefined>(undefined)
 
   const hasUnread = computed(() => {
     const currentUser = authStore.user
@@ -91,6 +92,7 @@ export const useChatStore = defineStore("chats", () => {
 
     chats.value = options.append ? [...chats.value, ...data.meChats.chats] : data.meChats.chats
     totalCount.value = data.meChats.count
+    activeFilters.value = filters
   }
 
   async function fetchAdminChats(
@@ -346,7 +348,7 @@ export const useChatStore = defineStore("chats", () => {
     const index = chats.value.findIndex((chat) => chat.id === message.chat.id)
 
     if (index === -1) {
-      fetchChats(undefined, RESYNC_PAGE_SIZE, 0)
+      fetchChats(activeFilters.value, RESYNC_PAGE_SIZE, 0)
       return
     }
 
@@ -384,7 +386,7 @@ export const useChatStore = defineStore("chats", () => {
   function handleDeleteMessage(message: { id: number; chat: { id: number } }) {
     const current = chats.value.find((chat) => chat.id === message.chat.id)
     if (current?.lastMessage?.id === message.id) {
-      fetchChats(undefined, RESYNC_PAGE_SIZE, 0)
+      fetchChats(activeFilters.value, RESYNC_PAGE_SIZE, 0)
     }
     patchLastMessageIn(adminChats, message.chat.id, message.id, null)
   }
