@@ -15,6 +15,7 @@ type Chat implements IBaseType {
 
 input ChatFiltersIn {
   type: EChatType
+  searchQuery: String
 }
 
 union ChatInvalidInputErrorObjectNotFoundError = Chat | InvalidInputError | ObjectNotFoundError
