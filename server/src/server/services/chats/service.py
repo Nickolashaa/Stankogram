@@ -1,8 +1,9 @@
 from typing import Unpack
 
-from sqlalchemy import Select, delete, func, insert, select, update
+from sqlalchemy import Select, delete, func, insert, or_, select, update
 
-from ...database.models.chats import Chat
+from ...database.models.auth import User
+from ...database.models.chats import Chat, ChatParticipant
 from ...database.models.messages import Message
 from ...enums.chats import ChatType
 from ..base import BasePagination, BaseService
@@ -77,6 +78,23 @@ class ChatService(BaseService):
 
         if (ids := filters.get("ids")) is not None:
             stmt = stmt.where(Chat.id.in_(ids))
+
+        if (search_query := filters.get("search_query")) is not None:
+            peers = (
+                select(ChatParticipant.chat_id)
+                .join(User, User.id == ChatParticipant.user_id)
+                .where(User.full_name.icontains(search_query))
+            )
+
+            if (exclude_user_id := filters.get("search_exclude_user_id")) is not None:
+                peers = peers.where(ChatParticipant.user_id != exclude_user_id)
+
+            stmt = stmt.where(
+                or_(
+                    Chat.title.icontains(search_query),
+                    Chat.id.in_(peers),
+                )
+            )
 
         return stmt
 

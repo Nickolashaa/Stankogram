@@ -16,12 +16,16 @@ from .enums import EChatType
 @strawberry.input
 class ChatFiltersIn:
     type: strawberry.Maybe[EChatType]
+    search_query: strawberry.Maybe[str]
 
     def to_service_params(self) -> ChatFiltersParams:
         params: ChatFiltersParams = {}
 
         if self.type is not None:
             params["type"] = self.type.value
+
+        if self.search_query is not None:
+            params["search_query"] = self.search_query.value
 
         return params
 

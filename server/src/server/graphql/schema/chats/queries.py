@@ -32,11 +32,13 @@ class ChatQuery:
                         pagination if pagination is not None else default_pagination
                     ).to_service_params(),
                     ids=[link.chat_id for link in links],
+                    search_exclude_user_id=info.context.current_user.id,
                     **filters.to_service_params() if filters is not None else {},
                 )
             ],
             count=await info.context.services.chat_service.count(
                 ids=[link.chat_id for link in links],
+                search_exclude_user_id=info.context.current_user.id,
                 **filters.to_service_params() if filters is not None else {},
             ),
         )
