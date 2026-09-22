@@ -32,6 +32,7 @@ export type Chat = IBaseType & {
 }
 
 export type ChatFiltersIn = {
+  searchQuery?: InputMaybe<Scalars["String"]["input"]>
   type?: InputMaybe<EChatType>
 }
 

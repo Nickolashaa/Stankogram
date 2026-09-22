@@ -18,6 +18,7 @@ export type BasePaginationIn = {
 }
 
 export type ChatFiltersIn = {
+  searchQuery?: string | null | undefined
   type?: EChatType | null | undefined
 }
 
