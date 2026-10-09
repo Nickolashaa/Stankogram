@@ -120,7 +120,7 @@ type JWTs {
   refreshToken: String!
 }
 
-union JWTsObjectNotFoundError = JWTs | ObjectNotFoundError
+union JWTsObjectNotFoundErrorTooManyRequestsError = JWTs | ObjectNotFoundError | TooManyRequestsError
 
 union JWTsUnauthorizedErrorObjectNotFoundError = JWTs | UnauthorizedError | ObjectNotFoundError
 
@@ -156,15 +156,15 @@ type MessagesMeta implements IBaseMeta {
 }
 
 type Mutation {
-  login(input: UserCredentialsIn!): JWTsObjectNotFoundError!
+  login(input: UserCredentialsIn!): JWTsObjectNotFoundErrorTooManyRequestsError!
   refresh: JWTsUnauthorizedErrorObjectNotFoundError!
   logout: Void
   userCreate(input: UserIn!): CreatedUserObjectAlreadyExistsError!
   usersImport(file: Upload!): UsersImportReportInvalidInputError!
   userUpdate(id: Int!, input: UserIn!): UserObjectAlreadyExistsErrorObjectNotFoundError!
   userDelete(id: Int!): Void
-  userResetPasswordRequest(email: String!): ObjectNotFoundError
-  userResetPasswordConfirm(id: Int!, code: String!): ObjectNotFoundError
+  userResetPasswordRequest(email: String!): TooManyRequestsError
+  userResetPasswordConfirm(id: Int!, code: String!): ObjectNotFoundErrorTooManyRequestsError
   createPrivateChat(input: PrivateChatIn!): ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError!
   createPublicChat(input: PublicChatIn!): ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError!
   updateChat(chatId: Int!, input: ChatUpdateIn!): ChatInvalidInputErrorObjectNotFoundError!
@@ -203,6 +203,8 @@ type ObjectAlreadyExistsError implements IAppError {
 type ObjectNotFoundError implements IAppError {
   message: String!
 }
+
+union ObjectNotFoundErrorTooManyRequestsError = ObjectNotFoundError | TooManyRequestsError
 
 input PrivateChatIn {
   participantId: Int!
@@ -256,6 +258,10 @@ union SystemNotificationObjectNotFoundError = SystemNotification | ObjectNotFoun
 type SystemNotificationsMeta implements IBaseMeta {
   count: Int!
   systemNotifications: [SystemNotification!]!
+}
+
+type TooManyRequestsError implements IAppError {
+  message: String!
 }
 
 type UnauthorizedError implements IAppError {
