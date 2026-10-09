@@ -22,6 +22,7 @@ class Context(BaseContext):
     services: Services
     data_loaders: DataLoaders
     refresh_token: str | None
+    client_ip: str
 
 
 @dataclass(slots=True)
@@ -36,6 +37,7 @@ class AuthorizedContext(Context):
             services=context.services,
             data_loaders=context.data_loaders,
             refresh_token=context.refresh_token,
+            client_ip=context.client_ip,
             current_user=current_user,
         )
 

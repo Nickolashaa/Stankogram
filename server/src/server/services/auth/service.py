@@ -1,7 +1,7 @@
 import asyncio
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from secrets import choice
+from secrets import choice, compare_digest
 from string import Template, ascii_letters, digits
 from typing import Sequence, Unpack
 from uuid import UUID, uuid4
@@ -34,6 +34,7 @@ from ..exceptions import (
     InvalidInput,
     ObjectAlreadyExists,
     ObjectNotFound,
+    TooManyRequests,
     Unauthorized,
 )
 from .schemas import (
@@ -114,6 +115,9 @@ _IMPORT_GUIDE_LINES = (
     "Пароли показываются один раз — сохраните файл и передайте их сотрудникам.",
     "Забытый пароль восстанавливается через «Забыли пароль?» на странице входа.",
 )
+
+
+_INVALID_CREDENTIALS_MESSAGE = "Неверный email или пароль"
 
 
 class AuthService(BaseService):
@@ -286,17 +290,17 @@ class AuthService(BaseService):
         self,
         **credentials: Unpack[UserCredentials],
     ) -> UserResponse:
-        user = await self.get_by_email(credentials.get("email"))
+        try:
+            user = await self.get_by_email(credentials.get("email"))
+        except ObjectNotFound:
+            raise ObjectNotFound(_INVALID_CREDENTIALS_MESSAGE)
 
         if bcrypt.checkpw(
             credentials.get("password").encode(), user.hashed_password.encode()
         ):
             return user
 
-        raise ObjectNotFound(
-            f"User with email {credentials.get('email')} and password "
-            f"{credentials.get('password')} not found"
-        )
+        raise ObjectNotFound(_INVALID_CREDENTIALS_MESSAGE)
 
     async def delete(
         self,
@@ -329,7 +333,24 @@ class AuthService(BaseService):
         self,
         email: str,
     ) -> None:
-        user = await self.get_by_email(email)
+        try:
+            user = await self.get_by_email(email)
+        except ObjectNotFound:
+            return
+
+        cooldown_stmt = select(PasswordResetCode).where(
+            PasswordResetCode.user_id == user.id,
+            PasswordResetCode.created_at
+            >= datetime.now(UTC)
+            - timedelta(seconds=settings.PASSWORD_RESET_REQUEST_COOLDOWN_SECONDS),
+        )
+        res = await self._execute(cooldown_stmt)
+        if res.scalars().first() is not None:
+            raise TooManyRequests("Письмо уже отправлено, повторите запрос позже")
+
+        await self._execute(
+            delete(PasswordResetCode).where(PasswordResetCode.user_id == user.id)
+        )
 
         code = self._generate_password_reset_code()
         stmt = (
@@ -359,17 +380,27 @@ class AuthService(BaseService):
     ) -> None:
         user = await self.get(id)
 
-        stmt = select(PasswordResetCode).where(
-            PasswordResetCode.user_id == user.id,
-            PasswordResetCode.value == code,
-            PasswordResetCode.created_at
-            >= datetime.now(UTC)
-            - timedelta(minutes=settings.PASSWORD_RESET_CODE_EXP_MINUTES),
+        stmt = (
+            select(PasswordResetCode)
+            .where(
+                PasswordResetCode.user_id == user.id,
+                PasswordResetCode.created_at
+                >= datetime.now(UTC)
+                - timedelta(minutes=settings.PASSWORD_RESET_CODE_EXP_MINUTES),
+            )
+            .order_by(PasswordResetCode.created_at.desc())
+            .limit(1)
         )
 
         res = await self._execute(stmt)
-        instance = res.scalar_one_or_none()
+        instance = res.scalars().first()
         if instance is None:
+            raise ObjectNotFound(
+                f"Valid password reset code for user {user.id} not found"
+            )
+
+        if not compare_digest(instance.value.encode(), code.encode()):
+            await self._register_failed_reset_attempt(instance)
             raise ObjectNotFound(
                 f"Valid password reset code for user {user.id} not found"
             )
@@ -395,6 +426,22 @@ class AuthService(BaseService):
                 password=new_password,
             ),
         )
+
+    async def _register_failed_reset_attempt(
+        self,
+        instance: PasswordResetCode,
+    ) -> None:
+        if instance.attempts + 1 >= settings.PASSWORD_RESET_CODE_MAX_ATTEMPTS:
+            stmt = delete(PasswordResetCode).where(PasswordResetCode.id == instance.id)
+        else:
+            stmt = (
+                update(PasswordResetCode)
+                .where(PasswordResetCode.id == instance.id)
+                .values(attempts=PasswordResetCode.attempts + 1)
+            )
+
+        await self._execute(stmt)
+        await self._session.commit()
 
     async def get_from_token(
         self,

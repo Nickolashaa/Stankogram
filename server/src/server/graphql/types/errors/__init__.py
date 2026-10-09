@@ -4,6 +4,7 @@ from .types import (
     InvalidInputError,
     ObjectAlreadyExistsError,
     ObjectNotFoundError,
+    TooManyRequestsError,
     UnauthorizedError,
 )
 
@@ -14,4 +15,5 @@ __all__ = (
     "ForbiddenError",
     "IAppError",
     "UnauthorizedError",
+    "TooManyRequestsError",
 )

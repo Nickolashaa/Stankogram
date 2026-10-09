@@ -2,6 +2,7 @@ from typing import Annotated
 
 from fastapi import Cookie, Depends, Response
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import HTTPConnection
 
 from ..dependencies.auth import get_auth_service, get_current_user
 from ..dependencies.chats import get_chat_participant_service, get_chat_service
@@ -30,7 +31,16 @@ from .data_loaders.messages import (
 )
 
 
+def _get_client_ip(connection: HTTPConnection) -> str:
+    forwarded_for = connection.headers.get("x-forwarded-for")
+    if forwarded_for:
+        return forwarded_for.rsplit(",", 1)[-1].strip()
+
+    return connection.client.host if connection.client else ""
+
+
 async def context_getter(
+    connection: HTTPConnection,
     response: Response,
     refresh_token: Annotated[str | None, Cookie()] = None,
     session: AsyncSession = Depends(get_session),
@@ -69,6 +79,7 @@ async def context_getter(
             message_loader=build_messages_loader(message_service),
         ),
         refresh_token=refresh_token,
+        client_ip=_get_client_ip(connection),
     )
     if current_user is None:
         return context

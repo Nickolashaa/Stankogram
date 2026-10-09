@@ -20,3 +20,7 @@ class Forbidden(AppException):
 
 class Unauthorized(AppException):
     pass
+
+
+class TooManyRequests(AppException):
+    pass
