@@ -1,35 +1,49 @@
-import os
+from pydantic import Field
+from pydantic_settings import BaseSettings
 
-POSTGRES_DB = os.getenv("POSTGRES_DB", "")
-POSTGRES_USER = os.getenv("POSTGRES_USER", "")
-POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "")
-DATABASE_URL = f"postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@database:5432/{POSTGRES_DB}"
 
-LIMIT = 10
-OFFSET = 0
+class Settings(BaseSettings):
+    POSTGRES_DB: str = Field(min_length=1)
+    POSTGRES_USER: str = Field(min_length=1)
+    POSTGRES_PASSWORD: str = Field(min_length=1)
 
-PASSWORD_LEN = 8
-PASSWORD_RESET_CODE_LEN = 6
-PASSWORD_RESET_CODE_EXP_MINUTES = 10
+    LIMIT: int = 10
+    OFFSET: int = 0
 
-APP_BASE_URL = os.getenv("APP_BASE_URL", "https://stankogram.ru")
+    PASSWORD_LEN: int = 8
+    PASSWORD_RESET_CODE_LEN: int = 6
+    PASSWORD_RESET_CODE_EXP_MINUTES: int = 10
 
-UVICORN_HOST = "0.0.0.0"
-UVICORN_PORT = 8000
+    APP_BASE_URL: str = "https://stankogram.ru"
 
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "")
-JWT_ENCRYPTION_ALGORITHM = "HS256"
-JWT_ACCESS_EXP_MINUTES = 5
-JWT_REFRESH_EXP_DAYS = 14
+    UVICORN_HOST: str = "0.0.0.0"
+    UVICORN_PORT: int = 8000
 
-SMTP_LOGIN = os.getenv("SMTP_LOGIN", "")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
-SMTP_SERVER = "smtp.yandex.ru"
-SMTP_PORT = 587
+    JWT_SECRET_KEY: str = Field(min_length=32)
+    JWT_ENCRYPTION_ALGORITHM: str = "HS256"
+    JWT_ACCESS_EXP_MINUTES: int = 5
+    JWT_REFRESH_EXP_DAYS: int = 14
 
-ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY", "")
+    REFRESH_TOKEN_COOKIE_PATH: str = "/api"
 
-USERS_IMPORT_MAX_ROWS = 100
-USERS_IMPORT_MAX_SCAN_ROWS = 10000
-USERS_IMPORT_MAX_FILE_SIZE = 5 * 1024 * 1024
-USERS_IMPORT_MAX_VALUE_LEN = 100
+    SMTP_LOGIN: str = Field(min_length=1)
+    SMTP_PASSWORD: str = Field(min_length=1)
+    SMTP_SERVER: str = "smtp.yandex.ru"
+    SMTP_PORT: int = 587
+
+    ENCRYPTION_KEY: str = Field(min_length=44)
+
+    USERS_IMPORT_MAX_ROWS: int = 100
+    USERS_IMPORT_MAX_SCAN_ROWS: int = 10000
+    USERS_IMPORT_MAX_FILE_SIZE: int = 5 * 1024 * 1024
+    USERS_IMPORT_MAX_VALUE_LEN: int = 100
+
+    @property
+    def DATABASE_URL(self) -> str:
+        return (
+            f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
+            f"@database:5432/{self.POSTGRES_DB}"
+        )
+
+
+settings = Settings()

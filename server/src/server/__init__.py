@@ -1,8 +1,8 @@
 import uvicorn
 
 from .app import app
-from .config import UVICORN_HOST, UVICORN_PORT
+from .config import settings
 
 
 def main() -> None:
-    uvicorn.run(app, host=UVICORN_HOST, port=UVICORN_PORT)
+    uvicorn.run(app, host=settings.UVICORN_HOST, port=settings.UVICORN_PORT)

@@ -13,18 +13,7 @@ from pydantic.networks import EmailStr
 from sqlalchemy import Select, delete, func, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
-from ...config import (
-    APP_BASE_URL,
-    JWT_ACCESS_EXP_MINUTES,
-    JWT_REFRESH_EXP_DAYS,
-    PASSWORD_LEN,
-    PASSWORD_RESET_CODE_EXP_MINUTES,
-    PASSWORD_RESET_CODE_LEN,
-    USERS_IMPORT_MAX_FILE_SIZE,
-    USERS_IMPORT_MAX_ROWS,
-    USERS_IMPORT_MAX_SCAN_ROWS,
-    USERS_IMPORT_MAX_VALUE_LEN,
-)
+from ...config import settings
 from ...database.models.auth import CancelledToken, PasswordResetCode, User
 from ...enums.users import UserRole
 from ...utils.smtp import send_email
@@ -120,7 +109,7 @@ _IMPORT_GUIDE_LINES = (
     "Почта должна быть корректной и не должна повторяться.",
     f"Роль выбирается из списка в ячейке: {_IMPORT_ROLE_HINT}.",
     "Строки без данных пропускаются.",
-    f"За один раз можно загрузить не больше {USERS_IMPORT_MAX_ROWS} строк.",
+    f"За один раз можно загрузить не больше {settings.USERS_IMPORT_MAX_ROWS} строк.",
     "В ответ вернётся тот же файл с колонками «Результат», «Пароль» и «Причина».",
     "Пароли показываются один раз — сохраните файл и передайте их сотрудникам.",
     "Забытый пароль восстанавливается через «Забыли пароль?» на странице входа.",
@@ -130,7 +119,9 @@ _IMPORT_GUIDE_LINES = (
 class AuthService(BaseService):
     @staticmethod
     def _generate_password() -> str:
-        return "".join(choice(ascii_letters + digits) for _ in range(PASSWORD_LEN))
+        return "".join(
+            choice(ascii_letters + digits) for _ in range(settings.PASSWORD_LEN)
+        )
 
     @staticmethod
     def _hash_password(password: str) -> str:
@@ -138,17 +129,17 @@ class AuthService(BaseService):
 
     @staticmethod
     def _generate_password_reset_code() -> str:
-        return "".join(choice(digits) for _ in range(PASSWORD_RESET_CODE_LEN))
+        return "".join(choice(digits) for _ in range(settings.PASSWORD_RESET_CODE_LEN))
 
     @staticmethod
     def _generate_password_reset_email(user_id: int, code: str) -> str:
-        url = f"{APP_BASE_URL}/reset-password-confirm?id={user_id}&code={code}"
+        url = f"{settings.APP_BASE_URL}/reset-password-confirm?id={user_id}&code={code}"
         return _PASSWORD_RESET_EMAIL_TEMPLATE.substitute(url=url)
 
     @staticmethod
     def _generate_password_reset_confirm_email(email: str, password: str) -> str:
         return _PASSWORD_RESET_CONFIRM_EMAIL_TEMPLATE.substitute(
-            email=email, password=password, app_url=APP_BASE_URL
+            email=email, password=password, app_url=settings.APP_BASE_URL
         )
 
     @staticmethod
@@ -159,14 +150,15 @@ class AuthService(BaseService):
                 is_admin=is_admin,
                 jti=str(uuid4()),
                 type="access",
-                exp=datetime.now(UTC) + timedelta(minutes=JWT_ACCESS_EXP_MINUTES),
+                exp=datetime.now(UTC)
+                + timedelta(minutes=settings.JWT_ACCESS_EXP_MINUTES),
             ).generate_token(),
             refresh_token=JWTPayload(
                 id=id,
                 is_admin=is_admin,
                 jti=str(uuid4()),
                 type="refresh",
-                exp=datetime.now(UTC) + timedelta(days=JWT_REFRESH_EXP_DAYS),
+                exp=datetime.now(UTC) + timedelta(days=settings.JWT_REFRESH_EXP_DAYS),
             ).generate_token(),
         )
 
@@ -371,7 +363,8 @@ class AuthService(BaseService):
             PasswordResetCode.user_id == user.id,
             PasswordResetCode.value == code,
             PasswordResetCode.created_at
-            >= datetime.now(UTC) - timedelta(minutes=PASSWORD_RESET_CODE_EXP_MINUTES),
+            >= datetime.now(UTC)
+            - timedelta(minutes=settings.PASSWORD_RESET_CODE_EXP_MINUTES),
         )
 
         res = await self._execute(stmt)
@@ -437,8 +430,8 @@ class AuthService(BaseService):
             ("Отчество", row.patronymic or ""),
             ("Почта", row.email),
         ):
-            if len(value) > USERS_IMPORT_MAX_VALUE_LEN:
-                return f"{label} длиннее {USERS_IMPORT_MAX_VALUE_LEN} символов"
+            if len(value) > settings.USERS_IMPORT_MAX_VALUE_LEN:
+                return f"{label} длиннее {settings.USERS_IMPORT_MAX_VALUE_LEN} символов"
         try:
             _EMAIL_ADAPTER.validate_python(row.email)
         except ValidationError:
@@ -488,17 +481,18 @@ class AuthService(BaseService):
                 )
 
             for number, cells in enumerate(cells_rows, start=2):
-                if number > USERS_IMPORT_MAX_SCAN_ROWS:
+                if number > settings.USERS_IMPORT_MAX_SCAN_ROWS:
                     raise InvalidInput(
-                        f"В файле больше {USERS_IMPORT_MAX_SCAN_ROWS} строк"
+                        f"В файле больше {settings.USERS_IMPORT_MAX_SCAN_ROWS} строк"
                     )
 
                 if not any(cells):
                     continue
 
-                if len(rows) == USERS_IMPORT_MAX_ROWS:
+                if len(rows) == settings.USERS_IMPORT_MAX_ROWS:
                     raise InvalidInput(
-                        f"В файле больше {USERS_IMPORT_MAX_ROWS} строк с сотрудниками"
+                        f"В файле больше {settings.USERS_IMPORT_MAX_ROWS} "
+                        "строк с сотрудниками"
                     )
 
                 name, surname, patronymic, email, role = cells
@@ -521,9 +515,9 @@ class AuthService(BaseService):
 
     @classmethod
     def _read_import_rows(cls, content: bytes) -> list[UserImportRowSchema]:
-        if len(content) > USERS_IMPORT_MAX_FILE_SIZE:
+        if len(content) > settings.USERS_IMPORT_MAX_FILE_SIZE:
             raise InvalidInput(
-                f"Файл больше {USERS_IMPORT_MAX_FILE_SIZE // 1024 // 1024} МБ"
+                f"Файл больше {settings.USERS_IMPORT_MAX_FILE_SIZE // 1024 // 1024} МБ"
             )
 
         try:
@@ -597,7 +591,7 @@ class AuthService(BaseService):
             sheet,
             column=len(_IMPORT_HEADERS),
             choices=list(_IMPORT_ROLE_LABELS.values()),
-            rows=USERS_IMPORT_MAX_ROWS,
+            rows=settings.USERS_IMPORT_MAX_ROWS,
             prompt=f"Допустимые значения: {_IMPORT_ROLE_HINT}",
         )
         add_text_sheet(

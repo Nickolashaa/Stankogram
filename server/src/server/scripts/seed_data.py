@@ -3,14 +3,14 @@ from pathlib import Path
 
 import asyncpg
 
-from ..config import DATABASE_URL
+from ..config import settings
 
 _TEST_DATA_PATH = Path(__file__).parent / "test_data.sql"
 
 
 async def _seed() -> None:
     connection = await asyncpg.connect(
-        DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
+        settings.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
     )
 
     try:

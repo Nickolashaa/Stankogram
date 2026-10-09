@@ -6,7 +6,7 @@ import strawberry
 from fastapi import UploadFile
 from strawberry.file_uploads import Upload
 
-from ....config import JWT_REFRESH_EXP_DAYS
+from ....config import settings
 from ....services.auth.schemas import JWTPayload
 from ....services.exceptions import InvalidInput, ObjectAlreadyExists, ObjectNotFound
 from ...context import AppInfo, AuthorizedAppInfo
@@ -50,8 +50,10 @@ class AuthMutation:
             key="refresh_token",
             value=tokens.refresh_token,
             httponly=True,
+            secure=True,
             samesite="lax",
-            max_age=60 * 60 * 24 * JWT_REFRESH_EXP_DAYS,
+            path=settings.REFRESH_TOKEN_COOKIE_PATH,
+            max_age=60 * 60 * 24 * settings.JWT_REFRESH_EXP_DAYS,
         )
 
         return JWTs.from_schema(tokens)
@@ -74,7 +76,9 @@ class AuthMutation:
         if payload.type != "refresh":
             return UnauthorizedError(message="Invalid token type")
 
-        info.context.response.delete_cookie("refresh_token")
+        info.context.response.delete_cookie(
+            "refresh_token", path=settings.REFRESH_TOKEN_COOKIE_PATH
+        )
 
         try:
             await info.context.services.auth_service.cancel_token(UUID(payload.jti))
@@ -94,8 +98,10 @@ class AuthMutation:
             key="refresh_token",
             value=tokens.refresh_token,
             httponly=True,
+            secure=True,
             samesite="lax",
-            max_age=60 * 60 * 24 * JWT_REFRESH_EXP_DAYS,
+            path=settings.REFRESH_TOKEN_COOKIE_PATH,
+            max_age=60 * 60 * 24 * settings.JWT_REFRESH_EXP_DAYS,
         )
 
         return JWTs.from_schema(tokens)
@@ -108,7 +114,9 @@ class AuthMutation:
         if info.context.refresh_token is None:
             return
 
-        info.context.response.delete_cookie("refresh_token")
+        info.context.response.delete_cookie(
+            "refresh_token", path=settings.REFRESH_TOKEN_COOKIE_PATH
+        )
 
         try:
             payload = JWTPayload.from_token(info.context.refresh_token)

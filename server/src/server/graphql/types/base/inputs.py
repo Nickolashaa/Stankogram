@@ -1,6 +1,6 @@
 import strawberry
 
-from ....config import LIMIT, OFFSET
+from ....config import settings
 from ....services.base import BasePagination
 
 
@@ -17,6 +17,6 @@ class BasePaginationIn:
 
 
 default_pagination = BasePaginationIn(
-    limit=LIMIT,
-    offset=OFFSET,
+    limit=settings.LIMIT,
+    offset=settings.OFFSET,
 )

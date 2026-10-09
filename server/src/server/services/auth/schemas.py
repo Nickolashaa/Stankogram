@@ -3,10 +3,7 @@ from typing import Literal, Self
 
 import jwt
 
-from ...config import (
-    JWT_ENCRYPTION_ALGORITHM,
-    JWT_SECRET_KEY,
-)
+from ...config import settings
 from ...enums.users import UserRole
 from ..base import BaseResponse, Schema, XlsxFileSchema
 
@@ -26,15 +23,17 @@ class JWTPayload(Schema):
     def generate_token(self) -> str:
         return jwt.encode(
             payload=self.model_dump(),
-            key=JWT_SECRET_KEY,
-            algorithm=JWT_ENCRYPTION_ALGORITHM,
+            key=settings.JWT_SECRET_KEY,
+            algorithm=settings.JWT_ENCRYPTION_ALGORITHM,
         )
 
     @classmethod
     def from_token(cls, token: str) -> Self:
         return cls.model_validate(
             jwt.decode(
-                jwt=token, key=JWT_SECRET_KEY, algorithms=[JWT_ENCRYPTION_ALGORITHM]
+                jwt=token,
+                key=settings.JWT_SECRET_KEY,
+                algorithms=[settings.JWT_ENCRYPTION_ALGORITHM],
             )
         )
 
