@@ -7,6 +7,7 @@ import { useChatStore, hasUnreadMessages, privatePeer, type ChatSummary } from "
 import { useAuthStore } from "@/stores/auth"
 import { useDraftStore } from "@/stores/drafts"
 import { shortName, formatTime, chatInitials } from "@/lib/format"
+import { pinForLeave } from "@/lib/transition"
 import type { ChatFiltersIn } from "@/graphql/base-types"
 import Button from "@/components/button.vue"
 import Input from "@/components/input.vue"
@@ -175,55 +176,59 @@ function lastMessagePreview(chat: (typeof chats.value)[number]) {
 
     <div
       ref="scrollContainer"
-      class="flex flex-1 flex-col gap-1 overflow-y-auto px-2.5 pt-2.5 pb-[calc(var(--design-nav-offset)+env(safe-area-inset-bottom))] lg:pb-3"
+      class="relative flex flex-1 flex-col gap-1 overflow-y-auto px-2.5 pt-2.5 pb-[calc(var(--design-nav-offset)+env(safe-area-inset-bottom))] lg:pb-3"
     >
-      <button
-        v-for="chat in chats"
-        :key="chat.id"
-        type="button"
-        class="press flex w-full cursor-pointer items-center gap-3 rounded-card px-3 py-2.5 text-left"
-        :class="chat.id === activeChatId ? 'pill-active' : 'pill-idle'"
-        @click="emit('select', chat.id)"
-      >
-        <Avatar :label="chatInitials(chat.title)" :online="isPeerOnline(chat)" />
+      <TransitionGroup name="row" @before-leave="pinForLeave">
+        <button
+          v-for="chat in chats"
+          :key="chat.id"
+          type="button"
+          class="press flex w-full cursor-pointer items-center gap-3 rounded-card px-3 py-2.5 text-left"
+          :class="chat.id === activeChatId ? 'pill-active' : 'pill-idle'"
+          @click="emit('select', chat.id)"
+        >
+          <Avatar :label="chatInitials(chat.title)" :online="isPeerOnline(chat)" />
 
-        <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-          <div class="flex items-center justify-between gap-2">
-            <span
-              class="truncate text-[15px] text-main"
-              :class="isUnread(chat) ? 'font-semibold' : 'font-medium'"
-            >
-              {{ chat.title }}
-            </span>
-            <span v-if="chat.lastMessage" class="shrink-0 text-xs text-second/80">
-              {{ formatTime(chat.lastMessage.createdAt) }}
-            </span>
+          <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+            <div class="flex items-center justify-between gap-2">
+              <span
+                class="truncate text-[15px] text-main"
+                :class="isUnread(chat) ? 'font-semibold' : 'font-medium'"
+              >
+                {{ chat.title }}
+              </span>
+              <span v-if="chat.lastMessage" class="shrink-0 text-xs text-second/80">
+                {{ formatTime(chat.lastMessage.createdAt) }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <span
+                class="truncate text-sm"
+                :class="isUnread(chat) ? 'font-medium text-main' : 'text-second'"
+              >
+                <template v-if="draftStore.getDraft(chat.id)">
+                  <span class="text-accent">Черновик:</span> {{ draftStore.getDraft(chat.id) }}
+                </template>
+                <template v-else>{{ lastMessagePreview(chat) }}</template>
+              </span>
+              <span
+                v-if="isUnread(chat)"
+                class="glow-accent h-2 w-2 shrink-0 rounded-full bg-accent"
+              />
+            </div>
           </div>
-          <div class="flex items-center justify-between gap-2">
-            <span
-              class="truncate text-sm"
-              :class="isUnread(chat) ? 'font-medium text-main' : 'text-second'"
-            >
-              <template v-if="draftStore.getDraft(chat.id)">
-                <span class="text-accent">Черновик:</span> {{ draftStore.getDraft(chat.id) }}
-              </template>
-              <template v-else>{{ lastMessagePreview(chat) }}</template>
-            </span>
-            <span
-              v-if="isUnread(chat)"
-              class="glow-accent h-2 w-2 shrink-0 rounded-full bg-accent"
-            />
-          </div>
-        </div>
-      </button>
+        </button>
+      </TransitionGroup>
 
       <div v-if="chats.length === 0" class="px-5 py-8 text-center text-sm text-second">
         {{ filters === undefined ? "Чатов пока нет" : "Ничего не найдено" }}
       </div>
 
-      <div v-if="infiniteScroll.isLoading.value" class="py-4 text-center text-sm text-second">
-        Загрузка...
-      </div>
+      <Transition name="fade">
+        <div v-if="infiniteScroll.isLoading.value" class="py-4 text-center text-sm text-second">
+          Загрузка...
+        </div>
+      </Transition>
     </div>
 
     <CreatePrivateChatDialog

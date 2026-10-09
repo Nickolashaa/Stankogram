@@ -501,6 +501,85 @@
   }
 }
 
+.msg-enter-active {
+  transition:
+    opacity 0.18s linear,
+    transform 0.42s var(--ease-spring);
+}
+
+.msg-enter-from {
+  opacity: 0;
+  transform: translateY(16px) scale(0.9);
+}
+
+.msg-move {
+  transition: transform 0.4s var(--ease-out-soft);
+}
+
+.msg-leave-active {
+  position: absolute;
+  pointer-events: none;
+  transition:
+    opacity 0.16s ease-in,
+    transform 0.2s ease-in;
+}
+
+.msg-leave-to {
+  opacity: 0;
+  transform: translateY(-4px) scale(0.88);
+}
+
+.row-enter-active {
+  transition:
+    opacity 0.18s linear,
+    transform 0.38s var(--ease-spring);
+}
+
+.row-enter-from {
+  opacity: 0;
+  transform: translateY(-12px) scale(0.96);
+}
+
+.row-move {
+  transition: transform 0.36s var(--ease-out-soft);
+}
+
+.row-leave-active {
+  position: absolute;
+  pointer-events: none;
+  transition:
+    opacity 0.16s ease-in,
+    transform 0.2s ease-in;
+}
+
+.row-leave-to {
+  opacity: 0;
+  transform: scale(0.96);
+}
+
+.swap-enter-active,
+.swap-leave-active {
+  transition:
+    opacity 0.13s linear,
+    transform 0.22s var(--ease-out-soft);
+}
+
+.swap-enter-from,
+.swap-leave-to {
+  opacity: 0;
+  transform: scale(0.97);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.16s linear;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
 * {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -800,6 +879,19 @@ main {
     --animate-rise: none;
     --animate-slide-up: none;
     --animate-drift: none;
+  }
+
+  .msg-enter-active,
+  .msg-leave-active,
+  .msg-move,
+  .row-enter-active,
+  .row-leave-active,
+  .row-move,
+  .swap-enter-active,
+  .swap-leave-active,
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: none;
   }
 
   body::before {

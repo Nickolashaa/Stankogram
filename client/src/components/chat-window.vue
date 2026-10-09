@@ -24,6 +24,7 @@ import {
   formatDaySeparator,
 } from "@/lib/format"
 import { linkify } from "@/lib/linkify"
+import { pinForLeave } from "@/lib/transition"
 import { isLargeEmojiMessage } from "@/lib/emoji"
 import { participantBadges, userBadges } from "@/lib/badges"
 import { presenceLabel } from "@/lib/presence"
@@ -376,19 +377,25 @@ function handleComposerKeydown(event: KeyboardEvent) {
   handleSubmit()
 }
 
-function isFirstMessageOfDay(index: number) {
-  const message = messages.value[index]
-  if (message === undefined) {
-    return false
-  }
+type MessageRow =
+  | { kind: "message"; key: string; message: MessageItem }
+  | { kind: "day"; key: string; label: string }
 
-  const older = messages.value[index + 1]
-  if (older === undefined) {
-    return true
-  }
+const rows = computed(() => {
+  const list: MessageRow[] = []
 
-  return !isSameDay(message.createdAt, older.createdAt)
-}
+  messages.value.forEach((message, index) => {
+    list.push({ kind: "message", key: `message-${message.id}`, message })
+
+    const older = messages.value[index + 1]
+    if (older === undefined || !isSameDay(message.createdAt, older.createdAt)) {
+      const label = formatDaySeparator(message.createdAt)
+      list.push({ kind: "day", key: `day-${label}`, label })
+    }
+  })
+
+  return list
+})
 
 const infiniteScroll = useInfiniteScroll(
   scrollContainer,
@@ -537,110 +544,130 @@ async function handleSubmit() {
 
     <div
       ref="scrollContainer"
-      class="flex flex-1 flex-col-reverse gap-3 overflow-y-auto px-4 py-3 lg:px-6 lg:py-4"
+      class="relative flex flex-1 flex-col-reverse gap-3 overflow-y-auto px-4 py-3 lg:px-6 lg:py-4"
     >
-      <template v-for="(message, index) in messages" :key="message.id">
+      <TransitionGroup name="msg" @before-leave="pinForLeave">
         <div
-          :data-message-id="message.id"
+          v-for="row in rows"
+          :key="row.key"
+          v-bind="row.kind === 'message' ? { 'data-message-id': row.message.id } : {}"
           class="flex flex-col gap-1 rounded-card transition-colors duration-500"
-          :class="[
-            highlightedMessageId === message.id ? 'bg-accent/10 ring-1 ring-accent/30' : '',
-            message.user.id === currentUser?.id ? 'items-end' : 'items-start',
-            canEditMessage(message) || canDeleteMessage(message) ? 'cursor-context-menu' : '',
-          ]"
-          @contextmenu="handleMessageContextMenu($event, message)"
+          :class="
+            row.kind === 'day'
+              ? 'items-center py-2'
+              : [
+                  highlightedMessageId === row.message.id
+                    ? 'bg-accent/10 ring-1 ring-accent/30'
+                    : '',
+                  row.message.user.id === currentUser?.id
+                    ? 'origin-bottom-right items-end'
+                    : 'origin-bottom-left items-start',
+                  canEditMessage(row.message) || canDeleteMessage(row.message)
+                    ? 'cursor-context-menu'
+                    : '',
+                ]
+          "
+          @contextmenu="row.kind === 'message' && handleMessageContextMenu($event, row.message)"
         >
-          <div
-            v-if="editingMessageId === message.id"
-            class="glass-strong hairline shadow-pop flex w-[min(28rem,85%)] flex-col gap-2 rounded-card px-4 py-2.5 text-[15px] text-main"
-          >
-            <textarea
-              v-model="editDraft"
-              rows="1"
-              autofocus
-              class="max-h-40 min-h-9 w-full resize-none overflow-y-auto bg-transparent font-sans text-[15px] leading-6 text-main outline-none"
-              @keydown.enter.exact.prevent="saveEdit"
-              @keydown.esc="cancelEdit"
-            />
-            <div class="flex items-center justify-end gap-2">
-              <button
-                type="button"
-                class="press cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium text-second hover:bg-main/6 hover:text-main"
-                @click="cancelEdit"
-              >
-                Отмена
-              </button>
-              <button
-                type="button"
-                class="press cursor-pointer rounded-full bg-accent/12 px-2.5 py-1 text-xs font-medium text-accent hover:bg-accent/22 disabled:cursor-not-allowed disabled:opacity-60"
-                :disabled="savingEdit || editDraft.trim() === ''"
-                @click="saveEdit"
-              >
-                Сохранить
-              </button>
-            </div>
-          </div>
-          <div
-            v-else
-            class="max-w-[min(28rem,85%)] rounded-card transition-transform duration-200"
-            :class="[
-              isLargeEmojiMessage(message.text)
-                ? 'px-1 py-0.5 text-5xl leading-tight'
-                : 'px-4 py-2.5 text-[15px]',
-              isLargeEmojiMessage(message.text)
-                ? 'text-main'
-                : message.user.id === currentUser?.id
-                  ? 'accent-surface glow-accent bubble-own text-bg'
-                  : 'glass hairline shadow-card bubble-other text-main',
-            ]"
-          >
-            <div
-              v-if="message.user.id !== currentUser?.id"
-              class="mb-1 flex flex-wrap items-center gap-1.5 text-xs font-medium opacity-70"
-            >
-              <span>{{ shortName(message.user) }}</span>
-              <Badge
-                v-for="badge in badgesForSender(message.user)"
-                :key="badge.label"
-                :variant="badge.variant"
-                :label="badge.label"
-              />
-            </div>
-            <div class="whitespace-pre-wrap break-words">
-              <template
-                v-for="(segment, segmentIndex) in linkify(message.text)"
-                :key="segmentIndex"
-              >
-                <a
-                  v-if="segment.type === 'link'"
-                  :href="segment.href"
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  class="underline underline-offset-2 transition-opacity hover:opacity-70"
-                  >{{ segment.value }}</a
-                >
-                <template v-else>{{ segment.value }}</template>
-              </template>
-            </div>
-          </div>
-          <span class="flex items-center gap-1 px-1.5 text-xs text-second/80">
-            <template v-if="message.updatedAt !== message.createdAt">изменено · </template>
-            {{ formatTime(message.createdAt) }}
-          </span>
-        </div>
-
-        <div v-if="isFirstMessageOfDay(index)" class="flex items-center justify-center py-2">
           <span
+            v-if="row.kind === 'day'"
             class="glass hairline rounded-full px-3.5 py-1 text-xs font-medium text-second shadow-card"
           >
-            {{ formatDaySeparator(message.createdAt) }}
+            {{ row.label }}
           </span>
-        </div>
-      </template>
 
-      <div v-if="infiniteScroll.isLoading.value" class="py-2 text-center text-sm text-second">
-        Загрузка...
-      </div>
+          <template v-else>
+            <Transition name="swap" mode="out-in">
+              <div
+                v-if="editingMessageId === row.message.id"
+                class="glass-strong hairline shadow-pop flex w-[min(28rem,85%)] flex-col gap-2 rounded-card px-4 py-2.5 text-[15px] text-main"
+              >
+                <textarea
+                  v-model="editDraft"
+                  rows="1"
+                  autofocus
+                  class="max-h-40 min-h-9 w-full resize-none overflow-y-auto bg-transparent font-sans text-[15px] leading-6 text-main outline-none"
+                  @keydown.enter.exact.prevent="saveEdit"
+                  @keydown.esc="cancelEdit"
+                />
+                <div class="flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    class="press cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium text-second hover:bg-main/6 hover:text-main"
+                    @click="cancelEdit"
+                  >
+                    Отмена
+                  </button>
+                  <button
+                    type="button"
+                    class="press cursor-pointer rounded-full bg-accent/12 px-2.5 py-1 text-xs font-medium text-accent hover:bg-accent/22 disabled:cursor-not-allowed disabled:opacity-60"
+                    :disabled="savingEdit || editDraft.trim() === ''"
+                    @click="saveEdit"
+                  >
+                    Сохранить
+                  </button>
+                </div>
+              </div>
+              <div
+                v-else
+                class="max-w-[min(28rem,85%)] rounded-card transition-transform duration-200"
+                :class="[
+                  isLargeEmojiMessage(row.message.text)
+                    ? 'px-1 py-0.5 text-5xl leading-tight'
+                    : 'px-4 py-2.5 text-[15px]',
+                  isLargeEmojiMessage(row.message.text)
+                    ? 'text-main'
+                    : row.message.user.id === currentUser?.id
+                      ? 'accent-surface glow-accent bubble-own text-bg'
+                      : 'glass hairline shadow-card bubble-other text-main',
+                ]"
+              >
+                <div
+                  v-if="row.message.user.id !== currentUser?.id"
+                  class="mb-1 flex flex-wrap items-center gap-1.5 text-xs font-medium opacity-70"
+                >
+                  <span>{{ shortName(row.message.user) }}</span>
+                  <Badge
+                    v-for="badge in badgesForSender(row.message.user)"
+                    :key="badge.label"
+                    :variant="badge.variant"
+                    :label="badge.label"
+                  />
+                </div>
+                <div class="whitespace-pre-wrap break-words">
+                  <template
+                    v-for="(segment, segmentIndex) in linkify(row.message.text)"
+                    :key="segmentIndex"
+                  >
+                    <a
+                      v-if="segment.type === 'link'"
+                      :href="segment.href"
+                      target="_blank"
+                      rel="noopener noreferrer nofollow"
+                      class="underline underline-offset-2 transition-opacity hover:opacity-70"
+                      >{{ segment.value }}</a
+                    >
+                    <template v-else>{{ segment.value }}</template>
+                  </template>
+                </div>
+              </div>
+            </Transition>
+
+            <span class="flex items-center gap-1 px-1.5 text-xs text-second/80">
+              <template v-if="row.message.updatedAt !== row.message.createdAt">
+                изменено ·
+              </template>
+              {{ formatTime(row.message.createdAt) }}
+            </span>
+          </template>
+        </div>
+      </TransitionGroup>
+
+      <Transition name="fade">
+        <div v-if="infiniteScroll.isLoading.value" class="py-2 text-center text-sm text-second">
+          Загрузка...
+        </div>
+      </Transition>
     </div>
 
     <div
