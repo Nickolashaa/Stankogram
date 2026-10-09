@@ -15,8 +15,8 @@ const password = ref("")
 async function handleSubmit() {
   try {
     await authStore.login(email.value, password.value)
-  } catch {
-    notify.error("Неверный email или пароль")
+  } catch (error) {
+    notify.error(error instanceof Error ? error.message : "Неверный email или пароль")
     return
   }
   router.push("/")

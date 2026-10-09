@@ -11,6 +11,7 @@ import { MeDocument } from "@/graphql/queries/auth/me.generated"
 import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
 
 const ACCESS_TOKEN_KEY = "accessToken"
+const NETWORK_ERROR_MESSAGE = "Не удалось связаться с сервером"
 
 export const useAuthStore = defineStore("auth", () => {
   const user = ref<UserFieldsFragment>()
@@ -29,13 +30,17 @@ export const useAuthStore = defineStore("auth", () => {
   }
 
   async function login(email: string, password: string) {
-    const { data } = await apolloClient.mutate({
-      mutation: LoginDocument,
-      variables: { input: { email, password } },
-    })
+    const { data } = await apolloClient
+      .mutate({
+        mutation: LoginDocument,
+        variables: { input: { email, password } },
+      })
+      .catch(() => {
+        throw new Error(NETWORK_ERROR_MESSAGE)
+      })
 
     if (data === undefined || data === null || data.login.__typename !== "JWTs") {
-      throw new Error(data?.login.message ?? "Login failed")
+      throw new Error(data?.login.message ?? "Неверный email или пароль")
     }
 
     accessToken.value = data.login.accessToken
@@ -44,10 +49,14 @@ export const useAuthStore = defineStore("auth", () => {
   }
 
   async function requestPasswordReset(email: string) {
-    const { data } = await apolloClient.mutate({
-      mutation: UserResetPasswordRequestDocument,
-      variables: { email },
-    })
+    const { data } = await apolloClient
+      .mutate({
+        mutation: UserResetPasswordRequestDocument,
+        variables: { email },
+      })
+      .catch(() => {
+        throw new Error(NETWORK_ERROR_MESSAGE)
+      })
 
     if (data?.userResetPasswordRequest) {
       throw new Error(data.userResetPasswordRequest.message)

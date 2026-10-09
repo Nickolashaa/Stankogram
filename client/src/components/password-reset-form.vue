@@ -27,8 +27,12 @@ async function handleSubmit() {
 
   try {
     await authStore.requestPasswordReset(email.value)
-  } catch {
-    notify.error("Не удалось отправить письмо. Проверьте email и попробуйте ещё раз")
+  } catch (error) {
+    notify.error(
+      error instanceof Error
+        ? error.message
+        : "Не удалось отправить письмо. Проверьте email и попробуйте ещё раз",
+    )
     return
   } finally {
     loading.value = false
