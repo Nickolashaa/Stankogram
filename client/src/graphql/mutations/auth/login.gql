@@ -7,5 +7,8 @@ mutation Login($input: UserCredentialsIn!) {
     ... on ObjectNotFoundError {
       message
     }
+    ... on TooManyRequestsError {
+      message
+    }
   }
 }

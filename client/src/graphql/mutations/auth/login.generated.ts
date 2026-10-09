@@ -22,6 +22,7 @@ export type LoginMutation = {
   login:
     | { __typename: "JWTs"; accessToken: string }
     | { __typename: "ObjectNotFoundError"; message: string }
+    | { __typename: "TooManyRequestsError"; message: string }
 }
 
 export const LoginDocument = gql`
@@ -32,6 +33,9 @@ export const LoginDocument = gql`
         accessToken
       }
       ... on ObjectNotFoundError {
+        message
+      }
+      ... on TooManyRequestsError {
         message
       }
     }

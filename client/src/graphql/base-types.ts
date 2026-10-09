@@ -147,7 +147,8 @@ export type JwTs = {
   refreshToken: Scalars["String"]["output"]
 }
 
-export type JwTsObjectNotFoundError = JwTs | ObjectNotFoundError
+export type JwTsObjectNotFoundErrorTooManyRequestsError =
+  JwTs | ObjectNotFoundError | TooManyRequestsError
 
 export type JwTsUnauthorizedErrorObjectNotFoundError =
   JwTs | ObjectNotFoundError | UnauthorizedError
@@ -198,7 +199,7 @@ export type Mutation = {
   deleteMessage: MessageObjectNotFoundError
   hideNotification?: Maybe<ObjectNotFoundError>
   leaveChat: ChatInvalidInputErrorObjectNotFoundError
-  login: JwTsObjectNotFoundError
+  login: JwTsObjectNotFoundErrorTooManyRequestsError
   logout?: Maybe<Scalars["Void"]["output"]>
   markChatRead: ChatParticipantObjectNotFoundError
   markSystemNotificationRead?: Maybe<ObjectNotFoundError>
@@ -210,8 +211,8 @@ export type Mutation = {
   updateSystemNotification: SystemNotificationObjectNotFoundError
   userCreate: CreatedUserObjectAlreadyExistsError
   userDelete?: Maybe<Scalars["Void"]["output"]>
-  userResetPasswordConfirm?: Maybe<ObjectNotFoundError>
-  userResetPasswordRequest?: Maybe<ObjectNotFoundError>
+  userResetPasswordConfirm?: Maybe<ObjectNotFoundErrorTooManyRequestsError>
+  userResetPasswordRequest?: Maybe<TooManyRequestsError>
   userUpdate: UserObjectAlreadyExistsErrorObjectNotFoundError
   usersImport: UsersImportReportInvalidInputError
 }
@@ -340,6 +341,8 @@ export type ObjectNotFoundError = IAppError & {
   message: Scalars["String"]["output"]
 }
 
+export type ObjectNotFoundErrorTooManyRequestsError = ObjectNotFoundError | TooManyRequestsError
+
 export type PrivateChatIn = {
   participantId: Scalars["Int"]["input"]
 }
@@ -433,6 +436,11 @@ export type SystemNotificationsMeta = IBaseMeta & {
   __typename?: "SystemNotificationsMeta"
   count: Scalars["Int"]["output"]
   systemNotifications: Array<SystemNotification>
+}
+
+export type TooManyRequestsError = IAppError & {
+  __typename?: "TooManyRequestsError"
+  message: Scalars["String"]["output"]
 }
 
 export type UnauthorizedError = IAppError & {

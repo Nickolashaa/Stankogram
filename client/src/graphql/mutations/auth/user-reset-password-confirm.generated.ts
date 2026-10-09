@@ -15,13 +15,22 @@ export type UserResetPasswordConfirmMutationVariables = Exact<{
 }>
 
 export type UserResetPasswordConfirmMutation = {
-  userResetPasswordConfirm: { message: string } | null
+  userResetPasswordConfirm:
+    | { __typename: "ObjectNotFoundError"; message: string }
+    | { __typename: "TooManyRequestsError"; message: string }
+    | null
 }
 
 export const UserResetPasswordConfirmDocument = gql`
   mutation UserResetPasswordConfirm($id: Int!, $code: String!) {
     userResetPasswordConfirm(id: $id, code: $code) {
-      message
+      __typename
+      ... on ObjectNotFoundError {
+        message
+      }
+      ... on TooManyRequestsError {
+        message
+      }
     }
   }
 `
