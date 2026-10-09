@@ -43,6 +43,14 @@ jobs:
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
       - name: Setup dependencies and launch schemagen
         working-directory: ./server/
+        env:
+          POSTGRES_DB: ci
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          JWT_SECRET_KEY: ci-jwt-secret-key-for-schemagen-only
+          ENCRYPTION_KEY: MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA=
+          SMTP_LOGIN: ci@example.com
+          SMTP_PASSWORD: ci
         run: |
           uv sync
           uv run schemagen
