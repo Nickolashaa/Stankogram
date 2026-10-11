@@ -41,7 +41,7 @@ export const router = createRouter({
 
 export const PUBLIC_PATHS = ["/auth", "/reset-password-confirm"]
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const authStore = useAuthStore()
 
   if (!authStore.accessToken && !PUBLIC_PATHS.includes(to.path)) {
@@ -52,7 +52,9 @@ router.beforeEach((to) => {
     return "/"
   }
 
-  if (to.matched.some((record) => record.meta.requiresAdmin) && !authStore.user?.isAdmin) {
+  await authStore.ensureUser()
+
+  if (to.matched.some((record) => record.meta.requiresAdmin) && authStore.user?.isAdmin !== true) {
     return "/"
   }
 })

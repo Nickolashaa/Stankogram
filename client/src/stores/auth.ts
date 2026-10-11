@@ -17,6 +17,9 @@ export const useAuthStore = defineStore("auth", () => {
   const user = ref<UserFieldsFragment>()
   const accessToken = useStorage<string | undefined>(ACCESS_TOKEN_KEY, undefined)
 
+  let userRequest: Promise<void> | null = null
+  let refreshRequest: Promise<void> | null = null
+
   async function fetchUser() {
     const { data } = await apolloClient.query({
       query: MeDocument,
@@ -25,8 +28,18 @@ export const useAuthStore = defineStore("auth", () => {
     user.value = data.me.__typename === "User" ? data.me : undefined
   }
 
-  if (accessToken.value !== undefined) {
-    fetchUser()
+  async function ensureUser() {
+    if (user.value !== undefined || accessToken.value === undefined) {
+      return
+    }
+
+    userRequest ??= fetchUser()
+      .catch(() => {})
+      .finally(() => {
+        userRequest = null
+      })
+
+    await userRequest
   }
 
   async function login(email: string, password: string) {
@@ -83,7 +96,7 @@ export const useAuthStore = defineStore("auth", () => {
     await apolloClient.clearStore()
   }
 
-  async function refresh() {
+  async function rotateTokens() {
     const { data } = await apolloClient.mutate({ mutation: RefreshDocument })
 
     if (data === undefined || data === null || data.refresh.__typename !== "JWTs") {
@@ -95,6 +108,14 @@ export const useAuthStore = defineStore("auth", () => {
     accessToken.value = data.refresh.accessToken
   }
 
+  async function refresh() {
+    refreshRequest ??= rotateTokens().finally(() => {
+      refreshRequest = null
+    })
+
+    await refreshRequest
+  }
+
   return {
     login,
     logout,
@@ -102,6 +123,7 @@ export const useAuthStore = defineStore("auth", () => {
     confirmPasswordReset,
     user,
     accessToken,
+    ensureUser,
     refresh,
   }
 })
