@@ -3,6 +3,7 @@ import { computed } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { storeToRefs } from "pinia"
 import { useChatStore } from "@/stores/chats"
+import AdminPage from "@/components/admin-page.vue"
 import AdminChatsListPanel from "@/components/admin-chats-list-panel.vue"
 import ChatMetaPanel from "@/components/chat-meta-panel.vue"
 import NavIcon from "@/components/nav-icon.vue"
@@ -11,7 +12,7 @@ const route = useRoute()
 const router = useRouter()
 
 const chatStore = useChatStore()
-const { adminChats } = storeToRefs(chatStore)
+const { adminChats, adminTotalCount } = storeToRefs(chatStore)
 
 const activeChatId = computed(() => {
   const raw = route.params.chatId
@@ -29,39 +30,41 @@ function selectChat(chatId: number) {
 </script>
 
 <template>
-  <div class="flex h-full animate-appear flex-col gap-4 lg:flex-row lg:gap-6">
-    <AdminChatsListPanel
-      :active-chat-id="activeChatId"
-      :mobile-hidden="activeChatId !== null"
-      @select="selectChat"
-    />
+  <AdminPage title="Групповые чаты" :total="adminTotalCount" fill>
+    <div class="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:gap-6">
+      <AdminChatsListPanel
+        :active-chat-id="activeChatId"
+        :mobile-hidden="activeChatId !== null"
+        @select="selectChat"
+      />
 
-    <template v-if="activeChat">
-      <div class="flex min-h-0 flex-1 flex-col gap-3 lg:contents">
-        <button
-          type="button"
-          class="press glass hairline flex w-fit shrink-0 cursor-pointer items-center gap-2 rounded-full px-3.5 py-2 text-sm font-medium text-second hover:text-main lg:hidden"
-          @click="router.push('/admin/chats')"
-        >
-          <NavIcon name="arrow-right" :size="16" class="rotate-180" />
-          Назад к списку
-        </button>
-        <ChatMetaPanel
-          :key="activeChat.id"
-          :chat="activeChat"
-          manage
-          variant="page"
-          @deleted="router.push('/admin/chats')"
-        />
+      <template v-if="activeChat">
+        <div class="flex min-h-0 flex-1 flex-col gap-3 lg:contents">
+          <button
+            type="button"
+            class="press glass hairline flex w-fit shrink-0 cursor-pointer items-center gap-2 rounded-full px-3.5 py-2 text-sm font-medium text-second hover:text-main lg:hidden"
+            @click="router.push('/admin/chats')"
+          >
+            <NavIcon name="arrow-right" :size="16" class="rotate-180" />
+            Назад к списку
+          </button>
+          <ChatMetaPanel
+            :key="activeChat.id"
+            :chat="activeChat"
+            manage
+            variant="page"
+            @deleted="router.push('/admin/chats')"
+          />
+        </div>
+      </template>
+      <div
+        v-else
+        class="glass hairline shadow-card hidden flex-1 items-center justify-center rounded-card p-10 text-center text-sm text-second lg:flex"
+      >
+        <span class="max-w-sm">
+          Выберите групповой чат, чтобы посмотреть и отредактировать информацию о нём
+        </span>
       </div>
-    </template>
-    <div
-      v-else
-      class="glass hairline shadow-card hidden flex-1 items-center justify-center rounded-card p-10 text-center text-second lg:flex"
-    >
-      <span class="max-w-sm">
-        Выберите групповой чат, чтобы посмотреть и отредактировать информацию о нём
-      </span>
     </div>
-  </div>
+  </AdminPage>
 </template>

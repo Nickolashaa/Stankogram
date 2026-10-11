@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue"
 import { storeToRefs } from "pinia"
 import { useInfiniteScroll } from "@vueuse/core"
 import { useChatStore } from "@/stores/chats"
+import { pinForLeave } from "@/lib/transition"
 import { EChatType } from "@/graphql/base-types"
 
 const PAGE_SIZE = 30
@@ -47,33 +48,32 @@ const infiniteScroll = useInfiniteScroll(
     class="glass hairline shadow-card h-full w-full shrink-0 flex-col overflow-hidden rounded-card lg:flex lg:w-84"
     :class="mobileHidden ? 'hidden' : 'flex'"
   >
-    <div class="hairline-b shrink-0 px-5 py-5">
-      <h2 class="m-0 text-lg font-semibold tracking-tight text-main">Групповые чаты</h2>
-      <span class="text-sm text-second">Всего: {{ adminTotalCount }}</span>
-    </div>
-
-    <div ref="scrollContainer" class="flex flex-1 flex-col gap-1 overflow-y-auto p-2.5">
-      <button
-        v-for="chat in adminChats"
-        :key="chat.id"
-        type="button"
-        class="press flex w-full cursor-pointer flex-col gap-1 rounded-card px-3.5 py-3 text-left"
-        :class="chat.id === activeChatId ? 'pill-active' : 'pill-idle'"
-        @click="emit('select', chat.id)"
-      >
-        <span class="truncate text-[15px] font-medium text-main">{{ chat.title }}</span>
-        <span class="truncate text-xs text-second">
-          Участников: {{ chat.participants.length }}
-        </span>
-      </button>
+    <div ref="scrollContainer" class="relative flex flex-1 flex-col gap-1 overflow-y-auto p-2.5">
+      <TransitionGroup name="row" @before-leave="pinForLeave">
+        <button
+          v-for="chat in adminChats"
+          :key="chat.id"
+          type="button"
+          class="press flex w-full cursor-pointer flex-col gap-1 rounded-card px-3.5 py-3 text-left"
+          :class="chat.id === activeChatId ? 'pill-active' : 'pill-idle'"
+          @click="emit('select', chat.id)"
+        >
+          <span class="truncate text-[15px] font-medium text-main">{{ chat.title }}</span>
+          <span class="truncate text-xs text-second">
+            Участников: {{ chat.participants.length }}
+          </span>
+        </button>
+      </TransitionGroup>
 
       <div v-if="adminChats.length === 0" class="px-5 py-8 text-center text-sm text-second">
         Групповых чатов пока нет
       </div>
 
-      <div v-if="infiniteScroll.isLoading.value" class="py-4 text-center text-sm text-second">
-        Загрузка...
-      </div>
+      <Transition name="fade">
+        <div v-if="infiniteScroll.isLoading.value" class="py-4 text-center text-sm text-second">
+          Загрузка...
+        </div>
+      </Transition>
     </div>
   </div>
 </template>

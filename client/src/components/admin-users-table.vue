@@ -85,7 +85,9 @@ function handleDelete() {
           <td class="px-5 py-3 text-second">{{ formatDateTime(user.updatedAt) }}</td>
         </tr>
         <tr v-if="props.users.length === 0">
-          <td colspan="7" class="px-5 py-8 text-center text-second">Пользователи не найдены</td>
+          <td colspan="7" class="px-5 py-8 text-center text-sm text-second">
+            Пользователи не найдены
+          </td>
         </tr>
       </tbody>
     </table>

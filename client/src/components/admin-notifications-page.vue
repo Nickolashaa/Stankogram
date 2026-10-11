@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue"
+import { computed, onMounted, ref } from "vue"
 import { storeToRefs } from "pinia"
-import { useInfiniteScroll } from "@vueuse/core"
 import { useSystemNotificationStore } from "@/stores/system-notifications"
 import { formatDateTime, isExpired } from "@/lib/format"
+import { pinForLeave } from "@/lib/transition"
 import { notify } from "@/lib/notify"
 import type { SystemNotificationIn } from "@/graphql/base-types"
 import type { SystemNotificationFieldsFragment } from "@/graphql/fragments/system-notifications.generated"
 import Button from "@/components/button.vue"
 import NavIcon from "@/components/nav-icon.vue"
+import AdminPage from "@/components/admin-page.vue"
 import AdminNotificationFormDialog from "@/components/admin-notification-form-dialog.vue"
 
 const PAGE_SIZE = 20
@@ -27,18 +28,13 @@ async function fetchNotifications() {
   }
 }
 
-const infiniteScroll = useInfiniteScroll(
-  window,
-  async () => {
-    await notificationStore.fetchNotifications(PAGE_SIZE, notifications.value.length, {
-      append: true,
-    })
-  },
-  {
-    distance: 200,
-    canLoadMore: () => !loading.value && notifications.value.length < totalCount.value,
-  },
-)
+async function loadMore() {
+  await notificationStore.fetchNotifications(PAGE_SIZE, notifications.value.length, {
+    append: true,
+  })
+}
+
+const canLoadMore = computed(() => !loading.value && notifications.value.length < totalCount.value)
 
 onMounted(fetchNotifications)
 
@@ -78,62 +74,65 @@ async function handleSubmit(data: SystemNotificationIn) {
 
   dialogOpen.value = false
   await fetchNotifications()
-  infiniteScroll.reset()
 }
 </script>
 
 <template>
-  <div class="flex animate-appear flex-col gap-6">
-    <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <h1 class="m-0 text-2xl font-semibold tracking-tight text-main sm:text-3xl">
-        Системные уведомления
-      </h1>
+  <AdminPage
+    title="Системные уведомления"
+    :total="totalCount"
+    :can-load-more="canLoadMore"
+    :load-more="loadMore"
+  >
+    <template #actions>
       <Button icon="plus" :short-mode="false" class="w-full sm:w-auto" @click="openCreateDialog"
         >Создать уведомление</Button
       >
-    </div>
+    </template>
 
-    <div class="flex flex-col gap-3">
-      <div
-        v-for="notification in notifications"
-        :key="notification.id"
-        class="glass hairline shadow-card flex animate-rise items-start gap-4 rounded-card px-5 py-4 transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-float"
-      >
-        <span
-          class="chip-accent glow-accent-soft flex h-11 w-11 shrink-0 items-center justify-center"
+    <div class="relative flex flex-col gap-3">
+      <TransitionGroup name="row" @before-leave="pinForLeave">
+        <div
+          v-for="notification in notifications"
+          :key="notification.id"
+          class="glass hairline shadow-card flex items-start gap-4 rounded-card px-5 py-4 transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-float"
         >
-          <NavIcon name="bell" :size="18" />
-        </span>
-        <div class="flex min-w-0 flex-1 flex-col gap-1">
-          <span class="text-[15px] font-semibold text-main">{{ notification.title }}</span>
-          <span class="text-sm whitespace-pre-wrap text-second">{{ notification.text }}</span>
-          <span class="flex flex-wrap items-center gap-2 text-xs text-second">
-            {{ formatDateTime(notification.createdAt) }}
-            <span
-              v-if="notification.expiresAt !== null && notification.expiresAt !== undefined"
-              class="inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap"
-              :class="
-                isExpired(notification.expiresAt)
-                  ? 'bg-red-500/12 text-red-600 ring-1 ring-red-500/25 ring-inset dark:text-red-400'
-                  : 'bg-accent/15 text-accent ring-1 ring-accent/25 ring-inset'
-              "
-            >
-              {{
-                isExpired(notification.expiresAt)
-                  ? `Истекло ${formatDateTime(notification.expiresAt)}`
-                  : `До ${formatDateTime(notification.expiresAt)}`
-              }}
-            </span>
+          <span
+            class="chip-accent glow-accent-soft flex h-11 w-11 shrink-0 items-center justify-center"
+          >
+            <NavIcon name="bell" :size="18" />
           </span>
+          <div class="flex min-w-0 flex-1 flex-col gap-1">
+            <span class="text-[15px] font-semibold text-main">{{ notification.title }}</span>
+            <span class="text-sm whitespace-pre-wrap text-second">{{ notification.text }}</span>
+            <span class="flex flex-wrap items-center gap-2 text-xs text-second">
+              {{ formatDateTime(notification.createdAt) }}
+              <span
+                v-if="notification.expiresAt !== null && notification.expiresAt !== undefined"
+                class="inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap"
+                :class="
+                  isExpired(notification.expiresAt)
+                    ? 'bg-red-500/12 text-red-600 ring-1 ring-red-500/25 ring-inset dark:text-red-400'
+                    : 'bg-accent/15 text-accent ring-1 ring-accent/25 ring-inset'
+                "
+              >
+                {{
+                  isExpired(notification.expiresAt)
+                    ? `Истекло ${formatDateTime(notification.expiresAt)}`
+                    : `До ${formatDateTime(notification.expiresAt)}`
+                }}
+              </span>
+            </span>
+          </div>
+          <Button
+            icon="edit"
+            variant="ghost"
+            title="Редактировать"
+            aria-label="Редактировать"
+            @click="openEditDialog(notification)"
+          />
         </div>
-        <Button
-          icon="edit"
-          variant="ghost"
-          title="Редактировать"
-          aria-label="Редактировать"
-          @click="openEditDialog(notification)"
-        />
-      </div>
+      </TransitionGroup>
 
       <div
         v-if="notifications.length === 0 && !loading"
@@ -141,11 +140,6 @@ async function handleSubmit(data: SystemNotificationIn) {
       >
         Уведомлений пока нет
       </div>
-    </div>
-
-    <div class="flex items-center justify-between text-sm text-second">
-      <span>Всего: {{ totalCount }}</span>
-      <span v-if="infiniteScroll.isLoading.value">Загрузка...</span>
     </div>
 
     <AdminNotificationFormDialog
@@ -156,5 +150,5 @@ async function handleSubmit(data: SystemNotificationIn) {
       @close="dialogOpen = false"
       @submit="handleSubmit"
     />
-  </div>
+  </AdminPage>
 </template>

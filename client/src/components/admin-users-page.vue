@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue"
 import { storeToRefs } from "pinia"
-import { useInfiniteScroll } from "@vueuse/core"
 import { useUserStore } from "@/stores/users"
 import { fullName } from "@/lib/format"
 import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
 import type { EUserRole, UserIn } from "@/graphql/base-types"
 import Button from "@/components/button.vue"
+import AdminPage from "@/components/admin-page.vue"
 import AdminUserFilters from "@/components/admin-user-filters.vue"
 import AdminUsersTable from "@/components/admin-users-table.vue"
 import AdminUserFormDialog from "@/components/admin-user-form-dialog.vue"
@@ -40,23 +40,15 @@ async function fetchUsers() {
   }
 }
 
-const infiniteScroll = useInfiniteScroll(
-  window,
-  async () => {
-    await userStore.fetchUsers(filterQuery.value, PAGE_SIZE, users.value.length, {
-      append: true,
-    })
-  },
-  {
-    distance: 200,
-    canLoadMore: () => !loading.value && users.value.length < totalCount.value,
-  },
-)
+async function loadMore() {
+  await userStore.fetchUsers(filterQuery.value, PAGE_SIZE, users.value.length, {
+    append: true,
+  })
+}
 
-watch(filterQuery, () => {
-  fetchUsers()
-  infiniteScroll.reset()
-})
+const canLoadMore = computed(() => !loading.value && users.value.length < totalCount.value)
+
+watch(filterQuery, fetchUsers)
 
 onMounted(fetchUsers)
 
@@ -102,12 +94,10 @@ async function handleSubmit(data: UserIn) {
 
   dialogOpen.value = false
   await fetchUsers()
-  infiniteScroll.reset()
 }
 
 async function handleImported() {
   await fetchUsers()
-  infiniteScroll.reset()
 }
 
 async function handleDelete(user: UserFieldsFragment) {
@@ -124,21 +114,22 @@ async function handleDelete(user: UserFieldsFragment) {
 
   notify.success("Пользователь удалён")
   await fetchUsers()
-  infiniteScroll.reset()
 }
 </script>
 
 <template>
-  <div class="flex animate-appear flex-col gap-6">
-    <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <h1 class="m-0 text-2xl font-semibold tracking-tight text-main sm:text-3xl">Пользователи</h1>
-      <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-        <AdminUsersImport @imported="handleImported" />
-        <Button icon="plus" :short-mode="false" class="w-full sm:w-auto" @click="openCreateDialog"
-          >Создать пользователя</Button
-        >
-      </div>
-    </div>
+  <AdminPage
+    title="Пользователи"
+    :total="totalCount"
+    :can-load-more="canLoadMore"
+    :load-more="loadMore"
+  >
+    <template #actions>
+      <AdminUsersImport @imported="handleImported" />
+      <Button icon="plus" :short-mode="false" class="w-full sm:w-auto" @click="openCreateDialog"
+        >Создать пользователя</Button
+      >
+    </template>
 
     <AdminUserFilters
       v-model:search="searchQuery"
@@ -147,11 +138,6 @@ async function handleDelete(user: UserFieldsFragment) {
     />
 
     <AdminUsersTable :users="users" @edit="openEditDialog" @delete="handleDelete" />
-
-    <div class="flex items-center justify-between text-sm text-second">
-      <span>Всего: {{ totalCount }}</span>
-      <span v-if="infiniteScroll.isLoading.value">Загрузка...</span>
-    </div>
 
     <UserCredentialsDialog
       :open="credentials !== null"
@@ -168,5 +154,5 @@ async function handleDelete(user: UserFieldsFragment) {
       @close="closeDialog"
       @submit="handleSubmit"
     />
-  </div>
+  </AdminPage>
 </template>
