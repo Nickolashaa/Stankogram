@@ -95,6 +95,9 @@ export const useMessageStore = defineStore("messages", () => {
     if (chatId.value === null || message.chat.id !== chatId.value) {
       return
     }
+    if (messages.value.some((item) => item.id === message.id)) {
+      return
+    }
 
     messages.value = [message, ...messages.value]
     totalCount.value += 1
