@@ -36,6 +36,9 @@ class Settings(BaseSettings):
 
     REFRESH_TOKEN_COOKIE_PATH: str = "/api"
 
+    PRESENCE_TTL_SECONDS: int = 60
+    PRESENCE_HEARTBEAT_SECONDS: int = 20
+
     SMTP_LOGIN: str = Field(min_length=1)
     SMTP_PASSWORD: str = Field(min_length=1)
     SMTP_SERVER: str = "smtp.yandex.ru"
@@ -54,6 +57,10 @@ class Settings(BaseSettings):
             f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
             f"@database:5432/{self.POSTGRES_DB}"
         )
+
+    @property
+    def REDIS_URL(self) -> str:
+        return "redis://redis:6379/0"
 
 
 settings = Settings()

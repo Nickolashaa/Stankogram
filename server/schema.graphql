@@ -286,8 +286,8 @@ type User implements IBaseType {
   role: EUserRole!
   isAdmin: Boolean!
   fullName: String!
-  isOnline: Boolean!
   lastOnlineAt: DateTime
+  isOnline: Boolean!
 }
 
 input UserCredentialsIn {
