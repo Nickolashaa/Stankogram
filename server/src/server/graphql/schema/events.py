@@ -7,10 +7,7 @@ from ...database.connection import session_maker
 from ...dependencies.auth import get_user_from_authorization
 from ...services.auth import AuthService
 from ..context import AppInfo
-from ..pubsub import pub_sub
-from ..types.messages import CreateMessage, DeleteMessage, UpdateMessage
-
-Event = CreateMessage | UpdateMessage | DeleteMessage
+from ..types.messages import Event, event_from_schema
 
 
 async def _save_last_online(user_id: int) -> None:
@@ -34,13 +31,9 @@ class EventSubscription:
         if user is None:
             raise Exception("User is not authenticated")
 
-        queue = pub_sub.connect(user.id)
         try:
-            while True:
-                event = await queue.get()
-                if event is None:
-                    return
-                yield event
+            async with info.context.services.presence_service.track(user.id):
+                async for event in info.context.services.event_service.listen(user.id):
+                    yield event_from_schema(event)
         finally:
-            if pub_sub.disconnect(user.id, queue):
-                await _save_last_online(user.id)
+            await _save_last_online(user.id)

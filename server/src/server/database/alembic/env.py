@@ -8,11 +8,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from server.config import settings
 from server.database.connection import Base
-from server.database.models.auth import (  # noqa: F401
-    CancelledToken,
-    PasswordResetCode,
-    User,
-)
+from server.database.models.auth import CancelledToken, User  # noqa: F401
 from server.database.models.chats import Chat, ChatParticipant  # noqa: F401
 from server.database.models.messages import Message  # noqa: F401
 from server.database.models.system_notifications import (  # noqa: F401

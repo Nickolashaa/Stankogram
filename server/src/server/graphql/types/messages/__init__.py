@@ -1,6 +1,14 @@
 from .inputs import MessageFiltersIn, MessageIn, MessageUpdateIn
 from .interfaces import IMessage
-from .types import CreateMessage, DeleteMessage, Message, MessagesMeta, UpdateMessage
+from .types import (
+    CreateMessage,
+    DeleteMessage,
+    Event,
+    Message,
+    MessagesMeta,
+    UpdateMessage,
+    event_from_schema,
+)
 
 __all__ = (
     "Message",
@@ -12,4 +20,6 @@ __all__ = (
     "CreateMessage",
     "UpdateMessage",
     "DeleteMessage",
+    "Event",
+    "event_from_schema",
 )

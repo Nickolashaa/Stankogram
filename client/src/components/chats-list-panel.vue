@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue"
 import { storeToRefs } from "pinia"
 import { useRouter } from "vue-router"
-import { useInfiniteScroll } from "@vueuse/core"
+import { useDocumentVisibility, useInfiniteScroll, useIntervalFn } from "@vueuse/core"
 import { useChatStore, hasUnreadMessages, privatePeer, type ChatSummary } from "@/stores/chats"
 import { useAuthStore } from "@/stores/auth"
 import { useDraftStore } from "@/stores/drafts"
@@ -17,6 +17,7 @@ import CreateGroupChatDialog from "@/components/create-group-chat-dialog.vue"
 import CreatePrivateChatDialog from "@/components/create-private-chat-dialog.vue"
 
 const PAGE_SIZE = 30
+const REFRESH_INTERVAL = 30_000
 
 const props = defineProps<{
   activeChatId: number | null
@@ -94,6 +95,24 @@ async function refreshChats() {
   await chatStore.fetchChats(filters.value, PAGE_SIZE, 0)
   infiniteScroll.reset()
 }
+
+async function syncLoadedChats() {
+  try {
+    await chatStore.fetchChats(filters.value, Math.max(PAGE_SIZE, chats.value.length), 0)
+  } catch {}
+}
+
+const { pause, resume } = useIntervalFn(syncLoadedChats, REFRESH_INTERVAL)
+
+watch(useDocumentVisibility(), (state) => {
+  if (state === "visible") {
+    syncLoadedChats()
+    resume()
+    return
+  }
+
+  pause()
+})
 
 onMounted(refreshChats)
 

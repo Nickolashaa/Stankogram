@@ -1,0 +1,7 @@
+from enum import StrEnum
+
+
+class EventType(StrEnum):
+    CREATE_MESSAGE = "CREATE_MESSAGE"
+    UPDATE_MESSAGE = "UPDATE_MESSAGE"
+    DELETE_MESSAGE = "DELETE_MESSAGE"

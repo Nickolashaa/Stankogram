@@ -1,38 +1,38 @@
+from collections.abc import Sequence
+
 import strawberry
 
+from ....enums.events import EventType
+from ....services.events.schemas import MessageEventSchema
 from ....services.exceptions import ObjectNotFound
 from ...context import AuthorizedAppInfo
 from ...permissions.auth import IsAuthenticated
 from ...permissions.messages import CanCreateMessage, CanDeleteMessage, IsMessageAuthor
-from ...pubsub import pub_sub
 from ...types.errors import ObjectNotFoundError
-from ...types.messages import (
-    CreateMessage,
-    DeleteMessage,
-    Message,
-    MessageIn,
-    MessageUpdateIn,
-    UpdateMessage,
-)
+from ...types.messages import Message, MessageIn, MessageUpdateIn
+
+
+async def _participant_ids(info: AuthorizedAppInfo, chat_id: int) -> list[int]:
+    participants = await info.context.services.chat_participant_service.get_list(
+        chat_id=chat_id
+    )
+    return [participant.user_id for participant in participants]
 
 
 async def _sync_mentions(
     info: AuthorizedAppInfo,
     message_id: int,
-    chat_id: int,
+    participant_ids: Sequence[int],
     mentioned_user_ids: list[int],
 ) -> None:
-    participants = await info.context.services.chat_participant_service.get_list(
-        chat_id=chat_id
-    )
-    participant_ids = {participant.user_id for participant in participants}
+    allowed_ids = set(participant_ids)
 
     await info.context.services.notification_service.sync_for_message(
         message_id=message_id,
         user_ids=[
             user_id
             for user_id in dict.fromkeys(mentioned_user_ids)
-            if user_id in participant_ids and user_id != info.context.current_user.id
+            if user_id in allowed_ids and user_id != info.context.current_user.id
         ],
     )
 
@@ -51,25 +51,21 @@ class MessageMutation:
                 chat_id=input.chat_id,
                 text=input.text,
             )
+            participant_ids = await _participant_ids(info, instance.chat_id)
             await _sync_mentions(
                 info=info,
                 message_id=instance.id,
-                chat_id=instance.chat_id,
+                participant_ids=participant_ids,
                 mentioned_user_ids=input.mentioned_user_ids,
             )
             await info.context.session.commit()
 
-            message = Message.from_schema(instance)
-            participants = (
-                await info.context.services.chat_participant_service.get_list(
-                    chat_id=input.chat_id
-                )
+            await info.context.services.event_service.publish(
+                participant_ids,
+                MessageEventSchema(type=EventType.CREATE_MESSAGE, message=instance),
             )
-            event = CreateMessage(message=message)
-            for participant in participants:
-                pub_sub.publish(participant.user_id, event)
 
-            return message
+            return Message.from_schema(instance)
         except ObjectNotFound as e:
             await info.context.session.rollback()
             return ObjectNotFoundError.from_service_exception(e)
@@ -86,25 +82,21 @@ class MessageMutation:
                 id=message_id,
                 text=input.text,
             )
+            participant_ids = await _participant_ids(info, instance.chat_id)
             await _sync_mentions(
                 info=info,
                 message_id=instance.id,
-                chat_id=instance.chat_id,
+                participant_ids=participant_ids,
                 mentioned_user_ids=input.mentioned_user_ids,
             )
             await info.context.session.commit()
 
-            message = Message.from_schema(instance)
-            participants = (
-                await info.context.services.chat_participant_service.get_list(
-                    chat_id=message.chat_id
-                )
+            await info.context.services.event_service.publish(
+                participant_ids,
+                MessageEventSchema(type=EventType.UPDATE_MESSAGE, message=instance),
             )
-            event = UpdateMessage(message=message)
-            for participant in participants:
-                pub_sub.publish(participant.user_id, event)
 
-            return message
+            return Message.from_schema(instance)
         except ObjectNotFound as e:
             await info.context.session.rollback()
             return ObjectNotFoundError.from_service_exception(e)
@@ -120,17 +112,12 @@ class MessageMutation:
             await info.context.services.message_service.delete(message_id)
             await info.context.session.commit()
 
-            message = Message.from_schema(instance)
-            participants = (
-                await info.context.services.chat_participant_service.get_list(
-                    chat_id=message.chat_id
-                )
+            await info.context.services.event_service.publish(
+                await _participant_ids(info, instance.chat_id),
+                MessageEventSchema(type=EventType.DELETE_MESSAGE, message=instance),
             )
-            event = DeleteMessage(message=message)
-            for participant in participants:
-                pub_sub.publish(participant.user_id, event)
 
-            return message
+            return Message.from_schema(instance)
         except ObjectNotFound as e:
             await info.context.session.rollback()
             return ObjectNotFoundError.from_service_exception(e)
