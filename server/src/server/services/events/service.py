@@ -1,9 +1,12 @@
 from collections.abc import AsyncGenerator, Sequence
 
 from cryptography.fernet import Fernet
+from pydantic import TypeAdapter
 from redis.asyncio import Redis
 
-from .schemas import MessageEventSchema
+from .schemas import ChatParticipantEventSchema, EventSchema, MessageEventSchema
+
+_event_adapter: TypeAdapter[EventSchema] = TypeAdapter(EventSchema)
 
 
 class EventService:
@@ -18,7 +21,7 @@ class EventService:
     async def publish(
         self,
         user_ids: Sequence[int],
-        event: MessageEventSchema,
+        event: MessageEventSchema | ChatParticipantEventSchema,
     ) -> None:
         payload = self._fernet.encrypt(event.model_dump_json().encode())
 
@@ -27,7 +30,7 @@ class EventService:
                 pipe.publish(self._channel(user_id), payload)
             await pipe.execute()
 
-    async def listen(self, user_id: int) -> AsyncGenerator[MessageEventSchema, None]:
+    async def listen(self, user_id: int) -> AsyncGenerator[EventSchema, None]:
         async with self._redis.pubsub() as subscription:
             await subscription.subscribe(self._channel(user_id))
 
@@ -39,6 +42,6 @@ class EventService:
                 if message is None:
                     continue
 
-                yield MessageEventSchema.model_validate_json(
+                yield _event_adapter.validate_json(
                     self._fernet.decrypt(message["data"])
                 )
