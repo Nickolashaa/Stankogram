@@ -15,14 +15,14 @@ type Attachment implements IBaseType {
   height: Int
   durationMs: Int
   url: String!
-  thumbnailUrl: String!
+  thumbnailUrl: String
   downloadUrl: String!
 }
 
 type AttachmentUpload {
   attachment: Attachment!
   uploadUrl: String!
-  thumbnailUploadUrl: String!
+  thumbnailUploadUrl: String
 }
 
 input AttachmentUploadIn {
@@ -115,6 +115,7 @@ type DeleteMessage {
 enum EAttachmentKind {
   IMAGE
   VIDEO
+  FILE
 }
 
 enum EChatType {
