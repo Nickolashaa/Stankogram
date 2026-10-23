@@ -25,6 +25,8 @@ export type IconName =
   | "upload"
   | "download"
   | "reply"
+  | "play"
+  | "image"
 
 const props = withDefaults(
   defineProps<{
@@ -185,6 +187,19 @@ const props = withDefaults(
       <path d="M12 4v12" />
       <path d="m7 11 5 5 5-5" />
       <path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
+    </template>
+
+    <path
+      v-else-if="name === 'play'"
+      d="M8 5.5v13l11-6.5-11-6.5z"
+      fill="currentColor"
+      stroke="none"
+    />
+
+    <template v-else-if="name === 'image'">
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <circle cx="8.5" cy="9.5" r="1.5" />
+      <path d="m4 17 4.5-4.5L12 16l3-3 6 5.5" />
     </template>
   </svg>
 </template>

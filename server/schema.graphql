@@ -3,6 +3,40 @@ type AddChatParticipant {
   participant: ChatParticipant!
 }
 
+type Attachment implements IBaseType {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  kind: EAttachmentKind!
+  name: String!
+  contentType: String!
+  size: Int!
+  width: Int
+  height: Int
+  durationMs: Int
+  url: String!
+  thumbnailUrl: String!
+  downloadUrl: String!
+}
+
+type AttachmentUpload {
+  attachment: Attachment!
+  uploadUrl: String!
+  thumbnailUploadUrl: String!
+}
+
+input AttachmentUploadIn {
+  chatId: Int!
+  name: String!
+  contentType: String!
+  size: Int!
+  width: Int = null
+  height: Int = null
+  durationMs: Int = null
+}
+
+union AttachmentUploadInvalidInputErrorObjectNotFoundError = AttachmentUpload | InvalidInputError | ObjectNotFoundError
+
 input BasePaginationIn {
   limit: Int
   offset: Int
@@ -78,6 +112,11 @@ type DeleteMessage {
   message: Message!
 }
 
+enum EAttachmentKind {
+  IMAGE
+  VIDEO
+}
+
 enum EChatType {
   PRIVATE
   PUBLIC
@@ -137,6 +176,7 @@ type Message implements IBaseType & IUser & IChat {
   chat: Chat!
   text: String!
   replyTo: Message
+  attachments: [Attachment!]!
 }
 
 input MessageFiltersIn {
@@ -147,8 +187,11 @@ input MessageIn {
   chatId: Int!
   text: String!
   mentionedUserIds: [Int!]!
+  attachmentIds: [Int!]! = []
   replyToMessageId: Int = null
 }
+
+union MessageInvalidInputErrorObjectNotFoundError = Message | InvalidInputError | ObjectNotFoundError
 
 union MessageObjectNotFoundError = Message | ObjectNotFoundError
 
@@ -163,6 +206,7 @@ type MessagesMeta implements IBaseMeta {
 }
 
 type Mutation {
+  createAttachmentUpload(input: AttachmentUploadIn!): AttachmentUploadInvalidInputErrorObjectNotFoundError!
   login(input: UserCredentialsIn!): JWTsObjectNotFoundErrorTooManyRequestsError!
   refresh: JWTsUnauthorizedErrorObjectNotFoundError!
   logout: Void
@@ -181,7 +225,7 @@ type Mutation {
   leaveChat(chatId: Int!): ChatInvalidInputErrorObjectNotFoundError!
   updateChatParticipantPermissions(input: ChatParticipantIn!): ChatParticipantObjectNotFoundError!
   markChatRead(chatId: Int!): ChatParticipantObjectNotFoundError!
-  createMessage(input: MessageIn!): MessageObjectNotFoundError!
+  createMessage(input: MessageIn!): MessageInvalidInputErrorObjectNotFoundError!
   updateMessage(messageId: Int!, input: MessageUpdateIn!): MessageObjectNotFoundError!
   deleteMessage(messageId: Int!): MessageObjectNotFoundError!
   hideNotification(id: Int!): ObjectNotFoundError

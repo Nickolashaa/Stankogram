@@ -6,10 +6,12 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
+    "aioboto3>=15.5.0",
     "aiosmtplib>=5.1.2",
     "alembic>=1.19.1",
     "asyncpg>=0.31.0",
     "bcrypt>=5.0.0",
+    "certifi>=2026.10.23",
     "cryptography>=50.0.0",
     "openpyxl>=3.1.5",
     "pydantic-settings>=2.15.0",
@@ -27,6 +29,8 @@ server = "server:main"
 schemagen = "server.scripts.schemagen:main"
 create_first_admin = "server.scripts.create_first_admin:main"
 seed_data = "server.scripts.seed_data:main"
+cleanup_attachments = "server.scripts.cleanup_attachments:main"
+s3_setup = "server.scripts.s3_setup:main"
 
 [build-system]
 requires = ["uv_build>=0.12.3,<0.13.0"]

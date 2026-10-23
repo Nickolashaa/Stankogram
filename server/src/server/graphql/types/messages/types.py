@@ -4,6 +4,7 @@ import strawberry
 
 from ....services.messages.schemas import MessageResponse
 from ...context import AppInfo
+from ..attachments import Attachment
 from ..auth import IUser
 from ..base import IBaseMeta, IBaseType
 from ..chats import IChat
@@ -21,6 +22,12 @@ class Message(IBaseType, IUser, IChat):
 
         return await info.context.data_loaders.message_loader.load(
             self.reply_to_message_id
+        )
+
+    @strawberry.field
+    async def attachments(self, info: AppInfo) -> list[Attachment]:
+        return await info.context.data_loaders.attachments_by_message_id_loader.load(
+            self.id
         )
 
     @classmethod

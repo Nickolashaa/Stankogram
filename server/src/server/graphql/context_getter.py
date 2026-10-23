@@ -4,6 +4,7 @@ from fastapi import Cookie, Depends, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import HTTPConnection
 
+from ..dependencies.attachments import get_attachment_service
 from ..dependencies.auth import get_auth_service, get_current_user
 from ..dependencies.chats import get_chat_participant_service, get_chat_service
 from ..dependencies.events import get_event_service
@@ -13,8 +14,10 @@ from ..dependencies.password_reset import get_password_reset_service
 from ..dependencies.presence import get_presence_service
 from ..dependencies.rate_limit import get_rate_limit_service
 from ..dependencies.session import get_session
+from ..dependencies.storage import get_storage_service
 from ..dependencies.system_notifications import get_system_notification_service
 from ..services import Services
+from ..services.attachments import AttachmentService
 from ..services.auth import AuthService
 from ..services.auth.schemas import UserResponse
 from ..services.chats import ChatService
@@ -25,9 +28,11 @@ from ..services.notifications import NotificationService
 from ..services.password_reset import PasswordResetService
 from ..services.presence import PresenceService
 from ..services.rate_limit import RateLimitService
+from ..services.storage import StorageService
 from ..services.system_notifications import SystemNotificationService
 from .context import AuthorizedContext, Context
 from .data_loaders import DataLoaders
+from .data_loaders.attachments import build_attachments_by_message_id_loader
 from .data_loaders.auth import build_users_loader
 from .data_loaders.chats import (
     build_chat_participants_by_chat_id_loader,
@@ -54,6 +59,7 @@ async def context_getter(
     refresh_token: Annotated[str | None, Cookie()] = None,
     session: AsyncSession = Depends(get_session),
     current_user: UserResponse | None = Depends(get_current_user),
+    attachment_service: AttachmentService = Depends(get_attachment_service),
     auth_service: AuthService = Depends(get_auth_service),
     chat_service: ChatService = Depends(get_chat_service),
     chat_participant_service: ChatParticipantService = Depends(
@@ -65,6 +71,7 @@ async def context_getter(
     password_reset_service: PasswordResetService = Depends(get_password_reset_service),
     presence_service: PresenceService = Depends(get_presence_service),
     rate_limit_service: RateLimitService = Depends(get_rate_limit_service),
+    storage_service: StorageService = Depends(get_storage_service),
     system_notification_service: SystemNotificationService = Depends(
         get_system_notification_service
     ),
@@ -73,6 +80,7 @@ async def context_getter(
         response=response,
         session=session,
         services=Services(
+            attachment_service=attachment_service,
             auth_service=auth_service,
             chat_service=chat_service,
             chat_participant_service=chat_participant_service,
@@ -82,9 +90,13 @@ async def context_getter(
             password_reset_service=password_reset_service,
             presence_service=presence_service,
             rate_limit_service=rate_limit_service,
+            storage_service=storage_service,
             system_notification_service=system_notification_service,
         ),
         data_loaders=DataLoaders(
+            attachments_by_message_id_loader=(
+                build_attachments_by_message_id_loader(attachment_service)
+            ),
             user_loader=build_users_loader(auth_service),
             chat_loader=build_chats_loader(chat_service),
             chat_participants_by_chat_id_loader=(

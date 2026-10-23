@@ -4,12 +4,27 @@ import { apolloClient } from "@/api"
 import { CreateMessageDocument } from "@/graphql/mutations/messages/create-message.generated"
 import { UpdateMessageDocument } from "@/graphql/mutations/messages/update-message.generated"
 import { DeleteMessageDocument } from "@/graphql/mutations/messages/delete-message.generated"
+import { CreateAttachmentUploadDocument } from "@/graphql/mutations/attachments/create-attachment-upload.generated"
 import { MessagesDocument } from "@/graphql/queries/messages/messages.generated"
 import { MessagePositionDocument } from "@/graphql/queries/messages/message-position.generated"
 import type { MessageFieldsFragment } from "@/graphql/fragments/messages.generated"
 import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
+import { probeMedia } from "@/lib/media"
 
 export type MessageItem = MessageFieldsFragment & { user: UserFieldsFragment }
+
+async function putFile(url: string, body: Blob, contentType: string) {
+  const response = await fetch(url, {
+    method: "PUT",
+    body,
+    credentials: "omit",
+    headers: { "Content-Type": contentType },
+  })
+
+  if (!response.ok) {
+    throw new Error("Не удалось загрузить файл")
+  }
+}
 
 export const useMessageStore = defineStore("messages", () => {
   const chatId = ref<number | null>(null)
@@ -54,10 +69,43 @@ export const useMessageStore = defineStore("messages", () => {
     return data.messagePosition
   }
 
+  async function uploadAttachment(chatId: number, file: File): Promise<number> {
+    const probed = await probeMedia(file)
+
+    const { data } = await apolloClient.mutate({
+      mutation: CreateAttachmentUploadDocument,
+      variables: {
+        input: {
+          chatId,
+          name: file.name,
+          contentType: file.type,
+          size: file.size,
+          width: probed.width,
+          height: probed.height,
+          durationMs: probed.durationMs,
+        },
+      },
+    })
+
+    const result = data?.createAttachmentUpload
+
+    if (result?.__typename !== "AttachmentUpload") {
+      throw new Error(result?.message ?? "Не удалось подготовить загрузку")
+    }
+
+    await Promise.all([
+      putFile(result.uploadUrl, file, file.type),
+      putFile(result.thumbnailUploadUrl, probed.thumbnail, "image/jpeg"),
+    ])
+
+    return result.attachment.id
+  }
+
   async function sendMessage(
     text: string,
     mentionedUserIds: number[],
     replyToMessageId: number | null = null,
+    attachmentIds: number[] = [],
   ) {
     if (chatId.value === null) {
       return
@@ -65,7 +113,9 @@ export const useMessageStore = defineStore("messages", () => {
 
     const { data } = await apolloClient.mutate({
       mutation: CreateMessageDocument,
-      variables: { input: { chatId: chatId.value, text, mentionedUserIds, replyToMessageId } },
+      variables: {
+        input: { chatId: chatId.value, text, mentionedUserIds, replyToMessageId, attachmentIds },
+      },
     })
 
     if (data === undefined || data === null || data.createMessage.__typename !== "Message") {
@@ -136,6 +186,7 @@ export const useMessageStore = defineStore("messages", () => {
     openChat,
     fetchMessages,
     fetchMessagePosition,
+    uploadAttachment,
     sendMessage,
     updateMessage,
     deleteMessage,

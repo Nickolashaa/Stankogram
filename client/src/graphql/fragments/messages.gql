@@ -1,8 +1,25 @@
+fragment AttachmentFields on Attachment {
+  id
+  kind
+  name
+  contentType
+  size
+  width
+  height
+  durationMs
+  url
+  thumbnailUrl
+  downloadUrl
+}
+
 fragment MessageFields on Message {
   id
   createdAt
   updatedAt
   text
+  attachments {
+    ...AttachmentFields
+  }
   replyTo {
     id
     text

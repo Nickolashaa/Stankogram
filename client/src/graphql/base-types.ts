@@ -21,6 +21,43 @@ export type AddChatParticipant = {
   participant: ChatParticipant
 }
 
+export type Attachment = IBaseType & {
+  __typename?: "Attachment"
+  contentType: Scalars["String"]["output"]
+  createdAt: Scalars["DateTime"]["output"]
+  downloadUrl: Scalars["String"]["output"]
+  durationMs?: Maybe<Scalars["Int"]["output"]>
+  height?: Maybe<Scalars["Int"]["output"]>
+  id: Scalars["Int"]["output"]
+  kind: EAttachmentKind
+  name: Scalars["String"]["output"]
+  size: Scalars["Int"]["output"]
+  thumbnailUrl: Scalars["String"]["output"]
+  updatedAt: Scalars["DateTime"]["output"]
+  url: Scalars["String"]["output"]
+  width?: Maybe<Scalars["Int"]["output"]>
+}
+
+export type AttachmentUpload = {
+  __typename?: "AttachmentUpload"
+  attachment: Attachment
+  thumbnailUploadUrl: Scalars["String"]["output"]
+  uploadUrl: Scalars["String"]["output"]
+}
+
+export type AttachmentUploadIn = {
+  chatId: Scalars["Int"]["input"]
+  contentType: Scalars["String"]["input"]
+  durationMs?: InputMaybe<Scalars["Int"]["input"]>
+  height?: InputMaybe<Scalars["Int"]["input"]>
+  name: Scalars["String"]["input"]
+  size: Scalars["Int"]["input"]
+  width?: InputMaybe<Scalars["Int"]["input"]>
+}
+
+export type AttachmentUploadInvalidInputErrorObjectNotFoundError =
+  AttachmentUpload | InvalidInputError | ObjectNotFoundError
+
 export type BasePaginationIn = {
   limit?: InputMaybe<Scalars["Int"]["input"]>
   offset?: InputMaybe<Scalars["Int"]["input"]>
@@ -104,6 +141,11 @@ export type DeleteMessage = {
   message: Message
 }
 
+export enum EAttachmentKind {
+  Image = "IMAGE",
+  Video = "VIDEO",
+}
+
 export enum EChatType {
   Private = "PRIVATE",
   Public = "PUBLIC",
@@ -164,6 +206,7 @@ export type Message = IBaseType &
   IChat &
   IUser & {
     __typename?: "Message"
+    attachments: Array<Attachment>
     chat: Chat
     createdAt: Scalars["DateTime"]["output"]
     id: Scalars["Int"]["output"]
@@ -178,11 +221,15 @@ export type MessageFiltersIn = {
 }
 
 export type MessageIn = {
+  attachmentIds?: Array<Scalars["Int"]["input"]>
   chatId: Scalars["Int"]["input"]
   mentionedUserIds: Array<Scalars["Int"]["input"]>
   replyToMessageId?: InputMaybe<Scalars["Int"]["input"]>
   text: Scalars["String"]["input"]
 }
+
+export type MessageInvalidInputErrorObjectNotFoundError =
+  InvalidInputError | Message | ObjectNotFoundError
 
 export type MessageObjectNotFoundError = Message | ObjectNotFoundError
 
@@ -200,7 +247,8 @@ export type MessagesMeta = IBaseMeta & {
 export type Mutation = {
   __typename?: "Mutation"
   addParticipantToChat: ChatParticipantObjectNotFoundErrorObjectAlreadyExistsErrorInvalidInputError
-  createMessage: MessageObjectNotFoundError
+  createAttachmentUpload: AttachmentUploadInvalidInputErrorObjectNotFoundError
+  createMessage: MessageInvalidInputErrorObjectNotFoundError
   createPrivateChat: ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError
   createPublicChat: ChatInvalidInputErrorObjectNotFoundErrorObjectAlreadyExistsError
   createSystemNotification: SystemNotification
@@ -228,6 +276,10 @@ export type Mutation = {
 
 export type MutationAddParticipantToChatArgs = {
   input: ChatParticipantIn
+}
+
+export type MutationCreateAttachmentUploadArgs = {
+  input: AttachmentUploadIn
 }
 
 export type MutationCreateMessageArgs = {

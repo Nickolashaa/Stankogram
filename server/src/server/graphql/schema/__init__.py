@@ -1,5 +1,6 @@
 import strawberry
 
+from .attachments.mutations import AttachmentMutation
 from .auth.mutations import AuthMutation
 from .auth.queries import AuthQuery
 from .chats.mutations import ChatMutation
@@ -28,6 +29,7 @@ class Query(
 
 @strawberry.type
 class Mutation(
+    AttachmentMutation,
     AuthMutation,
     ChatMutation,
     MessageMutation,
