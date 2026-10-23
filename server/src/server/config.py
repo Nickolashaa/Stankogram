@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
@@ -45,6 +47,20 @@ class Settings(BaseSettings):
     SMTP_PORT: int = 587
 
     ENCRYPTION_KEY: str = Field(min_length=44)
+
+    S3_ENDPOINT_URL: str = "https://s3.ru-7.storage.selcloud.ru"
+    S3_REGION: str = "ru-7"
+    S3_BUCKET: str = "stankogram-s3"
+    S3_ADDRESSING_STYLE: Literal["virtual", "path"] = "virtual"
+    S3_ACCESS_KEY_ID: str = Field(min_length=1)
+    S3_SECRET_ACCESS_KEY: str = Field(min_length=1)
+    S3_UPLOAD_URL_EXP_SECONDS: int = 600
+    S3_DOWNLOAD_URL_EXP_SECONDS: int = 3600
+
+    ATTACHMENTS_MAX_PER_MESSAGE: int = 10
+    ATTACHMENT_MAX_IMAGE_SIZE: int = 20 * 1024 * 1024
+    ATTACHMENT_MAX_VIDEO_SIZE: int = 100 * 1024 * 1024
+    ATTACHMENT_THUMBNAIL_MAX_SIZE: int = 1024 * 1024
 
     USERS_IMPORT_MAX_ROWS: int = 100
     USERS_IMPORT_MAX_SCAN_ROWS: int = 10000

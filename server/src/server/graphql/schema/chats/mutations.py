@@ -1,8 +1,10 @@
+from collections.abc import Sequence
 from datetime import UTC, datetime
 
 import strawberry
 
 from ....enums.events import EventType
+from ....services.attachments.schemas import AttachmentResponse
 from ....services.chats.participants.schemas import ChatParticipantResponse
 from ....services.events.schemas import ChatParticipantEventSchema
 from ....services.exceptions import InvalidInput, ObjectAlreadyExists, ObjectNotFound
@@ -29,6 +31,19 @@ async def _participant_ids(info: AuthorizedAppInfo, chat_id: int) -> list[int]:
         chat_id=chat_id
     )
     return [participant.user_id for participant in participants]
+
+
+async def _delete_attachment_objects(
+    info: AuthorizedAppInfo,
+    attachments: Sequence[AttachmentResponse],
+) -> None:
+    await info.context.services.storage_service.delete(
+        [
+            key
+            for attachment in attachments
+            for key in (attachment.key, attachment.thumbnail_key)
+        ]
+    )
 
 
 @strawberry.type
@@ -153,8 +168,14 @@ class ChatMutation:
     ) -> Chat | InvalidInputError | ObjectNotFoundError:
         try:
             instance = await info.context.services.chat_service.get(chat_id)
+            attachments = await info.context.services.attachment_service.get_list(
+                chat_id=chat_id
+            )
             await info.context.services.chat_service.delete(chat_id)
             await info.context.session.commit()
+
+            await _delete_attachment_objects(info, attachments)
+
             return Chat.from_schema(instance)
         except InvalidInput as e:
             await info.context.session.rollback()
@@ -247,11 +268,19 @@ class ChatMutation:
                 if user_id != info.context.current_user.id
             ]
 
+            attachments = (
+                await info.context.services.attachment_service.get_list(chat_id=chat_id)
+                if not recipient_ids
+                else []
+            )
+
             await info.context.services.chat_participant_service.leave(
                 chat_id=chat_id,
                 user_id=info.context.current_user.id,
             )
             await info.context.session.commit()
+
+            await _delete_attachment_objects(info, attachments)
 
             if participant is not None:
                 await info.context.services.event_service.publish(

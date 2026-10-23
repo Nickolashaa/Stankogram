@@ -1,14 +1,18 @@
+import asyncio
 from collections.abc import Sequence
 
 import strawberry
 
+from ....config import settings
 from ....enums.events import EventType
+from ....services.attachments.schemas import AttachmentResponse
+from ....services.attachments.service import AttachmentService
 from ....services.events.schemas import MessageEventSchema
-from ....services.exceptions import ObjectNotFound
+from ....services.exceptions import InvalidInput, ObjectNotFound
 from ...context import AuthorizedAppInfo
 from ...permissions.auth import IsAuthenticated
 from ...permissions.messages import CanCreateMessage, CanDeleteMessage, IsMessageAuthor
-from ...types.errors import ObjectNotFoundError
+from ...types.errors import InvalidInputError, ObjectNotFoundError
 from ...types.messages import Message, MessageIn, MessageUpdateIn
 
 
@@ -37,6 +41,63 @@ async def _sync_mentions(
     )
 
 
+async def _attachments_to_attach(
+    info: AuthorizedAppInfo,
+    chat_id: int,
+    attachment_ids: Sequence[int],
+) -> list[AttachmentResponse]:
+    ids = list(dict.fromkeys(attachment_ids))
+    if not ids:
+        return []
+
+    if len(ids) > settings.ATTACHMENTS_MAX_PER_MESSAGE:
+        raise InvalidInput(
+            f"Message cannot have more than "
+            f"{settings.ATTACHMENTS_MAX_PER_MESSAGE} attachments"
+        )
+
+    instances = await info.context.services.attachment_service.get_list(
+        ids=ids,
+        chat_id=chat_id,
+        user_id=info.context.current_user.id,
+        is_attached=False,
+    )
+    if len(instances) != len(ids):
+        raise ObjectNotFound("Some of the attachments do not exist")
+
+    return instances
+
+
+async def _uploaded_sizes(
+    info: AuthorizedAppInfo,
+    instances: Sequence[AttachmentResponse],
+) -> dict[int, int]:
+    storage = info.context.services.storage_service
+
+    sizes = await asyncio.gather(
+        *[storage.get_size(instance.key) for instance in instances],
+        *[storage.get_size(instance.thumbnail_key) for instance in instances],
+    )
+
+    uploaded: dict[int, int] = {}
+    for index, instance in enumerate(instances):
+        size = sizes[index]
+        thumbnail_size = sizes[len(instances) + index]
+
+        if size is None or thumbnail_size is None:
+            raise InvalidInput(f"Attachment {instance.id} is not uploaded")
+
+        if size > AttachmentService.get_max_size(instance.kind):
+            raise InvalidInput(f"Attachment {instance.id} is too large")
+
+        if thumbnail_size > settings.ATTACHMENT_THUMBNAIL_MAX_SIZE:
+            raise InvalidInput(f"Attachment {instance.id} thumbnail is too large")
+
+        uploaded[instance.id] = size
+
+    return uploaded
+
+
 @strawberry.type
 class MessageMutation:
     @strawberry.mutation(permission_classes=[IsAuthenticated, CanCreateMessage])
@@ -44,8 +105,18 @@ class MessageMutation:
         self,
         info: AuthorizedAppInfo,
         input: MessageIn,
-    ) -> Message | ObjectNotFoundError:
+    ) -> Message | InvalidInputError | ObjectNotFoundError:
         try:
+            attachments = await _attachments_to_attach(
+                info=info,
+                chat_id=input.chat_id,
+                attachment_ids=input.attachment_ids,
+            )
+            sizes = await _uploaded_sizes(info, attachments)
+
+            if input.text.strip() == "" and not attachments:
+                raise InvalidInput("Message cannot be empty")
+
             if input.reply_to_message_id is not None:
                 reply_to = await info.context.services.message_service.get_or_none(
                     input.reply_to_message_id
@@ -63,6 +134,11 @@ class MessageMutation:
                 text=input.text,
                 reply_to_message_id=input.reply_to_message_id,
             )
+            await info.context.services.attachment_service.attach(
+                ids=[attachment.id for attachment in attachments],
+                message_id=instance.id,
+                sizes=sizes,
+            )
             participant_ids = await _participant_ids(info, instance.chat_id)
             await _sync_mentions(
                 info=info,
@@ -78,6 +154,9 @@ class MessageMutation:
             )
 
             return Message.from_schema(instance)
+        except InvalidInput as e:
+            await info.context.session.rollback()
+            return InvalidInputError.from_service_exception(e)
         except ObjectNotFound as e:
             await info.context.session.rollback()
             return ObjectNotFoundError.from_service_exception(e)
@@ -121,8 +200,19 @@ class MessageMutation:
     ) -> Message | ObjectNotFoundError:
         try:
             instance = await info.context.services.message_service.get(message_id)
+            attachments = await info.context.services.attachment_service.get_list(
+                message_id=message_id
+            )
             await info.context.services.message_service.delete(message_id)
             await info.context.session.commit()
+
+            await info.context.services.storage_service.delete(
+                [
+                    key
+                    for attachment in attachments
+                    for key in (attachment.key, attachment.thumbnail_key)
+                ]
+            )
 
             await info.context.services.event_service.publish(
                 await _participant_ids(info, instance.chat_id),

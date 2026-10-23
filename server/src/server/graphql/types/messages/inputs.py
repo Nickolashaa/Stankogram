@@ -16,6 +16,7 @@ class MessageIn:
     chat_id: int
     text: str
     mentioned_user_ids: list[int]
+    attachment_ids: list[int] = strawberry.field(default_factory=list)
     reply_to_message_id: int | None = None
 
 
