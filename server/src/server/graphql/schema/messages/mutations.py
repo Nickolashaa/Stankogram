@@ -9,6 +9,7 @@ from ....services.attachments.schemas import AttachmentResponse
 from ....services.attachments.service import AttachmentService
 from ....services.events.schemas import MessageEventSchema
 from ....services.exceptions import InvalidInput, ObjectNotFound
+from ....services.storage import StorageService
 from ...context import AuthorizedAppInfo
 from ...permissions.auth import IsAuthenticated
 from ...permissions.messages import CanCreateMessage, CanDeleteMessage, IsMessageAuthor
@@ -68,6 +69,19 @@ async def _attachments_to_attach(
     return instances
 
 
+async def _uploaded_size(
+    storage: StorageService,
+    instance: AttachmentResponse,
+) -> tuple[int | None, int | None]:
+    if instance.thumbnail_key is None:
+        return await storage.get_size(instance.key), 0
+
+    return await asyncio.gather(
+        storage.get_size(instance.key),
+        storage.get_size(instance.thumbnail_key),
+    )
+
+
 async def _uploaded_sizes(
     info: AuthorizedAppInfo,
     instances: Sequence[AttachmentResponse],
@@ -75,15 +89,11 @@ async def _uploaded_sizes(
     storage = info.context.services.storage_service
 
     sizes = await asyncio.gather(
-        *[storage.get_size(instance.key) for instance in instances],
-        *[storage.get_size(instance.thumbnail_key) for instance in instances],
+        *[_uploaded_size(storage, instance) for instance in instances]
     )
 
     uploaded: dict[int, int] = {}
-    for index, instance in enumerate(instances):
-        size = sizes[index]
-        thumbnail_size = sizes[len(instances) + index]
-
+    for instance, (size, thumbnail_size) in zip(instances, sizes, strict=True):
         if size is None or thumbnail_size is None:
             raise InvalidInput(f"Attachment {instance.id} is not uploaded")
 
@@ -207,11 +217,7 @@ class MessageMutation:
             await info.context.session.commit()
 
             await info.context.services.storage_service.delete(
-                [
-                    key
-                    for attachment in attachments
-                    for key in (attachment.key, attachment.thumbnail_key)
-                ]
+                AttachmentService.object_keys(attachments)
             )
 
             await info.context.services.event_service.publish(

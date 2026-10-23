@@ -8,7 +8,7 @@ class AttachmentResponse(BaseResponse):
     message_id: int | None
     kind: AttachmentKind
     key: str
-    thumbnail_key: str
+    thumbnail_key: str | None
     name: str
     content_type: str
     size: int

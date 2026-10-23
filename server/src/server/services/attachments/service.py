@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from typing import Unpack
 from uuid import uuid4
 
@@ -16,12 +17,35 @@ CONTENT_TYPES = {
         {"image/jpeg", "image/png", "image/webp", "image/gif"}
     ),
     AttachmentKind.VIDEO: frozenset({"video/mp4", "video/webm", "video/quicktime"}),
+    AttachmentKind.FILE: frozenset(
+        {
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.ms-powerpoint",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "application/vnd.oasis.opendocument.text",
+            "application/vnd.oasis.opendocument.spreadsheet",
+            "application/vnd.oasis.opendocument.presentation",
+            "application/rtf",
+            "application/zip",
+            "application/x-7z-compressed",
+            "application/vnd.rar",
+            "text/plain",
+            "text/csv",
+        }
+    ),
 }
 
 MAX_SIZES = {
     AttachmentKind.IMAGE: settings.ATTACHMENT_MAX_IMAGE_SIZE,
     AttachmentKind.VIDEO: settings.ATTACHMENT_MAX_VIDEO_SIZE,
+    AttachmentKind.FILE: settings.ATTACHMENT_MAX_FILE_SIZE,
 }
+
+THUMBNAIL_KINDS = frozenset({AttachmentKind.IMAGE, AttachmentKind.VIDEO})
 
 THUMBNAIL_CONTENT_TYPE = "image/jpeg"
 
@@ -51,12 +75,13 @@ class AttachmentService(BaseService):
             )
 
         token = uuid4().hex
+        key = f"chats/{values['chat_id']}/{token}"
         stmt = (
             insert(Attachment)
             .values(
                 kind=kind,
-                key=f"chats/{values['chat_id']}/{token}",
-                thumbnail_key=f"chats/{values['chat_id']}/{token}_thumb",
+                key=key,
+                thumbnail_key=(f"{key}_thumb" if kind in THUMBNAIL_KINDS else None),
                 **values,
             )
             .returning(Attachment)
@@ -128,6 +153,15 @@ class AttachmentService(BaseService):
             instances.append(AttachmentResponse.model_validate(res.scalar_one()))
 
         return instances
+
+    @staticmethod
+    def object_keys(instances: Sequence[AttachmentResponse]) -> list[str]:
+        return [
+            key
+            for instance in instances
+            for key in (instance.key, instance.thumbnail_key)
+            if key is not None
+        ]
 
     async def delete(self, ids: list[int]) -> None:
         if not ids:

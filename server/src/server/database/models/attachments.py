@@ -18,7 +18,7 @@ class Attachment(Base):
     )
     kind: Mapped[AttachmentKind]
     key: Mapped[str] = mapped_column(unique=True)
-    thumbnail_key: Mapped[str]
+    thumbnail_key: Mapped[str | None]
     name: Mapped[str]
     content_type: Mapped[str]
     size: Mapped[int]

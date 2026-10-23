@@ -34,7 +34,9 @@ class AttachmentMutation:
         return AttachmentUpload(
             attachment=Attachment.from_schema(instance),
             upload_url=storage.upload_url(instance.key, instance.content_type),
-            thumbnail_upload_url=storage.upload_url(
-                instance.thumbnail_key, THUMBNAIL_CONTENT_TYPE
+            thumbnail_upload_url=(
+                storage.upload_url(instance.thumbnail_key, THUMBNAIL_CONTENT_TYPE)
+                if instance.thumbnail_key is not None
+                else None
             ),
         )
