@@ -50,6 +50,11 @@ export type MeNotificationsQuery = {
           lastOnlineAt: string | null
         }
         chat: { id: number; createdAt: string; type: Types.EChatType; title: string }
+        replyTo: {
+          id: number
+          text: string
+          user: { id: number; name: string; surname: string }
+        } | null
       }
     }>
   }

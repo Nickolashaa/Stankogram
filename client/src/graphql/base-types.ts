@@ -160,6 +160,7 @@ export type Message = IBaseType &
     chat: Chat
     createdAt: Scalars["DateTime"]["output"]
     id: Scalars["Int"]["output"]
+    replyTo?: Maybe<Message>
     text: Scalars["String"]["output"]
     updatedAt: Scalars["DateTime"]["output"]
     user: User
@@ -172,6 +173,7 @@ export type MessageFiltersIn = {
 export type MessageIn = {
   chatId: Scalars["Int"]["input"]
   mentionedUserIds: Array<Scalars["Int"]["input"]>
+  replyToMessageId?: InputMaybe<Scalars["Int"]["input"]>
   text: Scalars["String"]["input"]
 }
 

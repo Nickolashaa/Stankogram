@@ -44,6 +44,11 @@ export type UpdateMessageMutation = {
           isOnline: boolean
           lastOnlineAt: string | null
         }
+        replyTo: {
+          id: number
+          text: string
+          user: { id: number; name: string; surname: string }
+        } | null
       }
     | { __typename: "ObjectNotFoundError"; message: string }
 }

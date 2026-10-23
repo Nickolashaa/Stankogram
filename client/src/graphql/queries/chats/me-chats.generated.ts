@@ -78,6 +78,11 @@ export type MeChatsQuery = {
               isOnline: boolean
               lastOnlineAt: string | null
             }
+            replyTo: {
+              id: number
+              text: string
+              user: { id: number; name: string; surname: string }
+            } | null
           } | null
         }>
       }

@@ -3,4 +3,13 @@ fragment MessageFields on Message {
   createdAt
   updatedAt
   text
+  replyTo {
+    id
+    text
+    user {
+      id
+      name
+      surname
+    }
+  }
 }

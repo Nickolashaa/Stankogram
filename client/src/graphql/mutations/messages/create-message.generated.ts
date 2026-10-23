@@ -16,6 +16,7 @@ export type EUserRole = "STUDENT" | "TEACHER"
 export type MessageIn = {
   chatId: number
   mentionedUserIds: Array<number>
+  replyToMessageId?: number | null | undefined
   text: string
 }
 
@@ -44,6 +45,11 @@ export type CreateMessageMutation = {
           isOnline: boolean
           lastOnlineAt: string | null
         }
+        replyTo: {
+          id: number
+          text: string
+          user: { id: number; name: string; surname: string }
+        } | null
       }
     | { __typename: "ObjectNotFoundError"; message: string }
 }

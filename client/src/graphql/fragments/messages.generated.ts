@@ -9,6 +9,7 @@ export type MessageFieldsFragment = {
   createdAt: string
   updatedAt: string
   text: string
+  replyTo: { id: number; text: string; user: { id: number; name: string; surname: string } } | null
 }
 
 export const MessageFieldsFragmentDoc = gql`
@@ -17,5 +18,14 @@ export const MessageFieldsFragmentDoc = gql`
     createdAt
     updatedAt
     text
+    replyTo {
+      id
+      text
+      user {
+        id
+        name
+        surname
+      }
+    }
   }
 `

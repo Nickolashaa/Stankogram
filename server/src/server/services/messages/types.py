@@ -11,6 +11,7 @@ class MessageCreateParams(TypedDict):
     chat_id: Required[int]
     user_id: Required[int]
     text: Required[str]
+    reply_to_message_id: NotRequired[int | None]
 
 
 class MessageUpdateParams(TypedDict):

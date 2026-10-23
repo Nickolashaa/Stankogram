@@ -16,6 +16,7 @@ class MessageIn:
     chat_id: int
     text: str
     mentioned_user_ids: list[int]
+    reply_to_message_id: int | None = None
 
 
 @strawberry.input
