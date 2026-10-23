@@ -24,6 +24,7 @@ export type IconName =
   | "smile"
   | "upload"
   | "download"
+  | "reply"
 
 const props = withDefaults(
   defineProps<{
@@ -173,6 +174,11 @@ const props = withDefaults(
       <path d="M12 16V4" />
       <path d="m7 9 5-5 5 5" />
       <path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
+    </template>
+
+    <template v-else-if="name === 'reply'">
+      <polyline points="9 17 4 12 9 7" />
+      <path d="M4 12h11a5 5 0 0 1 5 5v2" />
     </template>
 
     <template v-else-if="name === 'download'">

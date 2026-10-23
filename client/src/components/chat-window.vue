@@ -123,6 +123,14 @@ function canDeleteMessage(message: MessageItem) {
   return message.user.id === currentUser.value?.id || isCurrentUserChatAdmin.value
 }
 
+function canOpenMessageMenu(message: MessageItem) {
+  return !isMuted.value || canEditMessage(message) || canDeleteMessage(message)
+}
+
+function isEmojiBubble(message: MessageItem) {
+  return message.replyTo === null && isLargeEmojiMessage(message.text)
+}
+
 type MessageContextMenu = {
   x: number
   y: number
@@ -136,7 +144,7 @@ function closeContextMenu() {
 }
 
 function handleMessageContextMenu(event: MouseEvent, message: MessageItem) {
-  if (!canEditMessage(message) && !canDeleteMessage(message)) {
+  if (!canOpenMessageMenu(message)) {
     return
   }
   event.preventDefault()
@@ -151,7 +159,23 @@ const editingMessageId = ref<number | null>(null)
 const editDraft = ref("")
 const savingEdit = ref(false)
 
+const replyingTo = ref<MessageItem | null>(null)
+
+function cancelReply() {
+  replyingTo.value = null
+}
+
+function startReply(message: MessageItem) {
+  if (isMuted.value) {
+    return
+  }
+  cancelEdit()
+  replyingTo.value = message
+  nextTick(() => composerEl.value?.focus())
+}
+
 function startEdit(message: MessageItem) {
+  cancelReply()
   editingMessageId.value = message.id
   editDraft.value = message.text
 }
@@ -182,6 +206,14 @@ async function saveEdit() {
   }
 }
 
+function handleMenuReply() {
+  const message = contextMenu.value?.message
+  closeContextMenu()
+  if (message !== undefined) {
+    startReply(message)
+  }
+}
+
 function handleMenuEdit() {
   const message = contextMenu.value?.message
   closeContextMenu()
@@ -209,6 +241,7 @@ watch(
   () => {
     closeContextMenu()
     cancelEdit()
+    cancelReply()
   },
 )
 
@@ -369,6 +402,12 @@ function handleComposerKeydown(event: KeyboardEvent) {
     return
   }
 
+  if (event.key === "Escape" && replyingTo.value !== null) {
+    event.preventDefault()
+    cancelReply()
+    return
+  }
+
   if (!sendsOnEnter || event.key !== "Enter" || event.shiftKey || event.isComposing) {
     return
   }
@@ -489,7 +528,12 @@ async function handleSubmit() {
 
   sending.value = true
   try {
-    await messageStore.sendMessage(value, collectMentionedUserIds(value))
+    await messageStore.sendMessage(
+      value,
+      collectMentionedUserIds(value),
+      replyingTo.value?.id ?? null,
+    )
+    cancelReply()
     text.value = ""
     mentionDismissed.value = false
     draftStore.setDraft(props.chatId, "")
@@ -551,7 +595,7 @@ async function handleSubmit() {
           v-for="row in rows"
           :key="row.key"
           v-bind="row.kind === 'message' ? { 'data-message-id': row.message.id } : {}"
-          class="flex flex-col gap-1 rounded-card transition-colors duration-500"
+          class="group flex flex-col gap-1 rounded-card transition-colors duration-500"
           :class="
             row.kind === 'day'
               ? 'items-center py-2'
@@ -562,12 +606,11 @@ async function handleSubmit() {
                   row.message.user.id === currentUser?.id
                     ? 'origin-bottom-right items-end'
                     : 'origin-bottom-left items-start',
-                  canEditMessage(row.message) || canDeleteMessage(row.message)
-                    ? 'cursor-context-menu'
-                    : '',
+                  canOpenMessageMenu(row.message) ? 'cursor-context-menu' : '',
                 ]
           "
           @contextmenu="row.kind === 'message' && handleMessageContextMenu($event, row.message)"
+          @dblclick.prevent="row.kind === 'message' && startReply(row.message)"
         >
           <span
             v-if="row.kind === 'day'"
@@ -577,81 +620,113 @@ async function handleSubmit() {
           </span>
 
           <template v-else>
-            <Transition name="swap" mode="out-in">
-              <div
-                v-if="editingMessageId === row.message.id"
-                class="glass-strong hairline shadow-pop flex w-[min(28rem,85%)] flex-col gap-2 rounded-card px-4 py-2.5 text-[15px] text-main"
-              >
-                <textarea
-                  v-model="editDraft"
-                  rows="1"
-                  autofocus
-                  class="max-h-40 min-h-9 w-full resize-none overflow-y-auto bg-transparent font-sans text-[15px] leading-6 text-main outline-none"
-                  @keydown.enter.exact.prevent="saveEdit"
-                  @keydown.esc="cancelEdit"
-                />
-                <div class="flex items-center justify-end gap-2">
-                  <button
-                    type="button"
-                    class="press cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium text-second hover:bg-main/6 hover:text-main"
-                    @click="cancelEdit"
-                  >
-                    Отмена
-                  </button>
-                  <button
-                    type="button"
-                    class="press cursor-pointer rounded-full bg-accent/12 px-2.5 py-1 text-xs font-medium text-accent hover:bg-accent/22 disabled:cursor-not-allowed disabled:opacity-60"
-                    :disabled="savingEdit || editDraft.trim() === ''"
-                    @click="saveEdit"
-                  >
-                    Сохранить
-                  </button>
-                </div>
-              </div>
-              <div
-                v-else
-                class="max-w-[min(28rem,85%)] rounded-card transition-transform duration-200"
-                :class="[
-                  isLargeEmojiMessage(row.message.text)
-                    ? 'px-1 py-0.5 text-5xl leading-tight'
-                    : 'px-4 py-2.5 text-[15px]',
-                  isLargeEmojiMessage(row.message.text)
-                    ? 'text-main'
-                    : row.message.user.id === currentUser?.id
-                      ? 'accent-surface glow-accent bubble-own text-bg'
-                      : 'glass hairline shadow-card bubble-other text-main',
-                ]"
-              >
+            <div
+              class="flex w-full items-center gap-1.5"
+              :class="row.message.user.id === currentUser?.id ? 'flex-row-reverse' : 'flex-row'"
+            >
+              <Transition name="swap" mode="out-in">
                 <div
-                  v-if="row.message.user.id !== currentUser?.id"
-                  class="mb-1 flex flex-wrap items-center gap-1.5 text-xs font-medium opacity-70"
+                  v-if="editingMessageId === row.message.id"
+                  class="glass-strong hairline shadow-pop flex w-[min(28rem,85%)] flex-col gap-2 rounded-card px-4 py-2.5 text-[15px] text-main"
                 >
-                  <span>{{ shortName(row.message.user) }}</span>
-                  <Badge
-                    v-for="badge in badgesForSender(row.message.user)"
-                    :key="badge.label"
-                    :variant="badge.variant"
-                    :label="badge.label"
+                  <textarea
+                    v-model="editDraft"
+                    rows="1"
+                    autofocus
+                    class="max-h-40 min-h-9 w-full resize-none overflow-y-auto bg-transparent font-sans text-[15px] leading-6 text-main outline-none"
+                    @keydown.enter.exact.prevent="saveEdit"
+                    @keydown.esc="cancelEdit"
                   />
-                </div>
-                <div class="whitespace-pre-wrap break-words">
-                  <template
-                    v-for="(segment, segmentIndex) in linkify(row.message.text)"
-                    :key="segmentIndex"
-                  >
-                    <a
-                      v-if="segment.type === 'link'"
-                      :href="segment.href"
-                      target="_blank"
-                      rel="noopener noreferrer nofollow"
-                      class="underline underline-offset-2 transition-opacity hover:opacity-70"
-                      >{{ segment.value }}</a
+                  <div class="flex items-center justify-end gap-2">
+                    <button
+                      type="button"
+                      class="press cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium text-second hover:bg-main/6 hover:text-main"
+                      @click="cancelEdit"
                     >
-                    <template v-else>{{ segment.value }}</template>
-                  </template>
+                      Отмена
+                    </button>
+                    <button
+                      type="button"
+                      class="press cursor-pointer rounded-full bg-accent/12 px-2.5 py-1 text-xs font-medium text-accent hover:bg-accent/22 disabled:cursor-not-allowed disabled:opacity-60"
+                      :disabled="savingEdit || editDraft.trim() === ''"
+                      @click="saveEdit"
+                    >
+                      Сохранить
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </Transition>
+                <div
+                  v-else
+                  class="max-w-[min(28rem,85%)] rounded-card transition-transform duration-200"
+                  :class="[
+                    isEmojiBubble(row.message)
+                      ? 'px-1 py-0.5 text-5xl leading-tight'
+                      : 'px-4 py-2.5 text-[15px]',
+                    isEmojiBubble(row.message)
+                      ? 'text-main'
+                      : row.message.user.id === currentUser?.id
+                        ? 'accent-surface glow-accent bubble-own text-bg'
+                        : 'glass hairline shadow-card bubble-other text-main',
+                  ]"
+                >
+                  <div
+                    v-if="row.message.user.id !== currentUser?.id"
+                    class="mb-1 flex flex-wrap items-center gap-1.5 text-xs font-medium opacity-70"
+                  >
+                    <span>{{ shortName(row.message.user) }}</span>
+                    <Badge
+                      v-for="badge in badgesForSender(row.message.user)"
+                      :key="badge.label"
+                      :variant="badge.variant"
+                      :label="badge.label"
+                    />
+                  </div>
+                  <button
+                    v-if="row.message.replyTo !== null"
+                    type="button"
+                    class="press mb-1.5 flex w-full cursor-pointer flex-col items-start gap-0.5 rounded-input border-l-2 border-current/40 bg-current/8 px-2 py-1 text-left opacity-80 transition-opacity hover:opacity-100"
+                    @click.stop="jumpToMessage(row.message.replyTo.id)"
+                    @dblclick.stop
+                  >
+                    <span class="w-full truncate text-xs font-semibold">
+                      {{ shortName(row.message.replyTo.user) }}
+                    </span>
+                    <span class="line-clamp-2 break-words text-xs">
+                      {{ row.message.replyTo.text }}
+                    </span>
+                  </button>
+
+                  <div class="whitespace-pre-wrap break-words">
+                    <template
+                      v-for="(segment, segmentIndex) in linkify(row.message.text)"
+                      :key="segmentIndex"
+                    >
+                      <a
+                        v-if="segment.type === 'link'"
+                        :href="segment.href"
+                        target="_blank"
+                        rel="noopener noreferrer nofollow"
+                        class="underline underline-offset-2 transition-opacity hover:opacity-70"
+                        >{{ segment.value }}</a
+                      >
+                      <template v-else>{{ segment.value }}</template>
+                    </template>
+                  </div>
+                </div>
+              </Transition>
+
+              <button
+                v-if="!isMuted && editingMessageId !== row.message.id"
+                type="button"
+                class="press glass hairline flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full text-second opacity-100 transition-opacity hover:text-main lg:opacity-0 lg:group-hover:opacity-100"
+                title="Ответить"
+                aria-label="Ответить"
+                @click.stop="startReply(row.message)"
+                @dblclick.stop
+              >
+                <NavIcon name="reply" :size="14" />
+              </button>
+            </div>
 
             <span class="flex items-center gap-1 px-1.5 text-xs text-second/80">
               <template v-if="row.message.updatedAt !== row.message.createdAt">
@@ -668,6 +743,28 @@ async function handleSubmit() {
           Загрузка...
         </div>
       </Transition>
+    </div>
+
+    <div
+      v-if="replyingTo !== null && !isMuted"
+      class="glass hairline-t flex shrink-0 items-center gap-2.5 px-3 py-2 lg:px-5"
+    >
+      <NavIcon name="reply" :size="16" class="text-accent" />
+      <div class="min-w-0 flex-1 border-l-2 border-accent/50 pl-2">
+        <div class="truncate text-xs font-semibold text-accent">
+          {{ shortName(replyingTo.user) }}
+        </div>
+        <div class="truncate text-xs text-second">{{ replyingTo.text }}</div>
+      </div>
+      <button
+        type="button"
+        class="press flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full text-second hover:bg-main/6 hover:text-main"
+        title="Отменить ответ"
+        aria-label="Отменить ответ"
+        @click="cancelReply"
+      >
+        <NavIcon name="cancel" :size="14" />
+      </button>
     </div>
 
     <div
@@ -749,6 +846,15 @@ async function handleSubmit() {
       class="w-48"
       @close="closeContextMenu"
     >
+      <button
+        v-if="!isMuted"
+        type="button"
+        class="press cursor-pointer rounded-input px-3 py-2 text-left text-sm text-main hover:bg-main/6"
+        @click="handleMenuReply"
+      >
+        Ответить
+      </button>
+
       <button
         v-if="canEditMessage(contextMenu.message)"
         type="button"

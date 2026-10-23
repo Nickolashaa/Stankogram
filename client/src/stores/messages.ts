@@ -54,14 +54,18 @@ export const useMessageStore = defineStore("messages", () => {
     return data.messagePosition
   }
 
-  async function sendMessage(text: string, mentionedUserIds: number[]) {
+  async function sendMessage(
+    text: string,
+    mentionedUserIds: number[],
+    replyToMessageId: number | null = null,
+  ) {
     if (chatId.value === null) {
       return
     }
 
     const { data } = await apolloClient.mutate({
       mutation: CreateMessageDocument,
-      variables: { input: { chatId: chatId.value, text, mentionedUserIds } },
+      variables: { input: { chatId: chatId.value, text, mentionedUserIds, replyToMessageId } },
     })
 
     if (data === undefined || data === null || data.createMessage.__typename !== "Message") {
