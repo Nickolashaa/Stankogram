@@ -7,6 +7,9 @@ mutation CreateMessage($input: MessageIn!) {
         ...UserFields
       }
     }
+    ... on InvalidInputError {
+      message
+    }
     ... on ObjectNotFoundError {
       message
     }

@@ -24,20 +24,25 @@ import {
   formatDaySeparator,
 } from "@/lib/format"
 import { linkify } from "@/lib/linkify"
+import { ATTACHMENT_ACCEPT, attachmentKind, formatSize, maxSize, messagePreview } from "@/lib/media"
 import { pinForLeave } from "@/lib/transition"
 import { isLargeEmojiMessage } from "@/lib/emoji"
 import { participantBadges, userBadges } from "@/lib/badges"
 import { presenceLabel } from "@/lib/presence"
 import { roleLabels } from "@/lib/roles"
 import type { UserFieldsFragment } from "@/graphql/fragments/auth.generated"
+import type { AttachmentFieldsFragment } from "@/graphql/fragments/messages.generated"
 import Button from "@/components/button.vue"
 import Badge from "@/components/badge.vue"
 import NavIcon from "@/components/nav-icon.vue"
 import Avatar from "@/components/avatar.vue"
 import EmojiPicker from "@/components/emoji-picker.vue"
 import ContextMenu from "@/components/context-menu.vue"
+import MediaGrid from "@/components/media-grid.vue"
+import MediaViewer from "@/components/media-viewer.vue"
 
 const PAGE_SIZE = 30
+const MAX_ATTACHMENTS = 10
 
 const props = defineProps<{
   chatId: number
@@ -128,7 +133,11 @@ function canOpenMessageMenu(message: MessageItem) {
 }
 
 function isEmojiBubble(message: MessageItem) {
-  return message.replyTo === null && isLargeEmojiMessage(message.text)
+  return (
+    message.replyTo === null &&
+    message.attachments.length === 0 &&
+    isLargeEmojiMessage(message.text)
+  )
 }
 
 type MessageContextMenu = {
@@ -251,6 +260,113 @@ const scrollContainer = ref<HTMLElement | null>(null)
 const text = ref(draftStore.getDraft(props.chatId))
 const sending = ref(false)
 
+type PendingAttachment = {
+  localId: number
+  previewUrl: string
+  name: string
+  attachmentId: number | null
+}
+
+const fileInputEl = ref<HTMLInputElement | null>(null)
+const pendingAttachments = ref<PendingAttachment[]>([])
+let pendingCounter = 0
+
+const isUploading = computed(() =>
+  pendingAttachments.value.some((item) => item.attachmentId === null),
+)
+
+const readyAttachmentIds = computed(() =>
+  pendingAttachments.value
+    .map((item) => item.attachmentId)
+    .filter((id): id is number => id !== null),
+)
+
+const canSubmit = computed(
+  () =>
+    !sending.value &&
+    !isUploading.value &&
+    (text.value.trim() !== "" || readyAttachmentIds.value.length > 0),
+)
+
+function dropPending(localId: number) {
+  const item = pendingAttachments.value.find((pending) => pending.localId === localId)
+  if (item !== undefined) {
+    URL.revokeObjectURL(item.previewUrl)
+  }
+  pendingAttachments.value = pendingAttachments.value.filter(
+    (pending) => pending.localId !== localId,
+  )
+}
+
+function clearPending() {
+  pendingAttachments.value.forEach((item) => URL.revokeObjectURL(item.previewUrl))
+  pendingAttachments.value = []
+}
+
+async function addFiles(files: File[]) {
+  for (const file of files) {
+    const kind = attachmentKind(file.type)
+
+    if (kind === null) {
+      notify.error(`${file.name}: можно отправлять только фото и видео`)
+      continue
+    }
+
+    if (file.size > maxSize(kind)) {
+      notify.error(`${file.name}: файл больше ${formatSize(maxSize(kind))}`)
+      continue
+    }
+
+    if (pendingAttachments.value.length >= MAX_ATTACHMENTS) {
+      notify.error(`Можно прикрепить не больше ${MAX_ATTACHMENTS} файлов`)
+      return
+    }
+
+    const localId = (pendingCounter += 1)
+    pendingAttachments.value = [
+      ...pendingAttachments.value,
+      {
+        localId,
+        previewUrl: URL.createObjectURL(file),
+        name: file.name,
+        attachmentId: null,
+      },
+    ]
+
+    try {
+      const attachmentId = await messageStore.uploadAttachment(props.chatId, file)
+      pendingAttachments.value = pendingAttachments.value.map((item) =>
+        item.localId === localId ? { ...item, attachmentId } : item,
+      )
+    } catch (error) {
+      dropPending(localId)
+      notify.error(error instanceof Error ? error.message : `Не удалось загрузить ${file.name}`)
+    }
+  }
+}
+
+async function handleFilePick(event: Event) {
+  const input = event.target as HTMLInputElement
+  const files = Array.from(input.files ?? [])
+  input.value = ""
+  await addFiles(files)
+}
+
+async function handlePaste(event: ClipboardEvent) {
+  const files = Array.from(event.clipboardData?.files ?? [])
+  if (files.length === 0) {
+    return
+  }
+  event.preventDefault()
+  await addFiles(files)
+}
+
+const viewer = ref<{ attachments: AttachmentFieldsFragment[]; index: number } | null>(null)
+
+function openViewer(attachments: AttachmentFieldsFragment[], index: number) {
+  viewer.value = { attachments, index }
+}
+
 const saveDraft = useDebounceFn((value: string) => {
   draftStore.setDraft(props.chatId, value)
 }, 300)
@@ -261,6 +377,7 @@ watch(text, (value) => {
 
 onUnmounted(() => {
   draftStore.setDraft(props.chatId, text.value)
+  clearPending()
 })
 
 const composerEl = ref<HTMLTextAreaElement | null>(null)
@@ -521,10 +638,11 @@ watch(
 )
 
 async function handleSubmit() {
-  const value = text.value.trim()
-  if (value === "") {
+  if (!canSubmit.value) {
     return
   }
+
+  const value = text.value.trim()
 
   sending.value = true
   try {
@@ -532,7 +650,9 @@ async function handleSubmit() {
       value,
       collectMentionedUserIds(value),
       replyingTo.value?.id ?? null,
+      readyAttachmentIds.value,
     )
+    clearPending()
     cancelReply()
     text.value = ""
     mentionDismissed.value = false
@@ -692,11 +812,16 @@ async function handleSubmit() {
                       {{ shortName(row.message.replyTo.user) }}
                     </span>
                     <span class="line-clamp-2 break-words text-xs">
-                      {{ row.message.replyTo.text }}
+                      {{ row.message.replyTo.text || "Вложение" }}
                     </span>
                   </button>
 
-                  <div class="whitespace-pre-wrap break-words">
+                  <MediaGrid
+                    :attachments="row.message.attachments"
+                    @open="openViewer(row.message.attachments, $event)"
+                  />
+
+                  <div v-if="row.message.text !== ''" class="whitespace-pre-wrap break-words">
                     <template
                       v-for="(segment, segmentIndex) in linkify(row.message.text)"
                       :key="segmentIndex"
@@ -754,7 +879,9 @@ async function handleSubmit() {
         <div class="truncate text-xs font-semibold text-accent">
           {{ shortName(replyingTo.user) }}
         </div>
-        <div class="truncate text-xs text-second">{{ replyingTo.text }}</div>
+        <div class="truncate text-xs text-second">
+          {{ messagePreview(replyingTo) }}
+        </div>
       </div>
       <button
         type="button"
@@ -774,8 +901,36 @@ async function handleSubmit() {
       <NavIcon name="mute" :size="16" />
       Вы не можете отправлять сообщения в этом чате
     </div>
+    <div
+      v-else-if="pendingAttachments.length > 0"
+      class="glass hairline-t flex shrink-0 gap-2 overflow-x-auto px-3 py-2 lg:px-5"
+    >
+      <div
+        v-for="item in pendingAttachments"
+        :key="item.localId"
+        class="relative h-16 w-16 shrink-0 overflow-hidden rounded-input bg-black/15"
+      >
+        <img :src="item.previewUrl" :alt="item.name" class="h-full w-full object-cover" />
+        <span
+          v-if="item.attachmentId === null"
+          class="absolute inset-0 flex items-center justify-center bg-black/45 text-[10px] font-medium text-white"
+        >
+          Загрузка
+        </span>
+        <button
+          type="button"
+          class="press absolute top-0.5 right-0.5 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
+          title="Убрать"
+          aria-label="Убрать вложение"
+          @click="dropPending(item.localId)"
+        >
+          <NavIcon name="cancel" :size="12" />
+        </button>
+      </div>
+    </div>
+
     <form
-      v-else
+      v-if="!isMuted"
       class="glass hairline-t relative flex shrink-0 items-end gap-2.5 px-3 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))] lg:px-5 lg:py-4"
       @submit.prevent="handleSubmit"
     >
@@ -818,9 +973,26 @@ async function handleSubmit() {
         :enterkeyhint="sendsOnEnter ? 'send' : 'enter'"
         class="glass-field hairline box-border max-h-40 min-h-12 min-w-0 flex-1 resize-none overflow-y-auto rounded-card px-4 py-3 font-sans text-[15px] leading-6 text-main outline-none transition-[border-color,box-shadow] duration-200 placeholder:overflow-hidden placeholder:text-ellipsis placeholder:whitespace-nowrap placeholder:text-second/80 focus-glow"
         @input="handleComposerInput"
+        @paste="handlePaste"
         @keydown="handleComposerKeydown"
         @keyup="syncCaret"
         @click="syncCaret"
+      />
+      <input
+        ref="fileInputEl"
+        type="file"
+        multiple
+        :accept="ATTACHMENT_ACCEPT"
+        class="hidden"
+        @change="handleFilePick"
+      />
+      <Button
+        variant="ghost"
+        icon="image"
+        class="mb-1 shrink-0"
+        title="Прикрепить фото или видео"
+        aria-label="Прикрепить фото или видео"
+        @click="fileInputEl?.click()"
       />
       <Button
         variant="ghost"
@@ -835,7 +1007,7 @@ async function handleSubmit() {
         icon="send"
         title="Отправить"
         aria-label="Отправить"
-        :disabled="sending || text.trim() === ''"
+        :disabled="!canSubmit"
       />
     </form>
 
@@ -873,5 +1045,12 @@ async function handleSubmit() {
         Удалить
       </button>
     </ContextMenu>
+
+    <MediaViewer
+      v-if="viewer !== null"
+      :attachments="viewer.attachments"
+      :index="viewer.index"
+      @close="viewer = null"
+    />
   </div>
 </template>

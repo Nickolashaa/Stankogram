@@ -1,0 +1,18 @@
+mutation CreateAttachmentUpload($input: AttachmentUploadIn!) {
+  createAttachmentUpload(input: $input) {
+    __typename
+    ... on AttachmentUpload {
+      attachment {
+        ...AttachmentFields
+      }
+      uploadUrl
+      thumbnailUploadUrl
+    }
+    ... on InvalidInputError {
+      message
+    }
+    ... on ObjectNotFoundError {
+      message
+    }
+  }
+}

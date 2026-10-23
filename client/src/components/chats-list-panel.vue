@@ -7,6 +7,7 @@ import { useChatStore, hasUnreadMessages, privatePeer, type ChatSummary } from "
 import { useAuthStore } from "@/stores/auth"
 import { useDraftStore } from "@/stores/drafts"
 import { shortName, formatTime, chatInitials } from "@/lib/format"
+import { messagePreview } from "@/lib/media"
 import { pinForLeave } from "@/lib/transition"
 import type { ChatFiltersIn } from "@/graphql/base-types"
 import Button from "@/components/button.vue"
@@ -132,7 +133,7 @@ function lastMessagePreview(chat: (typeof chats.value)[number]) {
   if (!message) {
     return "Сообщений пока нет"
   }
-  return `${shortName(message.user)}: ${message.text}`
+  return `${shortName(message.user)}: ${messagePreview(message)}`
 }
 </script>
 
