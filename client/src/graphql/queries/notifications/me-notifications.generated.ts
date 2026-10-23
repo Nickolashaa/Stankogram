@@ -6,7 +6,10 @@ export type Incremental<T> =
 import * as Types from "../../base-types"
 
 import gql from "graphql-tag"
-import { MessageFieldsFragmentDoc } from "../../fragments/messages.generated"
+import {
+  AttachmentFieldsFragmentDoc,
+  MessageFieldsFragmentDoc,
+} from "../../fragments/messages.generated"
 import { UserFieldsFragmentDoc } from "../../fragments/auth.generated"
 import { ChatFieldsFragmentDoc } from "../../fragments/chats.generated"
 import * as VueApolloComposable from "@vue/apollo-composable"
@@ -16,6 +19,8 @@ export type BasePaginationIn = {
   limit?: number | null | undefined
   offset?: number | null | undefined
 }
+
+export type EAttachmentKind = "IMAGE" | "VIDEO"
 
 export type EChatType = "PRIVATE" | "PUBLIC"
 
@@ -50,6 +55,19 @@ export type MeNotificationsQuery = {
           lastOnlineAt: string | null
         }
         chat: { id: number; createdAt: string; type: Types.EChatType; title: string }
+        attachments: Array<{
+          id: number
+          kind: Types.EAttachmentKind
+          name: string
+          contentType: string
+          size: number
+          width: number | null
+          height: number | null
+          durationMs: number | null
+          url: string
+          thumbnailUrl: string
+          downloadUrl: string
+        }>
         replyTo: {
           id: number
           text: string

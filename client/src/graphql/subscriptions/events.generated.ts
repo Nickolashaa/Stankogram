@@ -6,11 +6,16 @@ export type Incremental<T> =
 import * as Types from "../base-types"
 
 import gql from "graphql-tag"
-import { MessageFieldsFragmentDoc } from "../fragments/messages.generated"
+import {
+  AttachmentFieldsFragmentDoc,
+  MessageFieldsFragmentDoc,
+} from "../fragments/messages.generated"
 import { UserFieldsFragmentDoc } from "../fragments/auth.generated"
 import * as VueApolloComposable from "@vue/apollo-composable"
 import * as VueCompositionApi from "vue"
 export type ReactiveFunction<TParam> = () => TParam
+export type EAttachmentKind = "IMAGE" | "VIDEO"
+
 export type EUserRole = "STUDENT" | "TEACHER"
 
 export type EventsSubscriptionVariables = Exact<{ [key: string]: never }>
@@ -61,6 +66,19 @@ export type EventsSubscription = {
             lastOnlineAt: string | null
           }
           chat: { id: number }
+          attachments: Array<{
+            id: number
+            kind: Types.EAttachmentKind
+            name: string
+            contentType: string
+            size: number
+            width: number | null
+            height: number | null
+            durationMs: number | null
+            url: string
+            thumbnailUrl: string
+            downloadUrl: string
+          }>
           replyTo: {
             id: number
             text: string
@@ -95,6 +113,19 @@ export type EventsSubscription = {
             lastOnlineAt: string | null
           }
           chat: { id: number }
+          attachments: Array<{
+            id: number
+            kind: Types.EAttachmentKind
+            name: string
+            contentType: string
+            size: number
+            width: number | null
+            height: number | null
+            durationMs: number | null
+            url: string
+            thumbnailUrl: string
+            downloadUrl: string
+          }>
           replyTo: {
             id: number
             text: string

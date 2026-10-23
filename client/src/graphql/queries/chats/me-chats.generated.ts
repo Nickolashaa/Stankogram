@@ -8,7 +8,10 @@ import * as Types from "../../base-types"
 import gql from "graphql-tag"
 import { ChatFieldsFragmentDoc } from "../../fragments/chats.generated"
 import { UserFieldsFragmentDoc } from "../../fragments/auth.generated"
-import { MessageFieldsFragmentDoc } from "../../fragments/messages.generated"
+import {
+  AttachmentFieldsFragmentDoc,
+  MessageFieldsFragmentDoc,
+} from "../../fragments/messages.generated"
 import * as VueApolloComposable from "@vue/apollo-composable"
 import * as VueCompositionApi from "vue"
 export type ReactiveFunction<TParam> = () => TParam
@@ -21,6 +24,8 @@ export type ChatFiltersIn = {
   searchQuery?: string | null | undefined
   type?: EChatType | null | undefined
 }
+
+export type EAttachmentKind = "IMAGE" | "VIDEO"
 
 export type EChatType = "PRIVATE" | "PUBLIC"
 
@@ -78,6 +83,19 @@ export type MeChatsQuery = {
               isOnline: boolean
               lastOnlineAt: string | null
             }
+            attachments: Array<{
+              id: number
+              kind: Types.EAttachmentKind
+              name: string
+              contentType: string
+              size: number
+              width: number | null
+              height: number | null
+              durationMs: number | null
+              url: string
+              thumbnailUrl: string
+              downloadUrl: string
+            }>
             replyTo: {
               id: number
               text: string
