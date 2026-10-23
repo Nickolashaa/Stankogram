@@ -3,10 +3,37 @@ import { EAttachmentKind } from "@/graphql/base-types"
 export const IMAGE_CONTENT_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"]
 export const VIDEO_CONTENT_TYPES = ["video/mp4", "video/webm", "video/quicktime"]
 
-export const ATTACHMENT_ACCEPT = [...IMAGE_CONTENT_TYPES, ...VIDEO_CONTENT_TYPES].join(",")
+const EXTENSION_CONTENT_TYPES: Record<string, string> = {
+  pdf: "application/pdf",
+  doc: "application/msword",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  xls: "application/vnd.ms-excel",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ppt: "application/vnd.ms-powerpoint",
+  pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  odt: "application/vnd.oasis.opendocument.text",
+  ods: "application/vnd.oasis.opendocument.spreadsheet",
+  odp: "application/vnd.oasis.opendocument.presentation",
+  rtf: "application/rtf",
+  zip: "application/zip",
+  "7z": "application/x-7z-compressed",
+  rar: "application/vnd.rar",
+  txt: "text/plain",
+  csv: "text/csv",
+}
+
+export const FILE_CONTENT_TYPES = Object.values(EXTENSION_CONTENT_TYPES)
+
+export const ATTACHMENT_ACCEPT = [
+  ...IMAGE_CONTENT_TYPES,
+  ...VIDEO_CONTENT_TYPES,
+  ...FILE_CONTENT_TYPES,
+  ...Object.keys(EXTENSION_CONTENT_TYPES).map((extension) => `.${extension}`),
+].join(",")
 
 export const MAX_IMAGE_SIZE = 20 * 1024 * 1024
 export const MAX_VIDEO_SIZE = 100 * 1024 * 1024
+export const MAX_FILE_SIZE = 50 * 1024 * 1024
 
 const THUMBNAIL_MAX_SIDE = 480
 const THUMBNAIL_QUALITY = 0.72
@@ -14,10 +41,19 @@ const VIDEO_READY_TIMEOUT = 15000
 
 export type ProbedMedia = {
   kind: EAttachmentKind
-  width: number
-  height: number
+  contentType: string
+  width: number | null
+  height: number | null
   durationMs: number | null
-  thumbnail: Blob
+  thumbnail: Blob | null
+}
+
+export function contentTypeOf(file: File): string {
+  if (file.type !== "") {
+    return file.type
+  }
+  const extension = file.name.split(".").pop()?.toLowerCase() ?? ""
+  return EXTENSION_CONTENT_TYPES[extension] ?? ""
 }
 
 export function attachmentKind(contentType: string): EAttachmentKind | null {
@@ -27,11 +63,17 @@ export function attachmentKind(contentType: string): EAttachmentKind | null {
   if (VIDEO_CONTENT_TYPES.includes(contentType)) {
     return EAttachmentKind.Video
   }
+  if (FILE_CONTENT_TYPES.includes(contentType)) {
+    return EAttachmentKind.File
+  }
   return null
 }
 
 export function maxSize(kind: EAttachmentKind): number {
-  return kind === EAttachmentKind.Image ? MAX_IMAGE_SIZE : MAX_VIDEO_SIZE
+  if (kind === EAttachmentKind.Image) {
+    return MAX_IMAGE_SIZE
+  }
+  return kind === EAttachmentKind.Video ? MAX_VIDEO_SIZE : MAX_FILE_SIZE
 }
 
 export function formatSize(bytes: number): string {
@@ -91,6 +133,7 @@ async function probeImage(file: File): Promise<ProbedMedia> {
   try {
     return {
       kind: EAttachmentKind.Image,
+      contentType: file.type,
       width: bitmap.width,
       height: bitmap.height,
       durationMs: null,
@@ -146,6 +189,7 @@ async function probeVideo(file: File): Promise<ProbedMedia> {
 
     return {
       kind: EAttachmentKind.Video,
+      contentType: file.type,
       width: video.videoWidth,
       height: video.videoHeight,
       durationMs: duration > 0 ? Math.round(duration * 1000) : null,
@@ -159,34 +203,54 @@ async function probeVideo(file: File): Promise<ProbedMedia> {
 }
 
 export async function probeMedia(file: File): Promise<ProbedMedia> {
-  const kind = attachmentKind(file.type)
+  const contentType = contentTypeOf(file)
+  const kind = attachmentKind(contentType)
 
   if (kind === null) {
-    throw new Error("Можно отправлять только фото и видео")
+    throw new Error("Такой тип файла отправить нельзя")
   }
 
   if (file.size > maxSize(kind)) {
     throw new Error(`Файл больше ${formatSize(maxSize(kind))}`)
   }
 
-  return kind === EAttachmentKind.Image ? await probeImage(file) : await probeVideo(file)
+  if (kind === EAttachmentKind.Image) {
+    return await probeImage(file)
+  }
+
+  if (kind === EAttachmentKind.Video) {
+    return await probeVideo(file)
+  }
+
+  return {
+    kind,
+    contentType,
+    width: null,
+    height: null,
+    durationMs: null,
+    thumbnail: null,
+  }
 }
 
-export function attachmentsLabel(attachments: { kind: EAttachmentKind }[]): string {
-  if (attachments.length === 0) {
-    return ""
+const KIND_LABELS: Record<EAttachmentKind, string> = {
+  [EAttachmentKind.Image]: "Фото",
+  [EAttachmentKind.Video]: "Видео",
+  [EAttachmentKind.File]: "Файл",
+}
+
+export function attachmentsLabel(attachments: { kind: EAttachmentKind; name: string }[]): string {
+  const single = attachments.length === 1 ? attachments[0] : undefined
+
+  if (single === undefined) {
+    return attachments.length > 1 ? `Вложения (${attachments.length})` : ""
   }
 
-  if (attachments.length > 1) {
-    return `Вложения (${attachments.length})`
-  }
-
-  return attachments[0]!.kind === EAttachmentKind.Image ? "Фото" : "Видео"
+  return single.kind === EAttachmentKind.File ? single.name : KIND_LABELS[single.kind]
 }
 
 export function messagePreview(message: {
   text: string
-  attachments: { kind: EAttachmentKind }[]
+  attachments: { kind: EAttachmentKind; name: string }[]
 }): string {
   return message.text !== "" ? message.text : attachmentsLabel(message.attachments)
 }

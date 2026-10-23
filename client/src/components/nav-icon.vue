@@ -27,6 +27,7 @@ export type IconName =
   | "reply"
   | "play"
   | "image"
+  | "file"
 
 const props = withDefaults(
   defineProps<{
@@ -195,6 +196,11 @@ const props = withDefaults(
       fill="currentColor"
       stroke="none"
     />
+
+    <template v-else-if="name === 'file'">
+      <path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7l-4-4z" />
+      <path d="M14 3v4h4" />
+    </template>
 
     <template v-else-if="name === 'image'">
       <rect x="3" y="4" width="18" height="16" rx="2" />

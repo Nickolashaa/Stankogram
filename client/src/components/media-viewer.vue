@@ -122,7 +122,7 @@ onUnmounted(() => {
           v-else
           :key="current.id"
           :src="current.url"
-          :poster="current.thumbnailUrl"
+          :poster="current.thumbnailUrl ?? undefined"
           controls
           autoplay
           playsinline
