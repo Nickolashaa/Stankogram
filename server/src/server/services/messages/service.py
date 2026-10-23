@@ -33,6 +33,7 @@ class MessageService(BaseService):
                 encrypted_text=self._fernet.encrypt(
                     values.get("text").encode()
                 ).decode(),
+                reply_to_message_id=values.get("reply_to_message_id"),
             )
             .returning(Message)
         )
@@ -43,6 +44,10 @@ class MessageService(BaseService):
                 raise ObjectNotFound(f"Chat with id {values.get('chat_id')} not found")
             if "fk_messages_user_id" in str(e.orig):
                 raise ObjectNotFound(f"User with id {values.get('user_id')} not found")
+            if "fk_messages_reply_to_message_id" in str(e.orig):
+                raise ObjectNotFound(
+                    f"Message with id {values.get('reply_to_message_id')} not found"
+                )
             raise
 
         instance = res.scalar_one()
@@ -81,6 +86,7 @@ class MessageService(BaseService):
                 encrypted_text=self._fernet.encrypt(
                     values.get("text").encode()
                 ).decode(),
+                reply_to_message_id=values.get("reply_to_message_id"),
             )
             .returning(Message)
         )

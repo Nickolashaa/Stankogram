@@ -46,10 +46,22 @@ class MessageMutation:
         input: MessageIn,
     ) -> Message | ObjectNotFoundError:
         try:
+            if input.reply_to_message_id is not None:
+                reply_to = await info.context.services.message_service.get_or_none(
+                    input.reply_to_message_id
+                )
+                if reply_to is None or reply_to.chat_id != input.chat_id:
+                    return ObjectNotFoundError(
+                        message=(
+                            f"Message with id {input.reply_to_message_id} not found"
+                        )
+                    )
+
             instance = await info.context.services.message_service.create(
                 user_id=info.context.current_user.id,
                 chat_id=input.chat_id,
                 text=input.text,
+                reply_to_message_id=input.reply_to_message_id,
             )
             participant_ids = await _participant_ids(info, instance.chat_id)
             await _sync_mentions(
