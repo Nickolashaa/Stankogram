@@ -7,18 +7,13 @@ from fastapi import UploadFile
 from strawberry.file_uploads import Upload
 
 from ....config import settings
+from ....enums.rate_limit import RateLimitScope
 from ....services.auth.schemas import JWTPayload
 from ....services.exceptions import (
     InvalidInput,
     ObjectAlreadyExists,
     ObjectNotFound,
     TooManyRequests,
-)
-from ....utils.rate_limit import (
-    login_email_rate_limiter,
-    login_ip_rate_limiter,
-    password_reset_confirm_rate_limiter,
-    password_reset_request_rate_limiter,
 )
 from ...context import AppInfo, AuthorizedAppInfo
 from ...permissions.auth import IsAdmin, IsAuthenticated
@@ -50,13 +45,15 @@ class AuthMutation:
         email_key = input.email.strip().lower()
         ip_key = info.context.client_ip
 
-        for limiter, key in (
-            (login_ip_rate_limiter, ip_key),
-            (login_email_rate_limiter, email_key),
+        rate_limit_service = info.context.services.rate_limit_service
+
+        for scope, key in (
+            (RateLimitScope.LOGIN_IP, ip_key),
+            (RateLimitScope.LOGIN_EMAIL, email_key),
         ):
-            if limiter.is_blocked(key):
+            if await rate_limit_service.is_blocked(scope, key):
                 return TooManyRequestsError.after_seconds(
-                    limiter.retry_after_seconds(key)
+                    await rate_limit_service.retry_after_seconds(scope, key)
                 )
 
         try:
@@ -64,11 +61,11 @@ class AuthMutation:
                 **input.to_service_params()
             )
         except ObjectNotFound as e:
-            login_ip_rate_limiter.hit(ip_key)
-            login_email_rate_limiter.hit(email_key)
+            await rate_limit_service.hit(RateLimitScope.LOGIN_IP, ip_key)
+            await rate_limit_service.hit(RateLimitScope.LOGIN_EMAIL, email_key)
             return ObjectNotFoundError.from_service_exception(e)
 
-        login_email_rate_limiter.reset(email_key)
+        await rate_limit_service.reset(RateLimitScope.LOGIN_EMAIL, email_key)
 
         tokens = info.context.services.auth_service.generate_jwts(
             id=user.id, is_admin=user.is_admin
@@ -218,15 +215,24 @@ class AuthMutation:
     ) -> None | TooManyRequestsError:
         ip_key = info.context.client_ip
 
-        if password_reset_request_rate_limiter.is_blocked(ip_key):
+        rate_limit_service = info.context.services.rate_limit_service
+
+        if await rate_limit_service.is_blocked(
+            RateLimitScope.PASSWORD_RESET_REQUEST, ip_key
+        ):
             return TooManyRequestsError.after_seconds(
-                password_reset_request_rate_limiter.retry_after_seconds(ip_key)
+                await rate_limit_service.retry_after_seconds(
+                    RateLimitScope.PASSWORD_RESET_REQUEST, ip_key
+                )
             )
 
-        password_reset_request_rate_limiter.hit(ip_key)
+        await rate_limit_service.hit(RateLimitScope.PASSWORD_RESET_REQUEST, ip_key)
 
         try:
-            await info.context.services.auth_service.reset_password_request(email)
+            await info.context.services.auth_service.reset_password_request(
+                email=email,
+                codes=info.context.services.password_reset_service,
+            )
             await info.context.session.commit()
         except TooManyRequests as e:
             await info.context.session.rollback()
@@ -241,17 +247,24 @@ class AuthMutation:
     ) -> None | ObjectNotFoundError | TooManyRequestsError:
         ip_key = info.context.client_ip
 
-        if password_reset_confirm_rate_limiter.is_blocked(ip_key):
+        rate_limit_service = info.context.services.rate_limit_service
+
+        if await rate_limit_service.is_blocked(
+            RateLimitScope.PASSWORD_RESET_CONFIRM, ip_key
+        ):
             return TooManyRequestsError.after_seconds(
-                password_reset_confirm_rate_limiter.retry_after_seconds(ip_key)
+                await rate_limit_service.retry_after_seconds(
+                    RateLimitScope.PASSWORD_RESET_CONFIRM, ip_key
+                )
             )
 
-        password_reset_confirm_rate_limiter.hit(ip_key)
+        await rate_limit_service.hit(RateLimitScope.PASSWORD_RESET_CONFIRM, ip_key)
 
         try:
             await info.context.services.auth_service.reset_password_confirm(
                 id=id,
                 code=code,
+                codes=info.context.services.password_reset_service,
             )
             await info.context.session.commit()
         except ObjectNotFound as e:

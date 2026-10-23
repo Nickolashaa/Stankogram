@@ -9,7 +9,9 @@ from ..dependencies.chats import get_chat_participant_service, get_chat_service
 from ..dependencies.events import get_event_service
 from ..dependencies.messages import get_message_service
 from ..dependencies.notifications import get_notification_service
+from ..dependencies.password_reset import get_password_reset_service
 from ..dependencies.presence import get_presence_service
+from ..dependencies.rate_limit import get_rate_limit_service
 from ..dependencies.session import get_session
 from ..dependencies.system_notifications import get_system_notification_service
 from ..services import Services
@@ -20,7 +22,9 @@ from ..services.chats.participants import ChatParticipantService
 from ..services.events import EventService
 from ..services.messages import MessageService
 from ..services.notifications import NotificationService
+from ..services.password_reset import PasswordResetService
 from ..services.presence import PresenceService
+from ..services.rate_limit import RateLimitService
 from ..services.system_notifications import SystemNotificationService
 from .context import AuthorizedContext, Context
 from .data_loaders import DataLoaders
@@ -58,7 +62,9 @@ async def context_getter(
     message_service: MessageService = Depends(get_message_service),
     notification_service: NotificationService = Depends(get_notification_service),
     event_service: EventService = Depends(get_event_service),
+    password_reset_service: PasswordResetService = Depends(get_password_reset_service),
     presence_service: PresenceService = Depends(get_presence_service),
+    rate_limit_service: RateLimitService = Depends(get_rate_limit_service),
     system_notification_service: SystemNotificationService = Depends(
         get_system_notification_service
     ),
@@ -73,7 +79,9 @@ async def context_getter(
             message_service=message_service,
             notification_service=notification_service,
             event_service=event_service,
+            password_reset_service=password_reset_service,
             presence_service=presence_service,
+            rate_limit_service=rate_limit_service,
             system_notification_service=system_notification_service,
         ),
         data_loaders=DataLoaders(

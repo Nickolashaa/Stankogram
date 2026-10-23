@@ -1,7 +1,7 @@
 import asyncio
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from secrets import choice, compare_digest
+from secrets import choice
 from string import Template, ascii_letters, digits
 from typing import Sequence, Unpack
 from uuid import UUID, uuid4
@@ -14,7 +14,7 @@ from sqlalchemy import Select, delete, func, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from ...config import settings
-from ...database.models.auth import CancelledToken, PasswordResetCode, User
+from ...database.models.auth import CancelledToken, User
 from ...enums.users import UserRole
 from ...utils.smtp import send_email
 from ...utils.xlsx import (
@@ -37,6 +37,7 @@ from ..exceptions import (
     TooManyRequests,
     Unauthorized,
 )
+from ..password_reset import PasswordResetService
 from .schemas import (
     CreatedUserSchema,
     JWTPayload,
@@ -172,6 +173,15 @@ class AuthService(BaseService):
             await self._execute(stmt)
         except IntegrityError:
             raise ObjectAlreadyExists(f"Token with jti {jti} already exists")
+
+        await self._drop_expired_cancelled_tokens()
+
+    async def _drop_expired_cancelled_tokens(self) -> None:
+        stmt = delete(CancelledToken).where(
+            CancelledToken.created_at
+            < datetime.now(UTC) - timedelta(days=settings.JWT_REFRESH_EXP_DAYS)
+        )
+        await self._execute(stmt)
 
     async def create(
         self,
@@ -332,37 +342,18 @@ class AuthService(BaseService):
     async def reset_password_request(
         self,
         email: str,
+        codes: PasswordResetService,
     ) -> None:
         try:
             user = await self.get_by_email(email)
         except ObjectNotFound:
             return
 
-        cooldown_stmt = select(PasswordResetCode).where(
-            PasswordResetCode.user_id == user.id,
-            PasswordResetCode.created_at
-            >= datetime.now(UTC)
-            - timedelta(seconds=settings.PASSWORD_RESET_REQUEST_COOLDOWN_SECONDS),
-        )
-        res = await self._execute(cooldown_stmt)
-        if res.scalars().first() is not None:
+        if await codes.in_cooldown(user.id):
             raise TooManyRequests("Письмо уже отправлено, повторите запрос позже")
 
-        await self._execute(
-            delete(PasswordResetCode).where(PasswordResetCode.user_id == user.id)
-        )
-
         code = self._generate_password_reset_code()
-        stmt = (
-            insert(PasswordResetCode)
-            .values(
-                user_id=user.id,
-                value=code,
-            )
-            .returning(PasswordResetCode)
-        )
-
-        await self._execute(stmt)
+        await codes.store(user_id=user.id, code=code)
 
         await send_email(
             to_email=user.email,
@@ -377,36 +368,14 @@ class AuthService(BaseService):
         self,
         id: int,
         code: str,
+        codes: PasswordResetService,
     ) -> None:
         user = await self.get(id)
 
-        stmt = (
-            select(PasswordResetCode)
-            .where(
-                PasswordResetCode.user_id == user.id,
-                PasswordResetCode.created_at
-                >= datetime.now(UTC)
-                - timedelta(minutes=settings.PASSWORD_RESET_CODE_EXP_MINUTES),
-            )
-            .order_by(PasswordResetCode.created_at.desc())
-            .limit(1)
-        )
-
-        res = await self._execute(stmt)
-        instance = res.scalars().first()
-        if instance is None:
+        if not await codes.verify(user_id=user.id, code=code):
             raise ObjectNotFound(
                 f"Valid password reset code for user {user.id} not found"
             )
-
-        if not compare_digest(instance.value.encode(), code.encode()):
-            await self._register_failed_reset_attempt(instance)
-            raise ObjectNotFound(
-                f"Valid password reset code for user {user.id} not found"
-            )
-
-        stmt = delete(PasswordResetCode).where(PasswordResetCode.id == instance.id)
-        await self._execute(stmt)
 
         new_password = self._generate_password()
         new_hashed_password = self._hash_password(new_password)
@@ -416,6 +385,7 @@ class AuthService(BaseService):
             .where(User.id == id)
             .values(hashed_password=new_hashed_password)
         )
+
         await self._execute(stmt)
 
         await send_email(
@@ -426,22 +396,6 @@ class AuthService(BaseService):
                 password=new_password,
             ),
         )
-
-    async def _register_failed_reset_attempt(
-        self,
-        instance: PasswordResetCode,
-    ) -> None:
-        if instance.attempts + 1 >= settings.PASSWORD_RESET_CODE_MAX_ATTEMPTS:
-            stmt = delete(PasswordResetCode).where(PasswordResetCode.id == instance.id)
-        else:
-            stmt = (
-                update(PasswordResetCode)
-                .where(PasswordResetCode.id == instance.id)
-                .values(attempts=PasswordResetCode.attempts + 1)
-            )
-
-        await self._execute(stmt)
-        await self._session.commit()
 
     async def get_from_token(
         self,
