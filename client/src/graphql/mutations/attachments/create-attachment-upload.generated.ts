@@ -20,7 +20,7 @@ export type AttachmentUploadIn = {
   width?: number | null | undefined
 }
 
-export type EAttachmentKind = "IMAGE" | "VIDEO"
+export type EAttachmentKind = "FILE" | "IMAGE" | "VIDEO"
 
 export type CreateAttachmentUploadMutationVariables = Exact<{
   input: Types.AttachmentUploadIn
@@ -31,7 +31,7 @@ export type CreateAttachmentUploadMutation = {
     | {
         __typename: "AttachmentUpload"
         uploadUrl: string
-        thumbnailUploadUrl: string
+        thumbnailUploadUrl: string | null
         attachment: {
           id: number
           kind: Types.EAttachmentKind
@@ -42,7 +42,7 @@ export type CreateAttachmentUploadMutation = {
           height: number | null
           durationMs: number | null
           url: string
-          thumbnailUrl: string
+          thumbnailUrl: string | null
           downloadUrl: string
         }
       }

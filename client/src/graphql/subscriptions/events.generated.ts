@@ -14,7 +14,7 @@ import { UserFieldsFragmentDoc } from "../fragments/auth.generated"
 import * as VueApolloComposable from "@vue/apollo-composable"
 import * as VueCompositionApi from "vue"
 export type ReactiveFunction<TParam> = () => TParam
-export type EAttachmentKind = "IMAGE" | "VIDEO"
+export type EAttachmentKind = "FILE" | "IMAGE" | "VIDEO"
 
 export type EUserRole = "STUDENT" | "TEACHER"
 
@@ -76,7 +76,7 @@ export type EventsSubscription = {
             height: number | null
             durationMs: number | null
             url: string
-            thumbnailUrl: string
+            thumbnailUrl: string | null
             downloadUrl: string
           }>
           replyTo: {
@@ -123,7 +123,7 @@ export type EventsSubscription = {
             height: number | null
             durationMs: number | null
             url: string
-            thumbnailUrl: string
+            thumbnailUrl: string | null
             downloadUrl: string
           }>
           replyTo: {
