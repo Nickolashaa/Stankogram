@@ -1,3 +1,8 @@
+type AddChatParticipant {
+  chatId: Int!
+  participant: ChatParticipant!
+}
+
 input BasePaginationIn {
   limit: Int
   offset: Int
@@ -59,8 +64,6 @@ type CreateMessage {
   message: Message!
 }
 
-union CreateMessageUpdateMessageDeleteMessage = CreateMessage | UpdateMessage | DeleteMessage
-
 type CreatedUser {
   user: User!
   password: String!
@@ -84,6 +87,8 @@ enum EUserRole {
   STUDENT
   TEACHER
 }
+
+union Event = CreateMessage | UpdateMessage | DeleteMessage | AddChatParticipant | RemoveChatParticipant
 
 interface IAppError {
   message: String!
@@ -231,8 +236,13 @@ type Query {
   health: Int!
 }
 
+type RemoveChatParticipant {
+  chatId: Int!
+  participant: ChatParticipant!
+}
+
 type Subscription {
-  events: CreateMessageUpdateMessageDeleteMessage!
+  events: Event!
 }
 
 type SystemNotification implements IBaseType {
