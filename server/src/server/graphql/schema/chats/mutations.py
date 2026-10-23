@@ -2,6 +2,9 @@ from datetime import UTC, datetime
 
 import strawberry
 
+from ....enums.events import EventType
+from ....services.chats.participants.schemas import ChatParticipantResponse
+from ....services.events.schemas import ChatParticipantEventSchema
 from ....services.exceptions import InvalidInput, ObjectAlreadyExists, ObjectNotFound
 from ...context import AuthorizedAppInfo
 from ...permissions.auth import IsAdmin, IsAuthenticated
@@ -19,6 +22,13 @@ from ...types.errors import (
     ObjectAlreadyExistsError,
     ObjectNotFoundError,
 )
+
+
+async def _participant_ids(info: AuthorizedAppInfo, chat_id: int) -> list[int]:
+    participants = await info.context.services.chat_participant_service.get_list(
+        chat_id=chat_id
+    )
+    return [participant.user_id for participant in participants]
 
 
 @strawberry.type
@@ -44,11 +54,20 @@ class ChatMutation:
                 chat_id=instance.id,
                 user_id=info.context.current_user.id,
             )
-            await info.context.services.chat_participant_service.create(
+            participant = await info.context.services.chat_participant_service.create(
                 chat_id=instance.id,
                 user_id=input.participant_id,
             )
             await info.context.session.commit()
+
+            await info.context.services.event_service.publish(
+                [participant.user_id],
+                ChatParticipantEventSchema(
+                    type=EventType.ADD_CHAT_PARTICIPANT,
+                    participant=participant,
+                ),
+            )
+
             return Chat.from_schema(instance)
         except InvalidInput as e:
             await info.context.session.rollback()
@@ -75,13 +94,26 @@ class ChatMutation:
                 user_id=info.context.current_user.id,
                 is_admin=True,
             )
+            participants: list[ChatParticipantResponse] = []
             if input.participant_ids is not None and len(input.participant_ids) > 0:
                 for participant_id in input.participant_ids:
-                    await info.context.services.chat_participant_service.create(
-                        chat_id=instance.id,
-                        user_id=participant_id,
+                    participants.append(
+                        await info.context.services.chat_participant_service.create(
+                            chat_id=instance.id,
+                            user_id=participant_id,
+                        )
                     )
             await info.context.session.commit()
+
+            for participant in participants:
+                await info.context.services.event_service.publish(
+                    [participant.user_id],
+                    ChatParticipantEventSchema(
+                        type=EventType.ADD_CHAT_PARTICIPANT,
+                        participant=participant,
+                    ),
+                )
+
             return Chat.from_schema(instance)
         except InvalidInput as e:
             await info.context.session.rollback()
@@ -147,6 +179,14 @@ class ChatMutation:
                 **input.to_create_service_params(),
             )
             await info.context.session.commit()
+
+            await info.context.services.event_service.publish(
+                await _participant_ids(info, instance.chat_id),
+                ChatParticipantEventSchema(
+                    type=EventType.ADD_CHAT_PARTICIPANT,
+                    participant=instance,
+                ),
+            )
         except InvalidInput as e:
             await info.context.session.rollback()
             return InvalidInputError.from_service_exception(e)
@@ -166,11 +206,26 @@ class ChatMutation:
         chat_id: int,
         user_id: int,
     ) -> None:
+        instance = await info.context.services.chat_participant_service.get_or_none(
+            chat_id=chat_id,
+            user_id=user_id,
+        )
+        recipient_ids = await _participant_ids(info, chat_id)
+
         await info.context.services.chat_participant_service.delete(
             chat_id=chat_id,
             user_id=user_id,
         )
         await info.context.session.commit()
+
+        if instance is not None:
+            await info.context.services.event_service.publish(
+                recipient_ids,
+                ChatParticipantEventSchema(
+                    type=EventType.REMOVE_CHAT_PARTICIPANT,
+                    participant=instance,
+                ),
+            )
 
     @strawberry.mutation(permission_classes=[IsAuthenticated, IsChatParticipant])
     async def leave_chat(
@@ -180,11 +235,33 @@ class ChatMutation:
     ) -> Chat | InvalidInputError | ObjectNotFoundError:
         try:
             instance = await info.context.services.chat_service.get(chat_id)
+            participant = (
+                await info.context.services.chat_participant_service.get_or_none(
+                    chat_id=chat_id,
+                    user_id=info.context.current_user.id,
+                )
+            )
+            recipient_ids = [
+                user_id
+                for user_id in await _participant_ids(info, chat_id)
+                if user_id != info.context.current_user.id
+            ]
+
             await info.context.services.chat_participant_service.leave(
                 chat_id=chat_id,
                 user_id=info.context.current_user.id,
             )
             await info.context.session.commit()
+
+            if participant is not None:
+                await info.context.services.event_service.publish(
+                    recipient_ids,
+                    ChatParticipantEventSchema(
+                        type=EventType.REMOVE_CHAT_PARTICIPANT,
+                        participant=participant,
+                    ),
+                )
+
             return Chat.from_schema(instance)
         except InvalidInput as e:
             await info.context.session.rollback()

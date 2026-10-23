@@ -7,7 +7,7 @@ from ...database.connection import session_maker
 from ...dependencies.auth import get_user_from_authorization
 from ...services.auth import AuthService
 from ..context import AppInfo
-from ..types.messages import Event, event_from_schema
+from ..types.events import Event, event_from_schema
 
 
 async def _save_last_online(user_id: int) -> None:

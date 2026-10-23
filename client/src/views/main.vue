@@ -1,16 +1,20 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue"
-import { useRoute } from "vue-router"
+import { useRoute, useRouter } from "vue-router"
+import { useAuthStore } from "@/stores/auth"
 import { useChatStore } from "@/stores/chats"
 import { useMessageStore } from "@/stores/messages"
 import { useEventsSubscription } from "@/graphql/subscriptions/events.generated"
+import { notify } from "@/lib/notify"
 import AppNav from "@/components/app-nav.vue"
 
 const CHATS_PAGE_SIZE = 30
 
 const route = useRoute()
+const router = useRouter()
 const isChatsRoute = computed(() => route.path.startsWith("/chats"))
 
+const authStore = useAuthStore()
 const chatStore = useChatStore()
 const messageStore = useMessageStore()
 
@@ -19,6 +23,17 @@ onMounted(() => {
     chatStore.fetchChats(undefined, CHATS_PAGE_SIZE, 0)
   }
 })
+
+function handleRemoveParticipant(chatId: number, userId: number) {
+  chatStore.handleRemoveParticipant(chatId, userId)
+
+  if (userId !== authStore.user?.id || Number(route.params.chatId) !== chatId) {
+    return
+  }
+
+  notify.info("Вас удалили из чата")
+  router.push("/chats")
+}
 
 const { onResult } = useEventsSubscription()
 
@@ -41,6 +56,12 @@ onResult(({ data }) => {
     case "DeleteMessage":
       chatStore.handleDeleteMessage(event.message)
       messageStore.handleDeleteMessage(event.message)
+      break
+    case "AddChatParticipant":
+      chatStore.handleAddParticipant(event.chatId, event.participant)
+      break
+    case "RemoveChatParticipant":
+      handleRemoveParticipant(event.chatId, event.participant.user.id)
       break
   }
 })

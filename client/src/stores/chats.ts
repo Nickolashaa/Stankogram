@@ -342,6 +342,28 @@ export const useChatStore = defineStore("chats", () => {
     patchParticipant(chatId, result)
   }
 
+  function handleAddParticipant(chatId: number, participant: ChatParticipantItem) {
+    patchParticipantIn(adminChats, chatId, participant)
+
+    if (participant.user.id === authStore.user?.id) {
+      fetchChats(activeFilters.value, RESYNC_PAGE_SIZE, 0)
+      return
+    }
+
+    patchParticipantIn(chats, chatId, participant)
+  }
+
+  function handleRemoveParticipant(chatId: number, userId: number) {
+    removeParticipantIn(adminChats, chatId, userId)
+
+    if (userId === authStore.user?.id) {
+      removeChatIn(chats, totalCount, chatId)
+      return
+    }
+
+    removeParticipantIn(chats, chatId, userId)
+  }
+
   function handleCreateMessage(
     message: MessageFieldsFragment & { user: UserFieldsFragment; chat: { id: number } },
   ) {
@@ -408,6 +430,8 @@ export const useChatStore = defineStore("chats", () => {
     deleteChat,
     setParticipantPermissions,
     markChatRead,
+    handleAddParticipant,
+    handleRemoveParticipant,
     handleCreateMessage,
     handleUpdateMessage,
     handleDeleteMessage,

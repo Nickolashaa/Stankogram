@@ -31,5 +31,26 @@ subscription Events {
         }
       }
     }
+    ... on AddChatParticipant {
+      chatId
+      participant {
+        id
+        isAdmin
+        isMuted
+        lastReadAt
+        user {
+          ...UserFields
+        }
+      }
+    }
+    ... on RemoveChatParticipant {
+      chatId
+      participant {
+        id
+        user {
+          id
+        }
+      }
+    }
   }
 }

@@ -18,6 +18,29 @@ export type EventsSubscriptionVariables = Exact<{ [key: string]: never }>
 export type EventsSubscription = {
   events:
     | {
+        __typename: "AddChatParticipant"
+        chatId: number
+        participant: {
+          id: number
+          isAdmin: boolean
+          isMuted: boolean
+          lastReadAt: string | null
+          user: {
+            id: number
+            createdAt: string
+            updatedAt: string
+            name: string
+            surname: string
+            patronymic: string | null
+            email: string
+            role: Types.EUserRole
+            isAdmin: boolean
+            isOnline: boolean
+            lastOnlineAt: string | null
+          }
+        }
+      }
+    | {
         __typename: "CreateMessage"
         message: {
           id: number
@@ -46,6 +69,11 @@ export type EventsSubscription = {
         }
       }
     | { __typename: "DeleteMessage"; message: { id: number; chat: { id: number } } }
+    | {
+        __typename: "RemoveChatParticipant"
+        chatId: number
+        participant: { id: number; user: { id: number } }
+      }
     | {
         __typename: "UpdateMessage"
         message: {
@@ -106,6 +134,27 @@ export const EventsDocument = gql`
         message {
           id
           chat {
+            id
+          }
+        }
+      }
+      ... on AddChatParticipant {
+        chatId
+        participant {
+          id
+          isAdmin
+          isMuted
+          lastReadAt
+          user {
+            ...UserFields
+          }
+        }
+      }
+      ... on RemoveChatParticipant {
+        chatId
+        participant {
+          id
+          user {
             id
           }
         }
