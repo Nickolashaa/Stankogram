@@ -38,6 +38,11 @@ export type EventsSubscription = {
             lastOnlineAt: string | null
           }
           chat: { id: number }
+          replyTo: {
+            id: number
+            text: string
+            user: { id: number; name: string; surname: string }
+          } | null
         }
       }
     | { __typename: "DeleteMessage"; message: { id: number; chat: { id: number } } }
@@ -62,6 +67,11 @@ export type EventsSubscription = {
             lastOnlineAt: string | null
           }
           chat: { id: number }
+          replyTo: {
+            id: number
+            text: string
+            user: { id: number; name: string; surname: string }
+          } | null
         }
       }
 }
