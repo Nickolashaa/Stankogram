@@ -131,6 +131,7 @@ type Message implements IBaseType & IUser & IChat {
   user: User!
   chat: Chat!
   text: String!
+  replyTo: Message
 }
 
 input MessageFiltersIn {
@@ -141,6 +142,7 @@ input MessageIn {
   chatId: Int!
   text: String!
   mentionedUserIds: [Int!]!
+  replyToMessageId: Int = null
 }
 
 union MessageObjectNotFoundError = Message | ObjectNotFoundError
