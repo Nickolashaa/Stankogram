@@ -51,6 +51,8 @@ jobs:
           ENCRYPTION_KEY: MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA=
           SMTP_LOGIN: ci@example.com
           SMTP_PASSWORD: ci
+          S3_ACCESS_KEY_ID: ci
+          S3_SECRET_ACCESS_KEY: ci
         run: |
           uv sync
           uv run schemagen
