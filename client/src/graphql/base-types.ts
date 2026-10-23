@@ -15,6 +15,12 @@ export type Scalars = {
   Void: { input: null; output: null }
 }
 
+export type AddChatParticipant = {
+  __typename?: "AddChatParticipant"
+  chatId: Scalars["Int"]["output"]
+  participant: ChatParticipant
+}
+
 export type BasePaginationIn = {
   limit?: InputMaybe<Scalars["Int"]["input"]>
   offset?: InputMaybe<Scalars["Int"]["input"]>
@@ -85,8 +91,6 @@ export type CreateMessage = {
   message: Message
 }
 
-export type CreateMessageUpdateMessageDeleteMessage = CreateMessage | DeleteMessage | UpdateMessage
-
 export type CreatedUser = {
   __typename?: "CreatedUser"
   password: Scalars["String"]["output"]
@@ -109,6 +113,9 @@ export enum EUserRole {
   Student = "STUDENT",
   Teacher = "TEACHER",
 }
+
+export type Event =
+  AddChatParticipant | CreateMessage | DeleteMessage | RemoveChatParticipant | UpdateMessage
 
 export type IAppError = {
   message: Scalars["String"]["output"]
@@ -406,9 +413,15 @@ export type QueryUsersArgs = {
   pagination?: InputMaybe<BasePaginationIn>
 }
 
+export type RemoveChatParticipant = {
+  __typename?: "RemoveChatParticipant"
+  chatId: Scalars["Int"]["output"]
+  participant: ChatParticipant
+}
+
 export type Subscription = {
   __typename?: "Subscription"
-  events: CreateMessageUpdateMessageDeleteMessage
+  events: Event
 }
 
 export type SystemNotification = IBaseType & {
