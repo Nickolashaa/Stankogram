@@ -2,7 +2,9 @@ from typing import Self
 
 import strawberry
 
+from ....enums.attachments import AttachmentKind
 from ....services.attachments.schemas import AttachmentResponse
+from ....services.attachments.service import DEFAULT_CONTENT_TYPE
 from ...context import AppInfo
 from ..base import IBaseType
 from .enums import EAttachmentKind
@@ -20,8 +22,20 @@ class Attachment(IBaseType):
     key: strawberry.Private[str]
     thumbnail_key: strawberry.Private[str | None]
 
+    def _attachment_url(self, info: AppInfo) -> str:
+        return info.context.services.storage_service.download_url(
+            self.key,
+            name=self.name,
+            content_type=(
+                DEFAULT_CONTENT_TYPE if self.kind == AttachmentKind.FILE else None
+            ),
+        )
+
     @strawberry.field
     def url(self, info: AppInfo) -> str:
+        if self.kind == AttachmentKind.FILE:
+            return self._attachment_url(info)
+
         return info.context.services.storage_service.download_url(self.key)
 
     @strawberry.field
@@ -33,9 +47,7 @@ class Attachment(IBaseType):
 
     @strawberry.field
     def download_url(self, info: AppInfo) -> str:
-        return info.context.services.storage_service.download_url(
-            self.key, name=self.name
-        )
+        return self._attachment_url(info)
 
     @classmethod
     def from_schema(cls, instance: AttachmentResponse) -> Self:

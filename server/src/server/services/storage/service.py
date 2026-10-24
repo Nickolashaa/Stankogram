@@ -53,13 +53,21 @@ class StorageService:
             ExpiresIn=settings.S3_UPLOAD_URL_EXP_SECONDS,
         )
 
-    def download_url(self, key: str, name: str | None = None) -> str:
+    def download_url(
+        self,
+        key: str,
+        name: str | None = None,
+        content_type: str | None = None,
+    ) -> str:
         params: dict[str, str] = {"Bucket": settings.S3_BUCKET, "Key": key}
 
         if name is not None:
             params["ResponseContentDisposition"] = (
                 f"attachment; filename*=UTF-8''{quote(name)}"
             )
+
+        if content_type is not None:
+            params["ResponseContentType"] = content_type
 
         return _presigner().generate_presigned_url(
             "get_object",

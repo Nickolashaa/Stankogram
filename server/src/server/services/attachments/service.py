@@ -1,3 +1,4 @@
+import re
 from collections.abc import Sequence
 from typing import Unpack
 from uuid import uuid4
@@ -17,27 +18,11 @@ CONTENT_TYPES = {
         {"image/jpeg", "image/png", "image/webp", "image/gif"}
     ),
     AttachmentKind.VIDEO: frozenset({"video/mp4", "video/webm", "video/quicktime"}),
-    AttachmentKind.FILE: frozenset(
-        {
-            "application/pdf",
-            "application/msword",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "application/vnd.ms-excel",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "application/vnd.ms-powerpoint",
-            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-            "application/vnd.oasis.opendocument.text",
-            "application/vnd.oasis.opendocument.spreadsheet",
-            "application/vnd.oasis.opendocument.presentation",
-            "application/rtf",
-            "application/zip",
-            "application/x-7z-compressed",
-            "application/vnd.rar",
-            "text/plain",
-            "text/csv",
-        }
-    ),
 }
+
+CONTENT_TYPE_PATTERN = re.compile(r"^[\w.+-]+/[\w.+-]+$")
+CONTENT_TYPE_MAX_LEN = 255
+DEFAULT_CONTENT_TYPE = "application/octet-stream"
 
 MAX_SIZES = {
     AttachmentKind.IMAGE: settings.ATTACHMENT_MAX_IMAGE_SIZE,
@@ -52,12 +37,26 @@ THUMBNAIL_CONTENT_TYPE = "image/jpeg"
 
 class AttachmentService(BaseService):
     @staticmethod
+    def get_content_type(content_type: str) -> str:
+        value = content_type.strip().lower()
+        if value == "":
+            return DEFAULT_CONTENT_TYPE
+
+        if (
+            len(value) > CONTENT_TYPE_MAX_LEN
+            or CONTENT_TYPE_PATTERN.match(value) is None
+        ):
+            raise InvalidInput(f"Malformed attachment type {content_type}")
+
+        return value
+
+    @staticmethod
     def get_kind(content_type: str) -> AttachmentKind:
         for kind, content_types in CONTENT_TYPES.items():
             if content_type in content_types:
                 return kind
 
-        raise InvalidInput(f"Unsupported attachment type {content_type}")
+        return AttachmentKind.FILE
 
     @staticmethod
     def get_max_size(kind: AttachmentKind) -> int:
@@ -67,6 +66,7 @@ class AttachmentService(BaseService):
         self,
         **values: Unpack[AttachmentCreateParams],
     ) -> AttachmentResponse:
+        values["content_type"] = self.get_content_type(values["content_type"])
         kind = self.get_kind(values["content_type"])
         max_size = self.get_max_size(kind)
         if values["size"] <= 0 or values["size"] > max_size:
