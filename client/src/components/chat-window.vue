@@ -25,7 +25,8 @@ import {
 } from "@/lib/format"
 import { linkify } from "@/lib/linkify"
 import {
-  ATTACHMENT_ACCEPT,
+  FILE_ACCEPT,
+  MEDIA_ACCEPT,
   attachmentKind,
   contentTypeOf,
   formatSize,
@@ -284,6 +285,8 @@ type PendingAttachment = {
 }
 
 const fileInputEl = ref<HTMLInputElement | null>(null)
+const fileAccept = ref(MEDIA_ACCEPT)
+const attachMenuOpen = ref(false)
 const pendingAttachments = ref<PendingAttachment[]>([])
 let pendingCounter = 0
 
@@ -363,6 +366,13 @@ async function addFiles(files: File[]) {
       notify.error(error instanceof Error ? error.message : `Не удалось загрузить ${file.name}`)
     }
   }
+}
+
+async function pickFiles(accept: string) {
+  fileAccept.value = accept
+  attachMenuOpen.value = false
+  await nextTick()
+  fileInputEl.value?.click()
 }
 
 async function handleFilePick(event: Event) {
@@ -1012,21 +1022,44 @@ async function handleSubmit() {
         @keyup="syncCaret"
         @click="syncCaret"
       />
+      <div v-if="attachMenuOpen" class="fixed inset-0 z-40" @click="attachMenuOpen = false" />
+      <div
+        v-if="attachMenuOpen"
+        class="glass-strong hairline shadow-float absolute right-3 bottom-full z-50 mb-3 flex w-52 origin-bottom-right animate-pop flex-col gap-0.5 rounded-card p-1.5 lg:right-5"
+      >
+        <button
+          type="button"
+          class="press flex cursor-pointer items-center gap-2.5 rounded-input px-2.5 py-2 text-left text-sm text-main hover:bg-main/6"
+          @click="pickFiles(MEDIA_ACCEPT)"
+        >
+          <NavIcon name="image" :size="16" class="text-second" />
+          Фото или видео
+        </button>
+        <button
+          type="button"
+          class="press flex cursor-pointer items-center gap-2.5 rounded-input px-2.5 py-2 text-left text-sm text-main hover:bg-main/6"
+          @click="pickFiles(FILE_ACCEPT)"
+        >
+          <NavIcon name="file" :size="16" class="text-second" />
+          Файл
+        </button>
+      </div>
+
       <input
         ref="fileInputEl"
         type="file"
         multiple
-        :accept="ATTACHMENT_ACCEPT"
+        :accept="fileAccept"
         class="hidden"
         @change="handleFilePick"
       />
       <Button
         variant="ghost"
-        icon="image"
+        icon="clip"
         class="mb-1 shrink-0"
-        title="Прикрепить файл"
-        aria-label="Прикрепить файл"
-        @click="fileInputEl?.click()"
+        title="Прикрепить"
+        aria-label="Прикрепить"
+        @click="attachMenuOpen = !attachMenuOpen"
       />
       <Button
         variant="ghost"

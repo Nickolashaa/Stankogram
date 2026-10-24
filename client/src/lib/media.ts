@@ -24,9 +24,9 @@ const EXTENSION_CONTENT_TYPES: Record<string, string> = {
 
 export const FILE_CONTENT_TYPES = Object.values(EXTENSION_CONTENT_TYPES)
 
-export const ATTACHMENT_ACCEPT = [
-  ...IMAGE_CONTENT_TYPES,
-  ...VIDEO_CONTENT_TYPES,
+export const MEDIA_ACCEPT = [...IMAGE_CONTENT_TYPES, ...VIDEO_CONTENT_TYPES].join(",")
+
+export const FILE_ACCEPT = [
   ...FILE_CONTENT_TYPES,
   ...Object.keys(EXTENSION_CONTENT_TYPES).map((extension) => `.${extension}`),
 ].join(",")
