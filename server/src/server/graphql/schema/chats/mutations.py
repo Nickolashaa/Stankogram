@@ -5,6 +5,7 @@ import strawberry
 
 from ....enums.events import EventType
 from ....services.attachments.schemas import AttachmentResponse
+from ....services.attachments.service import AttachmentService
 from ....services.chats.participants.schemas import ChatParticipantResponse
 from ....services.events.schemas import ChatParticipantEventSchema
 from ....services.exceptions import InvalidInput, ObjectAlreadyExists, ObjectNotFound
@@ -38,11 +39,7 @@ async def _delete_attachment_objects(
     attachments: Sequence[AttachmentResponse],
 ) -> None:
     await info.context.services.storage_service.delete(
-        [
-            key
-            for attachment in attachments
-            for key in (attachment.key, attachment.thumbnail_key)
-        ]
+        AttachmentService.object_keys(attachments)
     )
 
 

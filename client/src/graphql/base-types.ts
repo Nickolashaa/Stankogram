@@ -32,7 +32,7 @@ export type Attachment = IBaseType & {
   kind: EAttachmentKind
   name: Scalars["String"]["output"]
   size: Scalars["Int"]["output"]
-  thumbnailUrl: Scalars["String"]["output"]
+  thumbnailUrl?: Maybe<Scalars["String"]["output"]>
   updatedAt: Scalars["DateTime"]["output"]
   url: Scalars["String"]["output"]
   width?: Maybe<Scalars["Int"]["output"]>
@@ -41,7 +41,7 @@ export type Attachment = IBaseType & {
 export type AttachmentUpload = {
   __typename?: "AttachmentUpload"
   attachment: Attachment
-  thumbnailUploadUrl: Scalars["String"]["output"]
+  thumbnailUploadUrl?: Maybe<Scalars["String"]["output"]>
   uploadUrl: Scalars["String"]["output"]
 }
 
@@ -142,6 +142,7 @@ export type DeleteMessage = {
 }
 
 export enum EAttachmentKind {
+  File = "FILE",
   Image = "IMAGE",
   Video = "VIDEO",
 }

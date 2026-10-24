@@ -37,7 +37,7 @@ const singleRatio = computed(() => {
       @dblclick.stop
     >
       <img
-        :src="single.thumbnailUrl"
+        :src="single.thumbnailUrl ?? undefined"
         :alt="single.name"
         loading="lazy"
         decoding="async"
@@ -76,7 +76,7 @@ const singleRatio = computed(() => {
         @dblclick.stop
       >
         <img
-          :src="attachment.thumbnailUrl"
+          :src="attachment.thumbnailUrl ?? undefined"
           :alt="attachment.name"
           loading="lazy"
           decoding="async"

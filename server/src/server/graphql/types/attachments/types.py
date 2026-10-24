@@ -18,14 +18,17 @@ class Attachment(IBaseType):
     height: int | None
     duration_ms: int | None
     key: strawberry.Private[str]
-    thumbnail_key: strawberry.Private[str]
+    thumbnail_key: strawberry.Private[str | None]
 
     @strawberry.field
     def url(self, info: AppInfo) -> str:
         return info.context.services.storage_service.download_url(self.key)
 
     @strawberry.field
-    def thumbnail_url(self, info: AppInfo) -> str:
+    def thumbnail_url(self, info: AppInfo) -> str | None:
+        if self.thumbnail_key is None:
+            return None
+
         return info.context.services.storage_service.download_url(self.thumbnail_key)
 
     @strawberry.field
@@ -56,4 +59,4 @@ class Attachment(IBaseType):
 class AttachmentUpload:
     attachment: Attachment
     upload_url: str
-    thumbnail_upload_url: str
+    thumbnail_upload_url: str | None

@@ -23,13 +23,7 @@ async def _cleanup() -> None:
             print("No orphaned attachments found.")
             return
 
-        await StorageService().delete(
-            [
-                key
-                for instance in orphans
-                for key in (instance.key, instance.thumbnail_key)
-            ]
-        )
+        await StorageService().delete(AttachmentService.object_keys(orphans))
         await service.delete([instance.id for instance in orphans])
         await session.commit()
 

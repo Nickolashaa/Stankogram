@@ -4,7 +4,7 @@ export type Incremental<T> =
 import * as Types from "../base-types"
 
 import gql from "graphql-tag"
-export type EAttachmentKind = "IMAGE" | "VIDEO"
+export type EAttachmentKind = "FILE" | "IMAGE" | "VIDEO"
 
 export type AttachmentFieldsFragment = {
   id: number
@@ -16,7 +16,7 @@ export type AttachmentFieldsFragment = {
   height: number | null
   durationMs: number | null
   url: string
-  thumbnailUrl: string
+  thumbnailUrl: string | null
   downloadUrl: string
 }
 
@@ -35,7 +35,7 @@ export type MessageFieldsFragment = {
     height: number | null
     durationMs: number | null
     url: string
-    thumbnailUrl: string
+    thumbnailUrl: string | null
     downloadUrl: string
   }>
   replyTo: { id: number; text: string; user: { id: number; name: string; surname: string } } | null

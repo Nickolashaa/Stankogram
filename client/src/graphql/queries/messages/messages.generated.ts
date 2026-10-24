@@ -19,7 +19,7 @@ export type BasePaginationIn = {
   offset?: number | null | undefined
 }
 
-export type EAttachmentKind = "IMAGE" | "VIDEO"
+export type EAttachmentKind = "FILE" | "IMAGE" | "VIDEO"
 
 export type EUserRole = "STUDENT" | "TEACHER"
 
@@ -63,7 +63,7 @@ export type MessagesQuery = {
         height: number | null
         durationMs: number | null
         url: string
-        thumbnailUrl: string
+        thumbnailUrl: string | null
         downloadUrl: string
       }>
       replyTo: {

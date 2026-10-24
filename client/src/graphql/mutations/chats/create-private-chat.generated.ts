@@ -15,7 +15,7 @@ import {
 import * as VueApolloComposable from "@vue/apollo-composable"
 import * as VueCompositionApi from "vue"
 export type ReactiveFunction<TParam> = () => TParam
-export type EAttachmentKind = "IMAGE" | "VIDEO"
+export type EAttachmentKind = "FILE" | "IMAGE" | "VIDEO"
 
 export type EChatType = "PRIVATE" | "PUBLIC"
 
@@ -84,7 +84,7 @@ export type CreatePrivateChatMutation = {
             height: number | null
             durationMs: number | null
             url: string
-            thumbnailUrl: string
+            thumbnailUrl: string | null
             downloadUrl: string
           }>
           replyTo: {

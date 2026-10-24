@@ -78,7 +78,7 @@ export const useMessageStore = defineStore("messages", () => {
         input: {
           chatId,
           name: file.name,
-          contentType: file.type,
+          contentType: probed.contentType,
           size: file.size,
           width: probed.width,
           height: probed.height,
@@ -93,10 +93,11 @@ export const useMessageStore = defineStore("messages", () => {
       throw new Error(result?.message ?? "Не удалось подготовить загрузку")
     }
 
-    await Promise.all([
-      putFile(result.uploadUrl, file, file.type),
-      putFile(result.thumbnailUploadUrl, probed.thumbnail, "image/jpeg"),
-    ])
+    await putFile(result.uploadUrl, file, probed.contentType)
+
+    if (probed.thumbnail !== null && result.thumbnailUploadUrl !== null) {
+      await putFile(result.thumbnailUploadUrl, probed.thumbnail, "image/jpeg")
+    }
 
     return result.attachment.id
   }

@@ -12,7 +12,7 @@ import {
   type ChatSummary,
 } from "@/stores/chats"
 import { useDraftStore } from "@/stores/drafts"
-import { EChatType } from "@/graphql/base-types"
+import { EAttachmentKind, EChatType } from "@/graphql/base-types"
 import { notify } from "@/lib/notify"
 import {
   shortName,
@@ -24,7 +24,14 @@ import {
   formatDaySeparator,
 } from "@/lib/format"
 import { linkify } from "@/lib/linkify"
-import { ATTACHMENT_ACCEPT, attachmentKind, formatSize, maxSize, messagePreview } from "@/lib/media"
+import {
+  ATTACHMENT_ACCEPT,
+  attachmentKind,
+  contentTypeOf,
+  formatSize,
+  maxSize,
+  messagePreview,
+} from "@/lib/media"
 import { pinForLeave } from "@/lib/transition"
 import { isLargeEmojiMessage } from "@/lib/emoji"
 import { participantBadges, userBadges } from "@/lib/badges"
@@ -39,6 +46,7 @@ import Avatar from "@/components/avatar.vue"
 import EmojiPicker from "@/components/emoji-picker.vue"
 import ContextMenu from "@/components/context-menu.vue"
 import MediaGrid from "@/components/media-grid.vue"
+import AttachmentFiles from "@/components/attachment-files.vue"
 import MediaViewer from "@/components/media-viewer.vue"
 
 const PAGE_SIZE = 30
@@ -130,6 +138,14 @@ function canDeleteMessage(message: MessageItem) {
 
 function canOpenMessageMenu(message: MessageItem) {
   return !isMuted.value || canEditMessage(message) || canDeleteMessage(message)
+}
+
+function mediaOf(message: MessageItem) {
+  return message.attachments.filter((item) => item.kind !== EAttachmentKind.File)
+}
+
+function filesOf(message: MessageItem) {
+  return message.attachments.filter((item) => item.kind === EAttachmentKind.File)
 }
 
 function isEmojiBubble(message: MessageItem) {
@@ -262,7 +278,7 @@ const sending = ref(false)
 
 type PendingAttachment = {
   localId: number
-  previewUrl: string
+  previewUrl: string | null
   name: string
   attachmentId: number | null
 }
@@ -290,7 +306,7 @@ const canSubmit = computed(
 
 function dropPending(localId: number) {
   const item = pendingAttachments.value.find((pending) => pending.localId === localId)
-  if (item !== undefined) {
+  if (item?.previewUrl != null) {
     URL.revokeObjectURL(item.previewUrl)
   }
   pendingAttachments.value = pendingAttachments.value.filter(
@@ -299,16 +315,20 @@ function dropPending(localId: number) {
 }
 
 function clearPending() {
-  pendingAttachments.value.forEach((item) => URL.revokeObjectURL(item.previewUrl))
+  pendingAttachments.value.forEach((item) => {
+    if (item.previewUrl !== null) {
+      URL.revokeObjectURL(item.previewUrl)
+    }
+  })
   pendingAttachments.value = []
 }
 
 async function addFiles(files: File[]) {
   for (const file of files) {
-    const kind = attachmentKind(file.type)
+    const kind = attachmentKind(contentTypeOf(file))
 
     if (kind === null) {
-      notify.error(`${file.name}: можно отправлять только фото и видео`)
+      notify.error(`${file.name}: такой тип файла отправить нельзя`)
       continue
     }
 
@@ -327,7 +347,7 @@ async function addFiles(files: File[]) {
       ...pendingAttachments.value,
       {
         localId,
-        previewUrl: URL.createObjectURL(file),
+        previewUrl: kind === EAttachmentKind.File ? null : URL.createObjectURL(file),
         name: file.name,
         attachmentId: null,
       },
@@ -817,9 +837,10 @@ async function handleSubmit() {
                   </button>
 
                   <MediaGrid
-                    :attachments="row.message.attachments"
-                    @open="openViewer(row.message.attachments, $event)"
+                    :attachments="mediaOf(row.message)"
+                    @open="openViewer(mediaOf(row.message), $event)"
                   />
+                  <AttachmentFiles :attachments="filesOf(row.message)" />
 
                   <div v-if="row.message.text !== ''" class="whitespace-pre-wrap break-words">
                     <template
@@ -910,7 +931,20 @@ async function handleSubmit() {
         :key="item.localId"
         class="relative h-16 w-16 shrink-0 overflow-hidden rounded-input bg-black/15"
       >
-        <img :src="item.previewUrl" :alt="item.name" class="h-full w-full object-cover" />
+        <img
+          v-if="item.previewUrl !== null"
+          :src="item.previewUrl"
+          :alt="item.name"
+          class="h-full w-full object-cover"
+        />
+        <span
+          v-else
+          class="flex h-full w-full flex-col items-center justify-center gap-1 px-1 text-second"
+          :title="item.name"
+        >
+          <NavIcon name="file" :size="18" />
+          <span class="w-full truncate text-center text-[10px]">{{ item.name }}</span>
+        </span>
         <span
           v-if="item.attachmentId === null"
           class="absolute inset-0 flex items-center justify-center bg-black/45 text-[10px] font-medium text-white"
@@ -990,8 +1024,8 @@ async function handleSubmit() {
         variant="ghost"
         icon="image"
         class="mb-1 shrink-0"
-        title="Прикрепить фото или видео"
-        aria-label="Прикрепить фото или видео"
+        title="Прикрепить файл"
+        aria-label="Прикрепить файл"
         @click="fileInputEl?.click()"
       />
       <Button
