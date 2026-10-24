@@ -45,7 +45,7 @@ const infiniteScroll = useInfiniteScroll(
 
 <template>
   <div
-    class="glass hairline shadow-card h-full w-full shrink-0 flex-col overflow-hidden rounded-card lg:flex lg:w-84"
+    class="glass hairline shadow-card h-full w-full shrink-0 flex-col overflow-hidden rounded-card xl:flex xl:w-84"
     :class="mobileHidden ? 'hidden' : 'flex'"
   >
     <div ref="scrollContainer" class="relative flex flex-1 flex-col gap-1 overflow-y-auto p-2.5">

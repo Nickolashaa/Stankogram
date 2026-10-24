@@ -31,7 +31,7 @@ function selectChat(chatId: number) {
 
 <template>
   <AdminPage title="Групповые чаты" :total="adminTotalCount" fill>
-    <div class="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:gap-6">
+    <div class="flex min-h-0 flex-1 flex-col gap-4 xl:flex-row xl:gap-6">
       <AdminChatsListPanel
         :active-chat-id="activeChatId"
         :mobile-hidden="activeChatId !== null"
@@ -39,10 +39,10 @@ function selectChat(chatId: number) {
       />
 
       <template v-if="activeChat">
-        <div class="flex min-h-0 flex-1 flex-col gap-3 lg:contents">
+        <div class="flex min-h-0 flex-1 flex-col gap-3 xl:contents">
           <button
             type="button"
-            class="press glass hairline flex w-fit shrink-0 cursor-pointer items-center gap-2 rounded-full px-3.5 py-2 text-sm font-medium text-second hover:text-main lg:hidden"
+            class="press glass hairline flex w-fit shrink-0 cursor-pointer items-center gap-2 rounded-full px-3.5 py-2 text-sm font-medium text-second hover:text-main xl:hidden"
             @click="router.push('/admin/chats')"
           >
             <NavIcon name="arrow-right" :size="16" class="rotate-180" />
@@ -59,7 +59,7 @@ function selectChat(chatId: number) {
       </template>
       <div
         v-else
-        class="glass hairline shadow-card hidden flex-1 items-center justify-center rounded-card p-10 text-center text-sm text-second lg:flex"
+        class="glass hairline shadow-card hidden flex-1 items-center justify-center rounded-card p-10 text-center text-sm text-second xl:flex"
       >
         <span class="max-w-sm">
           Выберите групповой чат, чтобы посмотреть и отредактировать информацию о нём

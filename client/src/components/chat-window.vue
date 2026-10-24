@@ -694,7 +694,7 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="flex h-full w-full flex-1 flex-col">
+  <div class="flex h-full w-full min-w-0 flex-1 flex-col">
     <div class="glass hairline-b z-10 flex shrink-0 items-center gap-3 px-3 py-3 lg:px-5">
       <button
         type="button"

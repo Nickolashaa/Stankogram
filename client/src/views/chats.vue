@@ -41,7 +41,7 @@ watch(activeChatId, () => {
 </script>
 
 <template>
-  <div class="flex h-dvh">
+  <div class="flex h-dvh overflow-hidden">
     <ChatsListPanel
       :active-chat-id="activeChatId"
       :mobile-hidden="activeChatId !== null"
@@ -56,13 +56,13 @@ watch(activeChatId, () => {
         @back="router.push('/chats')"
         @open-info="mobileInfoOpen = true"
       />
-      <div v-if="activeChat" class="hidden h-full lg:block">
+      <div v-if="activeChat" class="hidden h-full xl:block">
         <ChatMetaPanel :chat="activeChat" @left="handleLeft" />
       </div>
 
       <div
         v-if="mobileInfoOpen && activeChat"
-        class="fixed inset-0 z-50 flex animate-appear justify-end bg-black/45 p-3 backdrop-blur-sm lg:hidden"
+        class="fixed inset-0 z-50 flex animate-appear justify-end bg-black/45 p-3 backdrop-blur-sm xl:hidden"
         @click.self="mobileInfoOpen = false"
       >
         <div class="relative flex h-full w-full max-w-sm animate-pop flex-col">

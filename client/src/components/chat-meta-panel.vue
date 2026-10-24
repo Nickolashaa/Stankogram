@@ -230,8 +230,8 @@ watch(
     class="glass flex h-full w-full flex-col overflow-y-auto"
     :class="
       variant === 'page'
-        ? 'hairline shadow-card flex-1 rounded-card'
-        : 'lg:w-84 lg:shrink-0 lg:hairline-l'
+        ? 'hairline shadow-card min-w-0 flex-1 rounded-card'
+        : 'xl:w-84 xl:shrink-0 xl:hairline-l'
     "
   >
     <div class="hairline-b flex items-center gap-3 px-4 py-5 lg:px-6 lg:py-6">
