@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
-import { EMOJI_GROUPS } from "@/lib/emoji"
+import { EMOJI_GROUPS } from "@/lib/emoji-data"
+import { EMOJI_KEYWORDS } from "@/lib/emoji-keywords"
+import Input from "@/components/input.vue"
 
 const RECENT_STORAGE_KEY = "stankogram:recent-emoji"
 const RECENT_LIMIT = 24
@@ -32,6 +34,37 @@ function readRecent(): string[] {
 
 const recent = ref<string[]>(readRecent())
 const activeGroupId = ref(EMOJI_GROUPS[0]?.id ?? "")
+const query = ref("")
+
+function matchesKeywords(keywords: string, emoji: string, token: string) {
+  return emoji === token || keywords.startsWith(token) || keywords.includes(` ${token}`)
+}
+
+const searchResults = computed(() => {
+  const tokens = query.value.trim().toLowerCase().split(/\s+/).filter(Boolean)
+  if (tokens.length === 0) {
+    return null
+  }
+
+  const seen = new Set<string>()
+  const matched: string[] = []
+
+  for (const group of EMOJI_GROUPS) {
+    for (const emoji of group.emojis) {
+      if (seen.has(emoji)) {
+        continue
+      }
+      seen.add(emoji)
+
+      const keywords = EMOJI_KEYWORDS[emoji] ?? ""
+      if (tokens.every((token) => matchesKeywords(keywords, emoji, token))) {
+        matched.push(emoji)
+      }
+    }
+  }
+
+  return matched
+})
 
 const tabs = computed(() =>
   recent.value.length > 0
@@ -40,6 +73,9 @@ const tabs = computed(() =>
 )
 
 const visibleEmojis = computed(() => {
+  if (searchResults.value !== null) {
+    return searchResults.value
+  }
   if (activeGroupId.value === "recent") {
     return recent.value
   }
@@ -52,6 +88,7 @@ watch(
     if (!isOpen) {
       return
     }
+    query.value = ""
     recent.value = readRecent()
     activeGroupId.value = recent.value.length > 0 ? "recent" : (EMOJI_GROUPS[0]?.id ?? "")
   },
@@ -80,7 +117,14 @@ function handleSelect(emoji: string) {
     v-if="open"
     class="glass-strong hairline shadow-float absolute right-0 bottom-full z-50 mb-3 flex w-full max-w-sm origin-bottom-right animate-pop flex-col overflow-hidden rounded-card"
   >
-    <div class="hairline-b flex shrink-0 gap-0.5 overflow-x-auto px-2 py-2">
+    <div class="shrink-0 px-2 pt-2">
+      <Input v-model="query" placeholder="Поиск эмодзи..." />
+    </div>
+
+    <div
+      v-if="searchResults === null"
+      class="hairline-b flex shrink-0 gap-0.5 overflow-x-auto px-2 py-2"
+    >
       <button
         v-for="tab in tabs"
         :key="tab.id"
@@ -99,7 +143,11 @@ function handleSelect(emoji: string) {
       </button>
     </div>
 
-    <div class="grid max-h-56 grid-cols-8 gap-0.5 overflow-y-auto p-2">
+    <div v-if="visibleEmojis.length === 0" class="px-3 py-6 text-center text-sm text-second">
+      Ничего не найдено
+    </div>
+
+    <div v-else class="grid max-h-56 grid-cols-8 gap-0.5 overflow-y-auto p-2">
       <button
         v-for="(emoji, index) in visibleEmojis"
         :key="`${emoji}-${index}`"

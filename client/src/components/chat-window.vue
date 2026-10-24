@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue"
+import { computed, defineAsyncComponent, nextTick, onMounted, onUnmounted, ref, watch } from "vue"
 import { useRoute } from "vue-router"
 import { storeToRefs } from "pinia"
 import { useDebounceFn, useInfiniteScroll } from "@vueuse/core"
@@ -44,11 +44,12 @@ import Button from "@/components/button.vue"
 import Badge from "@/components/badge.vue"
 import NavIcon from "@/components/nav-icon.vue"
 import Avatar from "@/components/avatar.vue"
-import EmojiPicker from "@/components/emoji-picker.vue"
 import ContextMenu from "@/components/context-menu.vue"
 import MediaGrid from "@/components/media-grid.vue"
 import AttachmentFiles from "@/components/attachment-files.vue"
 import MediaViewer from "@/components/media-viewer.vue"
+
+const EmojiPicker = defineAsyncComponent(() => import("@/components/emoji-picker.vue"))
 
 const PAGE_SIZE = 30
 const MAX_ATTACHMENTS = 10
@@ -973,7 +974,12 @@ async function handleSubmit() {
       class="glass hairline-t relative flex shrink-0 items-end gap-2.5 px-3 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))] lg:px-5 lg:py-4"
       @submit.prevent="handleSubmit"
     >
-      <EmojiPicker :open="emojiPickerOpen" @close="emojiPickerOpen = false" @select="insertEmoji" />
+      <EmojiPicker
+        v-if="emojiPickerOpen"
+        :open="emojiPickerOpen"
+        @close="emojiPickerOpen = false"
+        @select="insertEmoji"
+      />
 
       <div
         v-if="mentionCandidates.length > 0"
