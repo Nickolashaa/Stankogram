@@ -93,7 +93,7 @@ export const useMessageStore = defineStore("messages", () => {
       throw new Error(result?.message ?? "Не удалось подготовить загрузку")
     }
 
-    await putFile(result.uploadUrl, file, probed.contentType)
+    await putFile(result.uploadUrl, file, result.attachment.contentType)
 
     if (probed.thumbnail !== null && result.thumbnailUploadUrl !== null) {
       await putFile(result.thumbnailUploadUrl, probed.thumbnail, "image/jpeg")

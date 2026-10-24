@@ -22,14 +22,11 @@ const EXTENSION_CONTENT_TYPES: Record<string, string> = {
   csv: "text/csv",
 }
 
-export const FILE_CONTENT_TYPES = Object.values(EXTENSION_CONTENT_TYPES)
-
 export const MEDIA_ACCEPT = [...IMAGE_CONTENT_TYPES, ...VIDEO_CONTENT_TYPES].join(",")
 
-export const FILE_ACCEPT = [
-  ...FILE_CONTENT_TYPES,
-  ...Object.keys(EXTENSION_CONTENT_TYPES).map((extension) => `.${extension}`),
-].join(",")
+export const FILE_ACCEPT = "*/*"
+
+export const DEFAULT_CONTENT_TYPE = "application/octet-stream"
 
 export const MAX_IMAGE_SIZE = 20 * 1024 * 1024
 export const MAX_VIDEO_SIZE = 100 * 1024 * 1024
@@ -53,20 +50,17 @@ export function contentTypeOf(file: File): string {
     return file.type
   }
   const extension = file.name.split(".").pop()?.toLowerCase() ?? ""
-  return EXTENSION_CONTENT_TYPES[extension] ?? ""
+  return EXTENSION_CONTENT_TYPES[extension] ?? DEFAULT_CONTENT_TYPE
 }
 
-export function attachmentKind(contentType: string): EAttachmentKind | null {
+export function attachmentKind(contentType: string): EAttachmentKind {
   if (IMAGE_CONTENT_TYPES.includes(contentType)) {
     return EAttachmentKind.Image
   }
   if (VIDEO_CONTENT_TYPES.includes(contentType)) {
     return EAttachmentKind.Video
   }
-  if (FILE_CONTENT_TYPES.includes(contentType)) {
-    return EAttachmentKind.File
-  }
-  return null
+  return EAttachmentKind.File
 }
 
 export function maxSize(kind: EAttachmentKind): number {
@@ -205,10 +199,6 @@ async function probeVideo(file: File): Promise<ProbedMedia> {
 export async function probeMedia(file: File): Promise<ProbedMedia> {
   const contentType = contentTypeOf(file)
   const kind = attachmentKind(contentType)
-
-  if (kind === null) {
-    throw new Error("Такой тип файла отправить нельзя")
-  }
 
   if (file.size > maxSize(kind)) {
     throw new Error(`Файл больше ${formatSize(maxSize(kind))}`)

@@ -330,11 +330,6 @@ async function addFiles(files: File[]) {
   for (const file of files) {
     const kind = attachmentKind(contentTypeOf(file))
 
-    if (kind === null) {
-      notify.error(`${file.name}: такой тип файла отправить нельзя`)
-      continue
-    }
-
     if (file.size > maxSize(kind)) {
       notify.error(`${file.name}: файл больше ${formatSize(maxSize(kind))}`)
       continue
