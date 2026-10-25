@@ -36,5 +36,18 @@ const navItems: { to: string; label: string; icon: "users" | "chats" | "bell" }[
         <span class="whitespace-nowrap lg:whitespace-normal">{{ item.label }}</span>
       </a>
     </RouterLink>
+
+    <a
+      href="/admin-guide.docx"
+      download="Инструкция администратора.docx"
+      class="press group flex shrink-0 cursor-pointer items-center gap-3 rounded-card px-2.5 py-2.5 text-[15px] font-medium pill-idle lg:mt-auto"
+    >
+      <span
+        class="chip-idle flex h-9 w-9 shrink-0 items-center justify-center rounded-input transition-all duration-300 group-hover:text-main"
+      >
+        <NavIcon name="download" :size="18" />
+      </span>
+      <span class="whitespace-nowrap lg:whitespace-normal">Инструкция</span>
+    </a>
   </nav>
 </template>
