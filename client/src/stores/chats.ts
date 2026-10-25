@@ -354,9 +354,11 @@ export const useChatStore = defineStore("chats", () => {
   }
 
   function handleRemoveParticipant(chatId: number, userId: number) {
+    const chat = chats.value.find((item) => item.id === chatId)
+
     removeParticipantIn(adminChats, chatId, userId)
 
-    if (userId === authStore.user?.id) {
+    if (userId === authStore.user?.id || chat?.type === EChatType.Private) {
       removeChatIn(chats, totalCount, chatId)
       return
     }

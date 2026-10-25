@@ -5,6 +5,7 @@ import { useAuthStore } from "@/stores/auth"
 import { useChatStore } from "@/stores/chats"
 import { useMessageStore } from "@/stores/messages"
 import { useEventsSubscription } from "@/graphql/subscriptions/events.generated"
+import { EChatType } from "@/graphql/base-types"
 import { notify } from "@/lib/notify"
 import AppNav from "@/components/app-nav.vue"
 
@@ -25,13 +26,16 @@ onMounted(() => {
 })
 
 function handleRemoveParticipant(chatId: number, userId: number) {
+  const isSelf = userId === authStore.user?.id
+  const isPrivate = chatStore.chats.find((chat) => chat.id === chatId)?.type === EChatType.Private
+
   chatStore.handleRemoveParticipant(chatId, userId)
 
-  if (userId !== authStore.user?.id || Number(route.params.chatId) !== chatId) {
+  if ((!isSelf && !isPrivate) || Number(route.params.chatId) !== chatId) {
     return
   }
 
-  notify.info("Вас удалили из чата")
+  notify.info(isSelf ? "Вас удалили из чата" : "Чат удалён")
   router.push("/chats")
 }
 
