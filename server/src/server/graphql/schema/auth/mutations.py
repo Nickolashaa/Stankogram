@@ -7,8 +7,13 @@ from fastapi import UploadFile
 from strawberry.file_uploads import Upload
 
 from ....config import settings
+from ....enums.chats import ChatType
+from ....enums.events import EventType
 from ....enums.rate_limit import RateLimitScope
+from ....services.attachments.schemas import AttachmentResponse
+from ....services.attachments.service import AttachmentService
 from ....services.auth.schemas import JWTPayload
+from ....services.events.schemas import ChatParticipantEventSchema
 from ....services.exceptions import (
     InvalidInput,
     ObjectAlreadyExists,
@@ -206,8 +211,54 @@ class AuthMutation:
         info: AuthorizedAppInfo,
         id: int,
     ) -> None:
-        await info.context.services.auth_service.delete(id)
+        services = info.context.services
+
+        links = await services.chat_participant_service.get_list(user_id=id)
+
+        recipient_ids: dict[int, list[int]] = {}
+        orphaned: dict[int, AttachmentResponse] = {}
+
+        for link in links:
+            peers = await services.chat_participant_service.get_list(
+                chat_id=link.chat_id,
+                exclude_user_ids=[id],
+            )
+            recipient_ids[link.chat_id] = [peer.user_id for peer in peers]
+
+            chat = await services.chat_service.get(link.chat_id)
+            if chat.type == ChatType.PRIVATE or not peers:
+                orphaned.update(
+                    {
+                        attachment.id: attachment
+                        for attachment in await services.attachment_service.get_list(
+                            chat_id=link.chat_id
+                        )
+                    }
+                )
+
+        orphaned.update(
+            {
+                attachment.id: attachment
+                for attachment in await services.attachment_service.get_list(user_id=id)
+            }
+        )
+
+        await services.chat_participant_service.purge_user(id)
+        await services.auth_service.delete(id)
         await info.context.session.commit()
+
+        await services.storage_service.delete(
+            AttachmentService.object_keys(list(orphaned.values()))
+        )
+
+        for link in links:
+            await services.event_service.publish(
+                recipient_ids[link.chat_id],
+                ChatParticipantEventSchema(
+                    type=EventType.REMOVE_CHAT_PARTICIPANT,
+                    participant=link,
+                ),
+            )
 
     @strawberry.mutation
     async def user_reset_password_request(

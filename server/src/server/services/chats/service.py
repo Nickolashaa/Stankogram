@@ -59,9 +59,10 @@ class ChatService(BaseService):
     async def delete(
         self,
         id: int,
+        force: bool = False,
     ) -> None:
         chat = await self.get(id)
-        if chat.type == ChatType.PRIVATE:
+        if chat.type == ChatType.PRIVATE and not force:
             raise InvalidInput("Private chat cannot be deleted")
 
         stmt = delete(Chat).where(Chat.id == id)

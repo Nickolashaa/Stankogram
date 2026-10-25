@@ -101,6 +101,21 @@ class ChatParticipantService(BaseService):
             is_admin=True,
         )
 
+    async def purge_user(
+        self,
+        user_id: int,
+    ) -> None:
+        links = await self.get_list(user_id=user_id)
+
+        for link in links:
+            chat = await self._chat_service.get(link.chat_id)
+
+            if chat.type == ChatType.PRIVATE:
+                await self._chat_service.delete(link.chat_id, force=True)
+                continue
+
+            await self.leave(chat_id=link.chat_id, user_id=user_id)
+
     @staticmethod
     def _apply_filters(
         stmt: Select[tuple[ChatParticipant]],
